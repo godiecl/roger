@@ -1,0 +1,191 @@
+
+:doctype: book
+:imagesdir: img
+:toc: left
+:toclevels: 3
+
+[.text-center]
+--
+image::logo.png[width=152,height=151]
+--
+
+= Documento de Diseño de Interfaces de Usuario ROGER
+
+*Proyecto:* Plataforma Tecnológica para la Visibilización de Colecciones Patrimoniales
+
+*Versión:* V0.1  
+
+*Fecha:* 21 de septiembre de 2025  
+
+Índice
+
+link:#introduccion[*1. Introducción*]
+
+link:#proposito-del-documento[1.1. Propósito del documento]
+
+link:#alcance-del-diseno[1.2. Alcance del diseño]
+
+link:#flujo-de-usuario-y-proceso-interactivo[*2. Flujo de Usuario y Proceso Interactivo*]
+
+link:#acceso-publico-pagina-de-inicio[2.1. Acceso Público (Página de Inicio)]
+
+link:#seccion-de-contenido-abierto-y-consulta[2.2. Sección de Contenido Abierto y Consulta]
+
+link:#proceso-de-autenticacion-inicio-de-sesion[2.3. Proceso de Autenticación (Inicio de Sesión)]
+
+link:#panel-de-control-acceso-con-roles[2.4. Panel de Control (Acceso con Roles) ]
+
+link:#estructura-y-componentes-de-la-interfaz[*3. Estructura y Componentes de la Interfaz*]
+
+link:#pagina-publica[3.1. Página Pública]
+
+link:#modulo-de-autenticacion[3.2. Módulo de Autenticación]
+
+link:#modulo-de-curacion-y-administracion[3.3. Módulo de Curación y Administración]
+
+
+link:#normas-graficas-y-prototipo-visual[*4. Normas Gráficas y Prototipo Visual*]
+
+link:#normas-graficas[4.1. Normas Gráficas]
+
+link:#prototipo-visual[4.2. Prototipo Visual]
+
+link:#prototipo-de-interfaz-grafica[4.3. Prototipo de Interfaz Gráfica]
+
+
+[[introduccion]]
+== Introducción
+
+[[proposito-del-documento]]
+=== 1.1. Propósito del documento
+El propósito de este documento es detallar el diseño de la interfaz de usuario para la plataforma ROGER, describiendo la experiencia de usuario, la navegación, los componentes visuales y las directrices de diseño. Servirá como guía para el desarrollo del front-end, asegurando que la plataforma sea intuitiva, accesible y visualmente atractiva para todos los usuarios.
+
+[[alcance-del-diseno]]
+=== 1.2. Alcance del diseño
+Este documento abarca el diseño de la interfaz para la página pública, el proceso de autenticación y los paneles de control para los diferentes roles del sistema (Usuario Estándar, Curador/Experto, Administrador). No incluye el diseño detallado de módulos de backend.
+
+
+[[flujo-de-usuario-y-proceso-interactivo]]
+== Flujo de Usuario y Proceso Interactivo
+
+El siguiente flujo describe la experiencia del usuario a través de los diferentes niveles de acceso, garantizando una navegación intuitiva para todos los roles. Este proceso está diseñado para guiar al usuario desde el acceso inicial hasta la interacción con los contenidos más complejos.
+
+[[acceso-publico-pagina-de-inicio]]
+=== 2.1. Acceso Público (Página de Inicio)
+*Acceso:* El usuario entra a la plataforma sin necesidad de credenciales. 
+
+*Propósito:* Ofrecer una visión general y una primera experiencia con el contenido.  
+
+*Justificación de Diseño:*  
+La página principal se organiza para ser similar a la Biblioteca Nacional Digital de Chile, mostrando de manera destacada los logos de las instituciones asociadas (ANID, UCN) para generar confianza y validar el proyecto. Se incluye una sección de contenido curado para explorar *clusters* de imágenes y una línea de tiempo visual, inspirada en las mejores prácticas de visualización de datos históricos. También se incorporará un campo de texto similar a las interfaces de IA generativa (como Gemini o GPT) que permitirá al usuario realizar consultas directas y obtener narrativas sin necesidad de iniciar sesión.
+
+*Funcionalidad Clave:* Permite la búsqueda y la visualización de narrativas sin necesidad de inicio de sesión, así como la interacción directa con el modelo de IA para generar nuevas consultas.
+
+[[seccion-de-contenido-abierto-y-consulta]]
+=== 2.2. Sección de Contenido Abierto y Consulta
+*Acceso:* Desde la página de inicio o mediante la búsqueda. 
+
+*Propósito:* Permitir a los usuarios explorar la colección.  
+
+*Justificación de Diseño:*  
+La interfaz de búsqueda está inspirada en *Memoria Chilena*, ofreciendo filtros detallados por autor, año y ubicación. Esto asegura que el usuario pueda refinar su búsqueda de manera eficiente. Los resultados se presentan en un formato de cuadrícula, que es un estándar en plataformas de archivos digitales.
+
+*Funcionalidad Clave:* Búsqueda, filtrado y visualización de imágenes y narrativas, además de la capacidad de generar consultas de IA con un input conversacional.
+
+[[proceso-de-autenticacion-inicio-de-sesion]]
+=== 2.3. Proceso de Autenticación (Inicio de Sesión)
+*Acceso:* A través del botón de "Inicio de Sesión" en el encabezado.  
+
+*Propósito:* Autenticar a los usuarios con permisos especiales (Curador/Experto y Administrador).  
+
+*Justificación de Diseño:*  
+El proceso es directo y seguro, llevando al usuario a un panel de control personalizado basado en su rol.
+
+[[panel-de-control-acceso-con-roles]]
+=== 2.4. Panel de Control (Acceso con Roles)
+*Acceso:* Después de un inicio de sesión exitoso.  
+
+*Propósito:* Proveer herramientas de gestión y curación según el rol del usuario.  
+
+*Justificación de Diseño:*  
+
+- *Curador/Experto:* Su panel incluirá funciones para validar datos, aportar metadatos y moderar narrativas, diseñadas para ser simples y efectivas.  
+
+- *Administrador:* El panel de control tendrá una vista consolidada para la gestión de usuarios y la configuración de la plataforma, diseñada para ser eficiente y clara.  
+
+
+[[estructura-y-componentes-de-la-interfaz]]
+== Estructura y Componentes de la Interfaz
+
+Esta sección define los elementos clave que formarán la interfaz de usuario, asegurando una navegación consistente y una experiencia unificada.
+
+[[pagina-publica]]
+=== 3.1. Página Pública
+La página de inicio y las secciones de contenido abierto incluirán los siguientes componentes:
+
+- *Banner Superior:* Un banner que facilite la navegación, incluyendo el logotipo del proyecto, un campo de búsqueda principal y botones para "Inicio de Sesión" y "Quienes Somos".  
+- *Logos de Afiliación:* Se mostrarán los logos de las instituciones patrocinadoras (UCN, ANID, Corporación Cultural de Antofagasta, etc.) en un lugar visible, como el pie de página o el banner, para generar confianza y credibilidad.  
+- *Sección "Quienes Somos":* Una página dedicada a describir el proyecto, sus objetivos y los equipos involucrados, proporcionando transparencia y contexto a los usuarios.  
+
+[[modulo-de-autenticacion]]
+=== 3.2. Módulo de Autenticación
+El módulo de inicio de sesión será una interfaz limpia y minimalista, solicitando el nombre de usuario y la contraseña. Debe incluir enlaces para recuperar la contraseña o contactar a soporte técnico en caso de problemas.
+
+[[modulo-de-curacion-y-administracion]]
+=== 3.3. Módulo de Curación y Administración
+Estas interfaces de usuario serán más robustas, con menús de navegación laterales o superiores que permitan a los usuarios con roles específicos acceder a sus herramientas de manera rápida y eficiente. Las acciones (por ejemplo, aprobación de narrativas, edición de metadatos) serán visibles y claramente etiquetadas.
+
+
+[[normas-graficas-y-prototipo-visual]]
+== Normas Gráficas y Prototipo Visual
+
+Este apartado detalla las directrices de diseño visual que guiarán la construcción de la interfaz.
+
+[[normas-graficas]]
+=== 4.1. Normas Gráficas
+Las normas gráficas utilizadas en la interfaz serán las de la *Universidad Católica del Norte (UCN)*. Esto incluye la paleta de colores, la tipografía y el uso adecuado del logotipo institucional.  
+Los logos de los patrocinadores (ANID, Ministerio de Ciencia, Tecnología, Conocimiento e Innovación, y Corporación Cultural de Antofagasta) se incluirán en las ubicaciones acordadas para dar el reconocimiento adecuado.
+
+[[4-2-prototipo-visual]]
+=== 4.2. Prototipo Visual
+Este prototipo sirve como un mapa visual que permite al equipo de desarrollo y a los *stakeholders* experimentar con el flujo de la aplicación. Los elementos de la interfaz, como botones, campos de búsqueda y cuadrículas de imágenes, se definirán en esta sección. Su propósito es validar la usabilidad de la plataforma antes de la etapa de desarrollo. Aquí se incluirán *wireframes* y *mockups*.
+
+[[4-3-prototipo-de-interfaz-grafica]]
+=== 4.3. Prototipo de Interfaz Gráfica
+A continuación, se presentan los bocetos y *wireframes* de las pantallas principales de la plataforma, que ilustran la estructura y el diseño propuesto:
+
+[.text-center]
+--
+image::imagen1.png[]
+Prototipo de página de inicio
+--
+
+[.text-center]
+--
+image::imagen2.png[]
+Prototipo de página de búsqueda de la plataforma ROGER
+--
+
+[.text-center]
+--
+image::imagen3.png[]
+Prototipo de la interfaz de fotografías
+--
+
+[.text-center]
+--
+image::imagen4.png[]
+Prototipo de interfaz de Narrativas
+--
+
+[.text-center]
+--
+image::imagen5.png[]
+Prototipo de interfaz de línea de tiempo
+--
+
+[.text-center]
+--
+image::imagen6.png[]
+Referencia de diseño: La Biblioteca Nacional de Chile, un ejemplo para la organización de contenido digital
+--
