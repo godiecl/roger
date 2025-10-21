@@ -1,0 +1,100 @@
+@startuml
+
+skin rose
+hide empty members
+' left to right direction
+
+skinparam  {
+    defaultFontSize             16
+    shadowing                   true
+    RoundCorner                 10
+    packageBackgroundColor      LightGoldenRodYellow
+    'backgroundColor             transparent
+    'handwritten                 true
+    'change to 150 to increase the quality of the image
+    dpi                         150
+}
+
+package roger {
+
+    package "Usuarios" {
+
+        entity Persona {
+            * RUT/Pasaporte
+            * Nombres
+            * Apellidos
+            * Correo Electrónico
+            * Celular
+            * Nacionalidad
+            ..
+            * Login
+            * Contraseña
+            * Fecha de Creación
+            * Fecha de Caducidad
+            * Activa
+        }
+
+        enum Rol {
+            * Administrador
+            * Curador/Experto
+            * Usuario
+            * Mesa Evaluadora
+            * Investigador
+            * Digitalizador
+        }
+        Rol "1..*" <-- Persona : < tiene roles
+
+    }
+
+    package "Recursos Digitales" {
+
+        entity "Colección" as Coleccion {
+            * Nombre
+            * Descripción
+            * Fecha de Creación
+        }
+
+        entity Imagen {
+            * Id: ULID
+            * Alto
+            * Ancho
+            * Licencia
+            * Derechos de Autor/Uso
+            * Fecha de Creación
+            * Fecha de Digitalización
+        }
+        Imagen "*" <-- Persona : < responsable
+        Imagen "*" <-- Persona : < digitalizado por
+        Imagen "1..*" <-- "Coleccion": < pertenece a
+
+        enum TipoImagen {
+            * JPG
+            * PNG
+            * TIFF
+        }
+        TipoImagen "1..*" <-- Imagen : < es de tipo
+
+        entity Metadato {
+            * Etiqueta
+            * Valor
+        }
+        Metadato "1..*" <-- Imagen : < tiene
+    }
+
+    package "Research" {
+
+        entity Proyecto {
+            * Nombre
+            * Descripción
+            * Fecha de Inicio
+            * Fecha de Término
+        }
+        Proyecto "*" <-- Persona : < es responsable
+        Proyecto --> "*" Coleccion: > utiliza
+        Proyecto --> "*" Imagen: > utiliza
+
+    }
+
+}
+
+@enduml
