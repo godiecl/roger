@@ -1,0 +1,138 @@
+@startuml
+
+skin rose
+hide empty members
+
+skinparam  {
+    defaultFontSize             16
+    shadowing                   true
+    RoundCorner                 10
+    packageBackgroundColor      LightGoldenRodYellow
+    dpi                         150
+}
+
+package roger {
+
+    package "Usuarios" {
+        entity Usuario {
+            * ID: UUID
+            * Nombre
+            * Correo Electrónico
+            * Login
+            * Contraseña
+            * EstadoCuenta
+            * Fecha de Creación
+            * Fecha de Caducidad
+        }
+
+        enum Rol {
+            * Administrador
+            * Curador/Experto
+            * Usuario
+            * Investigador
+            * Digitalizador
+            * Colaborador
+        }
+
+        Rol "1..*" <-- Usuario : < tiene roles
+    }
+
+    package "Recursos Digitales" {
+        entity "Colección" as Coleccion {
+            * ID: UUID
+            * Nombre
+            * Descripción
+            * Fecha de Creación
+        }
+
+        entity Imagen {
+            * ID: UUID
+            * Título
+            * Fecha
+            * Descripción
+            * Formato
+            * Vistas
+        }
+
+        entity Ubicacion {
+            * Nombre
+            * Tipo
+            * Latitud
+            * Longitud
+        }
+
+        entity Etiqueta {
+            * Nombre
+            * Origen (IA/Humano)
+            * Validada
+        }
+
+        Coleccion "1" <-- "*" Imagen : < contiene
+        Imagen "*" <-- "Usuario" : < digitalizado por
+        Imagen "*" <-- "Usuario" : < responsable
+        Imagen "0..*" <-- "Ubicacion" : < ubicada en
+        Imagen "0..*" <-- "Etiqueta" : < tiene
+    }
+
+    package "Narrativas y Conocimiento" {
+        entity Proyecto {
+            * ID: UUID
+            * Título
+            * Descripción
+            * Fecha de Inicio
+            * Fecha de Término
+        }
+
+        entity Narrativa {
+            * Texto
+            * Veracidad (Veraz/Verosímil)
+            * Estado
+            * Origen (IA/Humano)
+        }
+
+        entity Fuente {
+            * Cita
+            * Detalle
+        }
+
+        entity Comparacion {
+            * Descripción
+            * Estado (Sugerida/Aprobada)
+            * Fecha de Propuesta
+        }
+
+        entity Evento {
+            * Descripción
+            * Fecha
+            * Categoría
+        }
+
+        Proyecto "*" <-- Usuario : < liderado por
+        Proyecto "*" <-- Imagen : < utiliza
+        Proyecto "*" <-- Coleccion : < utiliza
+
+        Narrativa "*" <-- Imagen : < refiere a
+        Narrativa "*" <-- Fuente : < respaldada por
+        Narrativa "*" <-- Usuario : < validada por
+
+        Comparacion "*" <-- Imagen : < imagen antigua
+        Comparacion "*" <-- Imagen : < imagen moderna
+    }
+
+    package "Colaboración" {
+        entity Contribucion {
+            * Tipo
+            * Detalle
+            * Fecha
+            * Estado (Pendiente/Aprobada/Rechazada)
+            * Comentario Moderador
+        }
+
+        Contribucion "*" <-- Usuario : < propuesta por
+        Contribucion "*" <-- Imagen : < sobre imagen
+        Contribucion "*" <-- Coleccion : < sobre colección
+    }
+
+}
+
+@enduml
