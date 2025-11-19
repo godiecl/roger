@@ -2,7 +2,7 @@
 
 skin rose
 hide empty members
-' left to right direction
+left to right direction
 
 skinparam  {
     defaultFontSize             16
@@ -12,8 +12,10 @@ skinparam  {
     'backgroundColor             transparent
     'handwritten                 true
     'change to 150 to increase the quality of the image
-    dpi                         150
+    ' dpi                         120
 }
+
+' TODO: (durrutia) rename all to english
 
 package roger {
 
@@ -26,6 +28,7 @@ package roger {
             * Correo Electrónico
             * Celular
             * Nacionalidad
+            * Género
             ..
             * Login
             * Contraseña
@@ -33,6 +36,15 @@ package roger {
             * Fecha de Caducidad
             * Activa
         }
+
+        ' Etiqueta: lugar, valor: Santiago
+        ' Etiqueta: color, valor: RBG
+        ' Etiqueta: estado, valor: algo
+        ' Etiqueta: observacion, valor: ...
+        ' Etiqueta: numero_autor, valor:
+        ' Etiqueta: tituto_autor, valor: santiago
+
+
 
         enum Rol {
             * Administrador
@@ -54,23 +66,32 @@ package roger {
             * Fecha de Creación
         }
 
+        ' @see https://schema.org/ImageObject
         entity Imagen {
-            * Id: ULID
-            * Alto
-            * Ancho
+            * Key: ULID
+            * Nombre del Archivo
+            * Identificador [Carolina Castañeda]
+            * Identificación Localización Física Original
+            * Fecha de Digitalización
+            * Internal Cronology
+            ..
+            * Alto Pixeles
+            * Ancho Pixeles
+            * Profundidad de Color
+            * Resolution [ESO?]
+            ..
             * Licencia
             * Derechos de Autor/Uso
-            * Fecha de Creación
-            * Fecha de Digitalización
         }
         Imagen "*" <-- Persona : < responsable
         Imagen "*" <-- Persona : < digitalizado por
         Imagen "1..*" <-- "Coleccion": < pertenece a
 
         enum TipoImagen {
+            * CR3 [master]
+            * TIFF
             * JPG
             * PNG
-            * TIFF
         }
         TipoImagen "1..*" <-- Imagen : < es de tipo
 
@@ -79,6 +100,25 @@ package roger {
             * Valor
         }
         Metadato "1..*" <-- Imagen : < tiene
+
+        entity Dimension {
+            * Subject Detection
+            * Object Detection
+            * Geolocalization
+            * Temporality
+            * Cronology
+        }
+        ' Dimension "0..*" <-- Imagen : < had
+        ' TODO: add date, model, person, etc.
+
+        ' https://iiif.io/
+
+        ' Dimensions:
+        ' 1. Subject detection.
+        ' 2. Object detection.
+        ' 3. Geolocalization: Berlin.
+        ' 4. Temporality: August 13th 1962 14:15 hrs.
+        ' 5. Internal cronology: Where is located the image in a serie?
     }
 
     package "Research" {
@@ -92,6 +132,15 @@ package roger {
         Proyecto "*" <-- Persona : < es responsable
         Proyecto --> "*" Coleccion: > utiliza
         Proyecto --> "*" Imagen: > utiliza
+
+        entity Experiment {
+            * Description
+            * Date
+        }
+        Experiment --> "1" Imagen
+        Experiment --> "1" Dimension
+        Experiment --> "1" Persona
+        Experiment --> "*" Metadato
 
     }
 
