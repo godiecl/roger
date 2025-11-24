@@ -1,0 +1,13 @@
+coloredlogs==15.0.1          # Colored terminal output for Python's logging module
+fastapi[standard]==0.121.3   # FastAPI framework, high performance, easy to learn, fast to code
+huggingface_hub==1.1.5       # A library to easily download and upload models and datasets from Hugging Face
+humanize==4.14.0             # Python library for humanizing data
+mypy==1.18.2                 # Optional static typing for Python
+openai==2.8.1                # OpenAI Python library to access the OpenAI API
+openpyxl==3.1.5              # A Python library to read/write Excel 2010 xlsx/xlsm files
+pydantic==2.12.4             # Data validation using Python type hints
+python-dotenv==1.2.1         # Read key-value pairs from a .env file and set them as environment variables
+ruff==0.14.6                 # An extremely fast Python linter and code formatter, written in Rust.
+# sentence-transformers==5.1.2 # Sentence Transformers: Sentence Embeddings for Siamese BERT-Networks
+tqdm==4.67.1                 # Fast, Extensible Progress Meter
+typeguard==4.4.4             # Run-time type checker for Python
