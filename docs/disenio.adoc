@@ -1,0 +1,41 @@
+= Diseño de Software: ROGER
+:author: Equipo TI
+:revnumber: 1.0
+:revdate: enero 2026
+// :revremark: Adición del documento de diseño
+:description: Documento que detalla el diseño de software para el proyecto ROGER.
+:keywords: requerimientos, análisis, diseño, ROGER
+:doctype: book
+:icons: font
+:sectnums: all
+:source-highlighter: rouge
+:imagesdir: img
+:toc: left
+:toclevels: 4
+:toc-title: Tabla de Contenidos
+:part-label: Parte
+:chapter-label: Capítulo
+:appendix-caption: Anexo
+:abstract-title: Resumen
+:bibliography-title: Bibliografía
+:glossary-title: Glosario
+:index-title: Índice
+:figure-caption: Figura
+
+== Introducción
+
+*Nombre del Proyecto*: Plataforma Tecnológica para la Visibilización de Colecciones Patrimoniales.
+
+== Arquitectura General
+
+=== Modelo del Dominio
+
+=== API e Interfaces
+
+== Herramientas y Tecnologías
+
+=== Lenguajes de Programación
+
+=== Frameworks y Librerías
+
+=== Bases de Datos
