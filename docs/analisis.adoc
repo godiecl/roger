@@ -1,0 +1,337 @@
+= Especificación de Requerimientos: ROGER
+:author: Equipo TI
+:revnumber: 2.1
+:revdate: diciembre 2025
+:revremark: Actualización de requerimientos
+:description: Análisis de requerimientos del sistema ROGER
+:keywords: requerimientos, análisis, ROGER
+:doctype: book
+:icons: font
+:sectnums: all
+:source-highlighter: rouge
+:imagesdir: img
+:toc: left
+:toclevels: 4
+:toc-title: Tabla de Contenidos
+:part-label: Parte
+:chapter-label: Capítulo
+:appendix-caption: Anexo
+:abstract-title: Resumen
+:bibliography-title: Bibliografía
+:glossary-title: Glosario
+:index-title: Índice
+:figure-caption: Figura
+
+== Introducción
+
+*Nombre del Proyecto*: Plataforma Tecnológica para la Visibilización de Colecciones Patrimoniales.
+
+=== Propósito
+
+El propósito de este documento es especificar los requerimientos de software para el desarrollo del proyecto ROGER.
+Este ERS servirá como un acuerdo formal entre el equipo de desarrollo y los stakeholders del proyecto, describiendo las funcionalidades, características y restricciones que debe cumplir el sistema.
+Además, proporciona una base para la planificación, ejecución y validación del proyecto, asegurando que el producto final cumpla con las expectativas y objetivos establecidos en la formulación del proyecto FONDEF.
+
+=== Alcance
+
+Este documento está dirigido a:
+
+* Público General.
+* Curadores y Expertos del proyecto.
+* Administradores del sistema.
+* Equipo de desarrollo de software.
+
+=== Contexto del sistema
+
+El proyecto ROGER es una iniciativa financiada por FONDEF, con la Universidad Católica del Norte (UCN) como entidad beneficiaria y la Corporación Cultural de Antofagasta como entidad asociada.
+El objetivo principal es desarrollar una plataforma web que, mediante el uso de inteligencia artificial generativa, permita procesar una colección patrimonial de imágenes históricas para generar narrativas y conocimiento a partir de ellas.
+La plataforma busca rescatar y poner en valor el archivo fotográfico de Robert Gerstmann.
+
+// === Definiciones, acrónimos y abreviaturas
+// === Referencias
+// === Visión general del documento
+
+== Descripción general
+
+El sistema busca dar soporte tecnológico al proceso de visibilización y puesta en valor del archivo Gerstmann.
+Sus principales objetivos son:
+
+. Proporcionar una plataforma pública para la exploración de la colección fotográfica.
+. Facilitar la búsqueda y el acceso a la información a través de filtros y metadatos.
+. Automatizar la generación de narrativas para agilizar el proceso de curación y análisis.
+. Ofrecer herramientas de curación y administración a los usuarios especializados.
+. Mejorar la trazabilidad y el control de las acciones realizadas sobre el contenido.
+. Asegurar la compatibilidad e integración con las tecnologías de IA generativa.
+. Minimizar los errores humanos en la manipulación y clasificación del material.
+
+=== Módulos
+
+La plataforma tecnológica considera como principales componentes según el documento FONDEF los siguientes módulos:
+
+. *Módulo de digitalización de la colección*: Este módulo se encargará de la digitalización y catalogación de los negativos y fotografías históricas.
+. *Módulo de procesamiento de imágenes*: centrado en el análisis y mejora de las imágenes digitalizadas.
+. *Módulo de procesamiento de textos*: responsable de la generación y análisis de descripciones textuales de las imágenes.
+. *Módulo de captura del conocimiento*: En este módulo se integra la información visual y textual.
+. *Módulo de administración del conocimiento*: encargado de gestionar la información y el conocimiento generado a partir del análisis de las colecciones.
+. *Módulo de generación de nuevo conocimiento*: creación de nuevas narrativas y conexiones entre las colecciones analizadas.
+
+=== Funcionalidades del sistema
+
+El sistema permitirá:
+
+* Acceder y visualizar la colección de fotografías digitalizadas.
+* Filtrar y buscar imágenes por metadatos (autor, año, ubicación, palabra clave).
+* Generar narrativas y líneas de tiempo a partir de las imágenes utilizando inteligencia artificial.
+* Visualizar la ubicación de las fotos en sus estantes mediante una biblioteca virtual interactiva.
+* Proporcionar métricas de certeza o confianza en los resultados factuales.
+* Permitir la colaboración en sesiones multiusuario con historial de consultas.
+* Reconocer objetos y personas dentro de las imágenes digitalizadas.
+* Guardar nuevo conocimiento generado.
+* Gestionar roles y permisos para el acceso a las herramientas de curación y administración.
+* Descargar el contenido (imágenes y narrativas generadas).
+
+=== Actores del sistema
+
+[width="100%",cols="30%,70%",options="header"]
+|===
+|Actor |Descripción
+|Usuario Estándar |Cualquier persona que accede a la plataforma para visualizar y explorar el contenido público.
+|Curador / Experto |Persona responsable de validar, aportar metadatos y moderar las narrativas y la información histórica.
+|Administrador |Persona encargada de gestionar los usuarios, los roles y la configuración general de la plataforma.
+|Sistema de IA |Componente de inteligencia artificial que procesa las imágenes y genera las narrativas.
+| Colaborador registrado | Usuario autenticado del público general que propone referencias y correcciones. Curadores y Administradores moderan.
+|===
+
+=== Suposiciones y dependencias
+
+* *Suposiciones:* Se asume que el archivo fotográfico de Robert Gerstmann ya tiene parte de las fotografías digitalizadas y disponible en un repositorio al cual la plataforma tendrá acceso.
+* *Dependencias:* El proyecto depende de la disponibilidad y el correcto funcionamiento de los modelos de inteligencia artificial y del desarrollo de las APIs para la generación de narrativas.
+La participación de los curadores y expertos es crucial para la validación y el enriquecimiento de la información.
+
+=== Indicadores cuantitativos y cualitativos
+
+El proyecto va a ser medido de manera cualitativa y cuantitativa con los siguientes indicadores:
+
+* *Cualitativos*:
+** *ICa1*: porcentaje de similaridad entre anotaciones y descripciones narrativas generadas por inteligencia artificial versus generadas por humanos con expertiz en el dominio de la colección patrimonial.
+** *ICa2*: nivel de consistencia entre las relaciones entre objetos de la colección identificadas por las herramientas de inteligencia artificial de forma automática, evaluada según juicio humano experto.
+** *ICa3*: nivel de consistencia entre las líneas de tiempo propuesta por la aplicación de LLMs sobre los objetos componentes de la colección patrimonial, y las propuestas realizadas en base a juicio humano experto en el dominio.
+** *ICa4*: porcentaje de implementación de la estructura modular propuesta en el proyecto.
+
+* *Cuantitativos*:
+** *ICl1*: nivel de satisfacción de los usuarios finales con respecto a la funcionalidad del sistema desarrollada.
+** *ICl2*: nivel de satisfacción de los expertos en el dominio del problema (colección patrimonial) con respecto a la coherencia de las descripciones narrativas generadas por las componentes de inteligencia artificial generativa.
+** *ICl3*: nivel de satisfacción de los usuarios finales, administradores del conocimiento y expertos del dominio del problema, con respecto a la usabilidad de las distintas funcionalidades implementadas por la plataforma tecnológica inteligente.
+
+== Requerimientos específicos
+
+=== Requerimientos funcionales
+
+Los requerimientos funcionales especifican lo que el sistema debe hacer para cumplir con las necesidades del proyecto.
+
+[[RF-01]]
+==== RF-01: Visualización de Contenido Patrimonial
+
+* El sistema debe permitir a los usuarios visualizar imágenes individuales y en grupos (*clusters*).
+* El sistema debe permitir crear líneas de tiempo del recorrido de Robert Gerstmann.
+
+[[RF-02]]
+==== RF-02: Funcionalidades de Búsqueda y Filtrado
+
+* El sistema debe permitir a los usuarios buscar y filtrar imágenes por palabras clave, año y ubicación.
+* Debe integrar herramientas de búsqueda que permitan a los usuarios localizar contenido de manera eficiente.
+
+[[RF-03]]
+==== RF-03: Generación de Narrativas
+
+* El sistema debe ser capaz de generar narrativas a partir de las imágenes.
+* Debe permitir la creación de narrativas visuales y líneas de tiempo coherentes, apoyadas por inteligencia artificial.
+
+[[RF-04]]
+==== RF-04: Gestión de Contenido
+
+* Los *Curadores* y *Administradores* deben poder aportar metadatos y validar la información relacionada con las imágenes.
+* El sistema debe permitir a los *Curadores* y *Administradores* gestionar/modificar descripciones realizadas por la IA.
+* El sistema debe permitir a los *Curadores* y *Administradores* agregar meta data a las fotografías.
+
+[[RF-05]]
+==== RF-05: Descarga de Archivos
+
+* El sistema debe permitir la descarga de imágenes y los textos generados.
+
+[[RF-06]]
+==== RF-06: Ubicación por lugares y zonas
+
+* Visualizar imágenes en mapa, filtrar por zona y país; soportar capas y recursos externos.
+* Permite ubicar imágenes por lugar emblemático (gazetteer)
+* Búsqueda y autosugerencia de lugares.
+Soporta múltiples ubicaciones por imagen.
+
+[[RF-07]]
+==== RF-07: Etiquetado temático
+
+*Taxonomía inicial con etiquetas sugeridas por IA y validación humana
+
+[[RF-08]]
+==== RF-08: Líneas de tiempo paralelas
+
+* Múltiples ejes temporales en paralelo con hitos biográficos, mundiales y latinoamericanos
+
+[[RF-09]]
+==== RF-09: Georreferenciación y Mapa (RF-09)
+
+* Visualizar imágenes en mapa, filtrar por zona y país; soportar capas y recursos externos.
+
+[[RF-10]]
+==== RF-10: Grupos de Proyectos
+
+* Crear grupos con permisos diferenciados para compartir procesos de investigación
+
+[[RF-11]]
+==== RF-11: Análisis IA con trazabilidad
+
+* La IA realiza análisis, pero cada salida se etiqueta como Veraz (con fuente primaria comprobable) o Verosímil (interpretación); siempre muestra fuentes verificables.
+
+[[RF-012]]
+==== RF-12: Contribuciones de usuarios registrados
+
+* El sistema debe permitir que cualquier usuario con inicio de sesión aporte información complementaria, referencias y correcciones sobre una imagen o una colección.
+* Toda contribución entra a un flujo de moderación.
+Curador o Administrador aprueba o rechaza.
+* Debe quedar trazabilidad completa de quién propuso, quién revisó y qué cambió.
+* Debe permitir adjuntar URL, citas formateadas y archivos permitidos.
+
+Criterios de aceptación:
+
+. Dado un usuario autenticado, al abrir una imagen puede “Sugerir referencia” y “Sugerir corrección de metadatos”.
+. La sugerencia queda en “Pendiente”.
+. Un Curador la ve, deja comentario y la aprueba o rechaza.
+. Al aprobar, el sistema versiona el registro y muestra un historial visible
+
+[[RF-13]]
+==== RF-13: Visibilidad de colecciones
+
+* Debe ofrecer filtros por época, lugar y tema, más orden por “más vistas” y “recientes”.
+* Debe permitir entrar a la vista de una colección para exploración dedicada.
+
+[[RF-14]]
+==== RF-14: Comparador histórico “Antes/Ahora”
+
+*El sistema debe permitir ver una imagen histórica junto a una imagen contemporánea del mismo lugar con control deslizante para comparar.
+*Debe sugerir posibles pares modernos a partir de georreferencia y orientación cuando existan.
+La publicación requiere validación de Curador.
+
+* El sistema debe permitir a los usuarios visualizar imágenes individuales y en grupos (*clusters*).
+* El sistema debe permitir crear líneas de tiempo del recorrido de Robert Gerstmann.
+
+=== Requerimientos no funcionales
+
+==== RNF-01: Seguridad y Autenticación
+
+* El sistema debe implementar un control de acceso basado en roles para diferenciar las funcionalidades disponibles para *Usuarios Estándar*, *Curadores / Expertos* y *Administradores*.
+* La funcionalidad de creación y validación de narrativas debe estar restringida exclusivamente a los roles de *Curador / Experto* y *Administrador*.
+
+[[RNF-02]]
+==== RNF-02: Usabilidad
+
+* La interfaz de usuario debe ser intuitiva y fácil de usar, con una curva de aprendizaje mínima para los *Usuarios Estándar*.
+* La interfaz además debe cumplir con estándares de usabilidad y accesibilidad (WCAG 2.1, ISO 9241-210).
+
+[[RNF-03]]
+==== RNF-03: Escalabilidad y Rendimiento
+
+* La plataforma debe ser capaz de manejar un gran volumen de imágenes sin comprometer el rendimiento.
+* El sistema debe responder de manera rápida a las interacciones del usuario.
+* El sistema debe tener la capacidad de trabajar con otros conjuntos de datos además del inicial.
+
+[[RNF-04]]
+==== RNF-04: Mantenibilidad y Extensibilidad
+
+* El sistema debe contar con la documentación pertinente y el código fuente comentado para facilitar su mantenimiento y futuras actualizaciones.
+* Debe ser posible integrar nuevos modelos de inteligencia artificial o de procesamiento de imágenes.
+
+[[RNF-05]]
+==== RNF-05: Disponibilidad y Confiabilidad
+
+* El sistema debe estar disponible las 24 horas del día, los 7 días de la semana, con un tiempo de inactividad mínimo programado.
+* El sistema debe ser resiliente a fallas y recuperar la información de manera segura.
+
+[[RNF-06]]
+==== RNF-06: Eficiencia de Costos
+
+* Para minimizar los costos de tokenización y optimizar el rendimiento, el sistema debe utilizar un *mecanismo de caché* para las narrativas e imágenes generadas.
+* El acceso a la generación de nuevas narrativas y a la retroalimentación del modelo de IA debe estar estrictamente controlado y limitado a los roles de *Curador / Experto* y *Administrador*, evitando así el uso indiscriminado por parte de los *Usuarios Estándar*.
+
+[[RNF-07]]
+==== RNF-07: Cumplimiento Normativo
+
+* El sistema debe cumplir con las *normas gráficas de la Universidad Católica del Norte (UCN)* y las directrices de uso de logos de las entidades financistas (ANID y Ministerio de Ciencia).
+* Debe cumplir con las normativas de preservación digital (ISO 19263-1:2017, ISO 15836-1:2017) y de protección de datos personales (Ley 19.628 en Chile).
+
+[[RNF-08]]
+==== RNF-08:Veracidad y fuentes obligatorias
+
+* Cada imagen debe tener fuente declarada; las narrativas deben exhibir las fuentes y su tipo.
+
+[[RNF-09]]
+==== RNF-09: Transparencia de IA
+
+* Prohibido “inventar” fuentes; la interfaz debe indicar claramente cuándo es interpretación.
+
+[[RNF-10]]
+==== RNF-10: Inclusión y accesibilidad
+
+* Incorporar elementos de inclusión y WCAG 2.1.
+
+[[RNF-11]]
+==== RNF-11: Moderación y cumplimiento
+
+* Moderación y cumplimiento: toda contribución pública pasa por revisión.
+Tiempo objetivo de revisión configurable.
+Registro auditable.
+
+[[RNF-12]]
+==== RNF-12: Antispam
+
+* Antispam: CAPTCHA, límites por usuario, listas de bloqueo, métricas de abuso.
+
+* Se debe incorporar el conocimiento experto humano en la generación de narrativas para asegurar la coherencia y consistencia.
+
+=== Requerimientos Técnicos
+
+Los requerimientos técnicos especifican la infraestructura, las herramientas y las tecnologías necesarias para el desarrollo y despliegue del sistema.
+Estos requisitos se han definido considerando la naturaleza del proyecto FONDEF y los módulos tecnológicos propuestos.
+
+==== Arquitectura del Sistema
+
+La plataforma debe tener una arquitectura modular que permita la integración de nuevas funcionalidades sin afectar las existentes.
+La estructura principal incluye:
+
+* *Módulo de Acceso y Visualización*: Para la interfaz de usuario que permite la navegación y la interacción con la colección digitalizada.
+* *Módulo de Gestión de Contenido*: Para la base de datos que almacena metadatos, los roles de usuario y las herramientas de administración y curación, incluyendo el almacenamiento de las imágenes y narrativas generadas.
+* *Módulo de Inteligencia Artificial*: Para el procesamiento de las imágenes y la generación de narrativas y contenido visual, que se conecta con modelos externos de IA.
+
+==== Generación de Imágenes y Textos
+
+* El sistema debe ser capaz de generar nuevas imágenes a partir de descripciones textuales o de combinaciones de imágenes existentes, como parte del proceso de creación de narrativas o para enriquecer los *clusters*.
+* El contenido visual generado por la IA debe ser gestionado y almacenado de manera segura en el sistema, al igual que las imágenes patrimoniales.
+* Se requerirá un sistema de moderación por parte de los *Curadores* y *Expertos* para la aprobación del contenido generado antes de su publicación.
+
+==== Motor de Búsqueda
+
+* Facetas, sinónimos, sugerencias de consulta y “plantillas de prompt”.
+
+==== Pipeplines de Verificación
+
+* Scoring de veracidad, cruce de evidencias y registro de decisiones.
+
+[appendix]
+== Anexos
+
+=== Glosario
+
+=== Modelo de Dominio
+
+plantuml::domain.puml[title="Modelo de Dominio del Sistema ROGER",format="svg"]
+
+=== Diagramas adicionales
