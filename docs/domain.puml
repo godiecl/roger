@@ -29,6 +29,9 @@ package roger {
             * Celular
             * Nacionalidad
             * Género
+            * Afiliación
+            * Organización
+            * Cargo
             ..
             * Login
             * Contraseña
@@ -70,7 +73,7 @@ package roger {
         entity Imagen {
             * Key: ULID
             * Nombre del Archivo
-            * Identificador [Carolina Castañeda]
+            * Identificador  /' [Carolina Castañeda] '/
             * Identificación Localización Física Original
             * Fecha de Digitalización
             * Internal Cronology
@@ -78,7 +81,7 @@ package roger {
             * Alto Pixeles
             * Ancho Pixeles
             * Profundidad de Color
-            * Resolution [ESO?]
+            * Resolution /'[ESO?] '/
             ..
             * Licencia
             * Derechos de Autor/Uso
@@ -98,6 +101,9 @@ package roger {
         entity Metadato {
             * Etiqueta
             * Valor
+            * Estado de curaduría
+            * Auditoría
+            * Versión
         }
         Metadato "1..*" <-- Imagen : < tiene
 
