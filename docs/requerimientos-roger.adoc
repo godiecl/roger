@@ -272,7 +272,7 @@ aaaaa
 [[Análisis-IA-con-trazabilidad-rf-11]]
 === 3.11. Análisis IA con trazabilidad  (RF-11)
 
-*La IA realiza análisis, pero cada salida se etiqueta como Veraz (con fuente primaria comprobable) o Verosímil (interpretación); siempre muestra fuentes.
+*La IA realiza análisis, pero cada salida se etiqueta como Veraz (con fuente primaria comprobable) o Verosímil (interpretación); siempre muestra fuentes verificables.
 
 [[Contribuciones-de-usuarios-registrados-rf-012]]
 === 3.12. Contribuciones de usuarios registrados (RF-12)
@@ -408,4 +408,3 @@ La plataforma debe tener una arquitectura modular que permita la integración de
 === 5.4. Pipelines de verificación
 
 * Scoring de veracidad, cruce de evidencias y registro de decisiones.
-

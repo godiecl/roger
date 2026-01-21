@@ -3,7 +3,7 @@
 import logging
 from typing import Union
 
-import coloredlogs
+import coloredlogs  # type: ignore[import-untyped]
 from typeguard import typechecked
 
 
