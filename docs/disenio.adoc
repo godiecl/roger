@@ -26,16 +26,62 @@
 
 *Nombre del Proyecto*: Plataforma Tecnológica para la Visibilización de Colecciones Patrimoniales.
 
+Este documento describe el diseño de software del sistema ROGER.
+El diseño se deriva directamente de la Especificación de Requerimientos de Software (ERS) y define la arquitectura, los componentes principales, las interfaces y las tecnologías seleccionadas para su implementación.
+El objetivo del diseño es asegurar mantenibilidad, escalabilidad, trazabilidad y coherencia con los requerimientos del proyecto FONDEF.
+
 == Arquitectura General
+
+El sistema ROGER adopta una arquitectura *hexagonal (Ports and Adapters)* combinada con el enfoque de *Vertical Slice Architecture*.
+Esta combinación permite desacoplar el dominio del negocio de las tecnologías externas y organizar el desarrollo en funcionalidades completas de extremo a extremo.
+
+Los principios arquitectónicos adoptados son:
+
+* Separación clara entre dominio, aplicación e infraestructura.
+* Dependencias dirigidas hacia el dominio.
+* Implementación de funcionalidades como slices verticales independientes.
+* Facilidad de evolución tecnológica sin impacto en la lógica de negocio.
 
 === Modelo del Dominio
 
 === API e Interfaces
 
+El sistema expone una API orientada a servicios para la comunicación entre el frontend, el backend y los servicios externos.
+
+Las principales interfaces del sistema son:
+
+* *API de Autenticación y Autorización*: gestión de usuarios, roles y permisos.
+* *API de Contenido Patrimonial*: acceso a imágenes, colecciones y metadatos.
+* *API de Narrativas*: generación, edición y versionado de narrativas.
+* *API de Contribuciones*: creación y moderación de aportes colaborativos.
+* *API de IA*: integración con servicios externos de análisis y generación de contenido.
+
+
 == Herramientas y Tecnologías
+
+La selección de herramientas y tecnologías se realizó considerando criterios de rendimiento, simplicidad, mantenibilidad y alineación con la arquitectura definida.
 
 === Lenguajes de Programación
 
+* *Backend*: Python 3.x
+* *Frontend*: TypeScript / JavaScript
+* *Estilos*: CSS (Tailwind CSS mediante DaisyUI)
+* *Modelado*: PlantUML para diagramas de dominio y arquitectura
+
 === Frameworks y Librerías
 
+* *Backend*: FastAPI
+* *Frontend*: Svelte
+* *UI Framework*: DaisyUI
+* *Autenticación*: JWT
+* *IA*: integración con servicios externos de modelos generativos
+
 === Bases de Datos
+
+
+El sistema utiliza una base de datos relacional para el almacenamiento de metadatos, usuarios, narrativas, trazabilidad y control de versiones.
+
+* *Base de datos*: SQLite (fase inicial de desarrollo).
+* *ORM*: SQLModel.
+
+La arquitectura hexagonal permite migrar a otros motores de base de datos (por ejemplo, PostgreSQL) sin afectar el dominio ni los casos de uso del sistema.
