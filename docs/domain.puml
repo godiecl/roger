@@ -9,7 +9,6 @@ skinparam  {
     shadowing                   true
     RoundCorner                 10
     packageBackgroundColor      LightGoldenRodYellow
-    ' topPadding                  20
     'backgroundColor             transparent
     'handwritten                 true
     'change to 150 to increase the quality of the image
