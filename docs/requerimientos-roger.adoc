@@ -214,50 +214,62 @@ Los requerimientos funcionales especifican lo que el sistema debe hacer para cum
 
 === 3.1. Visualización de Contenido Patrimonial (RF-01)
 
-* El sistema debe permitir a los usuarios visualizar imágenes individuales y en grupos (*clusters*).
-* El sistema debe permitir crear líneas de tiempo del recorrido de Robert Gerstmann.
+* El sistema debe permitir a los usuarios visualizar imágenes patrimoniales de forma individual y agrupadas en conjuntos o clusters, según criterios de los curadores. Además, para la visualización del contenido no es necesario estar registrado dentro del sistema.
+* El sistema debe permitir la creación y visualización de líneas de tiempo que representen el recorrido y la producción visual de Robert Gerstmann.
+* El sistema debe ofrecer una vista de mapa interactiva que permita la exploración geográfica del contenido patrimonial asociado a las imágenes.
 
 [[funcionalidades-de-busqueda-y-filtrado-rf-02]]
 === 3.2. Funcionalidades de Búsqueda y Filtrado (RF-02)
 
-* El sistema debe permitir a los usuarios buscar y filtrar imágenes por palabras clave, año y ubicación.
-* Debe integrar herramientas de búsqueda que permitan a los usuarios localizar contenido de manera eficiente.
+* El sistema debe permitir a los usuarios buscar y filtrar imágenes patrimoniales utilizando criterios como palabras clave, año y ubicación geográfica.
+* El sistema debe integrar herramientas de búsqueda avanzada que faciliten la localización eficiente de contenido dentro de la plataforma.
+* El sistema debe ofrecer ejemplos de búsqueda (prompts de ejemplo) y funcionalidades de búsqueda interactiva que orienten a los usuarios en la exploración del contenido disponible.
 
 [[generacion-de-narrativas-rf-03]]
 === 3.3. Generación de Narrativas (RF-03)
 
-* El sistema debe ser capaz de generar narrativas a partir de las imágenes.
-* Debe permitir la creación de narrativas visuales y líneas de tiempo coherentes, apoyadas por inteligencia artificial.
+* El sistema permite el uso de inteligencia artificial para generar interpretaciones y narrativas a partir de imágenes patrimoniales
+* Los usuarios comunes pueden interactuar con la IA de forma exploratoria, sin que estas respuestas se almacenen ni modifiquen el conocimiento del sistema.
+* Las narrativas oficiales que se publican en la plataforma son generadas con apoyo de IA y revisadas, editadas y validadas por curadores o expertos, manteniendo trazabilidad y fuentes visibles.
 
 [[gestion-de-contenido-rf-04]]
 === 3.4. Gestión de Contenido (RF-04)
 
-* Los *Curadores* y *Administradores* deben poder aportar metadatos y validar la información relacionada con las imágenes.
-* El sistema debe permitir a los *Curadores* y *Administradores* gestionar/modificar descripciones realizadas por la IA.
-* El sistema debe permitir a los *Curadores* y *Administradores* agregar meta data a las fotografías.
+* El sistema debe permitir a los Curadores y Administradores agregar, editar y validar los metadatos asociados a las imágenes patrimoniales.
+* El sistema debe permitir a los Curadores y Administradores revisar, modificar y aprobar las descripciones y contenidos generados por la inteligencia artificial antes de su publicación oficial.
+* El sistema debe mantener registro de las modificaciones realizadas sobre los metadatos y descripciones, indicando el usuario responsable y la fecha de cada cambio.
 
 [[descarga-de-archivos-rf-05]]
 === 3.5. Descarga de Archivos (RF-05)
 
-* El sistema debe permitir la descarga de imágenes y los textos generados.
+* El sistema debe permitir a los usuarios descargar las imágenes patrimoniales disponibles en la plataforma, de acuerdo con los permisos y restricciones definidos.
+* El sistema debe permitir la descarga de los textos y narrativas generadas o validadas dentro del sistema, respetando los niveles de acceso correspondientes.
+
 
 [[Ubicación-por-lugares-y-zonas-rf-06]]
 === 3.6. Ubicación por lugares y zonas (RF-06)
 
-*Visualizar imágenes en mapa, filtrar por zona y país; soportar capas y recursos externos.
-*Permite ubicar imágenes por lugar emblemático (gazetteer)
-*Búsqueda y autosugerencia de lugares. Soporta múltiples ubicaciones por imagen.
-aaaaa
+* El sistema debe permitir la visualización de imágenes patrimoniales sobre un mapa interactivo, con opciones de filtrado por zona geográfica y país.
+* El sistema debe permitir asociar las imágenes a lugares emblemáticos (gazetteer).
+* El sistema debe ofrecer funcionalidades de búsqueda y auto sugerencia de lugares geográficos.
+* El sistema debe soportar la asociación de múltiples ubicaciones geográficas a una misma imagen.
+
 
 [[Etiquetado-temático-rf-07]]
 === 3.7. Etiquetado temático (RF-07)
 
-*Taxonomía inicial con etiquetas sugeridas por IA y validación humana
+* El sistema permite evaluar imágenes mediante inteligencia artificial para sugerir etiquetas temáticas basadas en su contenido visual y textual.
+* Las etiquetas sugeridas pueden ser revisadas y editadas por curadores o expertos antes de su incorporación al sistema.
+* Los usuarios comunes pueden visualizar estas sugerencias, pero no pueden incorporarlas directamente a la metadata oficial.
+
 
 [[Líneas-de-tiempo-paralelas-rf-08]]
 === 3.8. Líneas de tiempo paralelas (RF-08)
 
-*Múltiples ejes temporales en paralelo con hitos biográficos, mundiales y latinoamericanos
+* El sistema debe permitir la visualización de múltiples líneas de tiempo en paralelo.
+* Cada línea de tiempo debe representar distintos ejes temporales, tales como hitos biográficos, acontecimientos históricos mundiales y eventos relevantes del contexto latinoamericano.
+* El sistema debe permitir la navegación y comparación entre estos ejes temporales de forma sincronizada.
+
 
 [[Georreferenciación-y-mapa-rf-09]]
 === 3.9. Georreferenciación y mapa (RF-09)
@@ -267,39 +279,47 @@ aaaaa
 [[Grupos-de-proyectos-rf-10]]
 === 3.10. Grupos de Proyectos (RF-10)
 
-*Crear grupos con permisos diferenciados para compartir procesos de investigación
+* El sistema debe permitir la creación de grupos de trabajo o proyectos para la colaboración en procesos de investigación.
+* El sistema debe permitir asignar permisos diferenciados a los miembros de cada grupo, de acuerdo con sus roles y responsabilidades.
+* El sistema debe permitir compartir información, contenidos y avances de investigación únicamente entre los miembros autorizados de cada grupo.
+
 
 [[Análisis-IA-con-trazabilidad-rf-11]]
 === 3.11. Análisis IA con trazabilidad  (RF-11)
 
-*La IA realiza análisis, pero cada salida se etiqueta como Veraz (con fuente primaria comprobable) o Verosímil (interpretación); siempre muestra fuentes verificables.
+* La IA realiza análisis, pero cada salida se etiqueta como Veraz (con fuente primaria comprobable) o Verosímil (interpretación); siempre muestra fuentes.
 
 [[Contribuciones-de-usuarios-registrados-rf-012]]
 === 3.12. Contribuciones de usuarios registrados (RF-12)
 
-*El sistema debe permitir que cualquier usuario con inicio de sesión aporte información complementaria, referencias y correcciones sobre una imagen o una colección.
-*Toda contribución entra a un flujo de moderación. Curador o Administrador aprueba o rechaza.
-*Debe quedar trazabilidad completa de quién propuso, quién revisó y qué cambió.
-*Debe permitir adjuntar URL, citas formateadas y archivos permitidos.
+* El sistema debe permitir que cualquier usuario con inicio de sesión aporte información complementaria, referencias y correcciones sobre una imagen o una colección.
+* Toda contribución entra a un flujo de moderación. Curador o Administrador aprueba o rechaza.
+* Debe quedar trazabilidad completa de quién propuso, quién revisó y qué cambió.
+* Debe permitir adjuntar URL, citas formateadas y archivos permitidos.
 
 Criterios de aceptación
-*Dado un usuario autenticado, al abrir una imagen puede “Sugerir referencia” y “Sugerir corrección de metadatos”.
-*La sugerencia queda en “Pendiente”. Un Curador la ve, deja comentario y la aprueba o rechaza.
-*Al aprobar, el sistema versiona el registro y muestra un historial visible
+
+* Dado un usuario autenticado, al abrir una imagen puede “Sugerir referencia” y “Sugerir corrección de metadatos”.
+* La sugerencia queda en “Pendiente”. Un Curador la ve, deja comentario y la aprueba o rechaza.
+* Al aprobar, el sistema versiona el registro y muestra un historial visible
+
 
 
 [[Visibilidad-de-colecciones-rf-13]]
 === 3.13. Visibilidad de colecciones (RF-013)
 
-*Debe ofrecer filtros por época, lugar y tema, más orden por “más vistas” y “recientes”.
-*Debe permitir entrar a la vista de una colección para exploración dedicada.
+* El sistema debe ofrecer opciones de filtrado de colecciones por criterios como época, lugar y temática.
+* El sistema debe permitir ordenar las colecciones según distintos criterios, incluyendo “más vistas” y “más recientes”.
+* El sistema debe permitir acceder a una vista dedicada de cada colección para su exploración detallada.
+
 
 
 [[Comparador-histórico-Antes-Ahora-rf-14]]
 === 3.14. Comparador histórico “Antes/Ahora” (RF-014)
 
-*El sistema debe permitir ver una imagen histórica junto a una imagen contemporánea del mismo lugar con control deslizante para comparar.
-*Debe sugerir posibles pares modernos a partir de georreferencia y orientación cuando existan. La publicación requiere validación de Curador.
+* El sistema debe permitir ver una imagen histórica junto a una imagen contemporánea del mismo lugar con control deslizante para comparar.
+* Debe sugerir posibles pares modernos a partir de georreferencia y orientación cuando existan. La publicación requiere validación de Curador.
+
 
 [[requerimientos-no-funcionales-rnf]]
 == Requerimientos No Funcionales (RNF)
