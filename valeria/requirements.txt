@@ -1,12 +1,101 @@
-coloredlogs==15.0.1          # Colored terminal output for Python's logging module
-fastapi[standard]==0.128.0   # FastAPI framework, high performance, easy to learn, fast to code
-huggingface_hub==1.3.2       # A library to easily download and upload models and datasets from Hugging Face
-humanize==4.15.0             # Python library for humanizing data
-mypy==1.19.1                 # Optional static typing for Python
-openai==2.15.0               # OpenAI Python library to access the OpenAI API
-openpyxl==3.1.5              # A Python library to read/write Excel 2010 xlsx/xlsm files
-pydantic==2.12.5             # Data validation using Python type hints
-python-dotenv==1.2.1         # Read key-value pairs from a .env file and set them as environment variables
-ruff==0.14.13                # An extremely fast Python linter and code formatter, written in Rust.
-tqdm==4.67.1                 # Fast, Extensible Progress Meter
-typeguard==4.4.4             # Run-time type checker for Python
+# ===================================
+# CORE FRAMEWORK
+# ===================================
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+
+# ===================================
+# DATABASE
+# ===================================
+sqlalchemy>=2.0.35
+alembic>=1.14.0
+aiosqlite>=0.20.0              # SQLite async
+# psycopg2-binary==2.9.9       # PostgreSQL (descomentar para producción)
+# asyncpg==0.29.0              # PostgreSQL async (alternativa)
+
+# ===================================
+# AUTHENTICATION
+# ===================================
+python-jose[cryptography]>=3.3.0
+bcrypt>=4.0.0
+python-multipart>=0.0.20
+
+# ===================================
+# AI & LLM
+# ===================================
+openai>=1.10.0
+# anthropic>=0.8.1             # Alternativa a OpenAI
+langchain>=0.1.0
+langchain-community>=0.0.13
+langchain-openai>=0.0.5
+# langchain-anthropic>=0.0.1   # Si usas Claude
+
+# ===================================
+# EMBEDDINGS
+# ===================================
+sentence-transformers>=3.0.0
+transformers>=4.40.0
+torch>=2.6.0                   # Para sentence-transformers
+
+# ===================================
+# VECTOR DATABASE
+# ===================================
+# chromadb==0.4.22             # Requires C++ compilation - skip for Python 3.13
+# qdrant-client==1.7.0         # Alternativa para producción
+
+# ===================================
+# COMPUTER VISION
+# ===================================
+pillow>=10.4.0
+opencv-python>=4.10.0
+# ultralytics==8.1.0           # YOLOv8 (opcional)
+
+# ===================================
+# ML & CLUSTERING
+# ===================================
+scikit-learn>=1.4.0
+numpy>=2.0.0  # Python 3.13 compatible
+pandas>=2.1.0
+umap-learn>=0.5.5
+
+# ===================================
+# RETRIEVAL & SEARCH
+# ===================================
+rank-bm25>=0.2.2               # Sparse retrieval
+
+# ===================================
+# CACHE
+# ===================================
+redis>=5.2.0
+# hiredis==2.3.2               # Requires C++ compilation - skip for Python 3.13
+diskcache>=5.6.3               # Alternativa local
+
+# ===================================
+# STORAGE
+# ===================================
+aiofiles>=24.1.0
+# boto3==1.34.0                # AWS S3 (opcional)
+
+# ===================================
+# HTTP CLIENT
+# ===================================
+httpx>=0.28.0
+
+# ===================================
+# UTILS
+# ===================================
+python-dotenv>=1.0.1
+# tiktoken==0.5.2              # Token counting - Requires Rust compilation, skip for Python 3.13
+tenacity>=9.0.0                # Retry logic
+
+# ===================================
+# LOGGING
+# ===================================
+structlog>=24.4.0
+
+# ===================================
+# GEOLOCATION
+# ===================================
+# geopy==2.4.1                 # Geocoding (opcional)
