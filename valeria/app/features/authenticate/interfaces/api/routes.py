@@ -2,14 +2,15 @@
 FastAPI routes for authentication
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.authenticate.interfaces.api.schemas import (
     LoginRequest,
     LoginResponse,
     RegisterRequest,
-    UserResponse
+    UserResponse,
+    UserSearchResult
 )
 from app.features.authenticate.application.authenticate_usecase import (
     AuthenticateUseCase
@@ -25,6 +26,7 @@ from app.features.authenticate.infrastructure.adapters.jwt_service import (
 )
 from app.features.authenticate.domain.user import User
 from app.features.authenticate.domain.role import Role
+from app.features.authenticate.interfaces.api.dependencies import get_current_user_id
 from app.infrastructure.database.session import get_db
 from app.shared.domain.exceptions import UnauthorizedError
 
@@ -97,19 +99,21 @@ async def register(
     # Create user
     user = User(
         email=request.email,
+        username=request.username,
         hashed_password=password_hasher.hash(request.password),
         role=request.role,
         full_name=request.full_name,
         is_active=True,
         is_verified=False
     )
-    
+
     # Save user
     created_user = await user_repository.create(user)
-    
+
     return UserResponse(
         id=created_user.id,
         email=created_user.email,
+        username=created_user.username,
         role=created_user.role,
         full_name=created_user.full_name,
         is_active=created_user.is_active,
@@ -117,18 +121,43 @@ async def register(
     )
 
 
+@router.get("/users/search", response_model=list[UserSearchResult])
+async def search_users(
+    q: str = Query(..., min_length=1),
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Search users by email for autocomplete. Requires authentication."""
+    user_repository = UserRepository(db)
+    users = await user_repository.search_by_email(q)
+    return [UserSearchResult(id=u.id, email=u.email, full_name=u.full_name) for u in users]
+
+
 @router.get("/me", response_model=UserResponse)
 async def get_current_user(
-    # TODO: Add authentication dependency
+    user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Get current user information.
-    
+
     Requires authentication.
     """
-    # TODO: Implement with authentication dependency
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Not implemented yet"
+    user_repository = UserRepository(db)
+    user = await user_repository.get_by_id(user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        username=user.username,
+        role=user.role,
+        full_name=user.full_name,
+        is_active=user.is_active,
+        is_verified=user.is_verified
     )

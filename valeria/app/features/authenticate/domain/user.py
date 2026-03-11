@@ -20,6 +20,7 @@ class User(BaseEntity):
         email: str,
         hashed_password: str,
         role: Role,
+        username: Optional[str] = None,
         full_name: Optional[str] = None,
         is_active: bool = True,
         is_verified: bool = False,
@@ -29,6 +30,7 @@ class User(BaseEntity):
     ):
         super().__init__(id, created_at, updated_at)
         self.email = email
+        self.username = username or email.split("@")[0]
         self.hashed_password = hashed_password
         self.role = role
         self.full_name = full_name

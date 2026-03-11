@@ -25,6 +25,7 @@ class LoginResponse(BaseModel):
 class RegisterRequest(BaseModel):
     """Register request schema."""
     email: EmailStr
+    username: Optional[str] = Field(None, min_length=3, max_length=100)
     password: str = Field(..., min_length=6)
     full_name: Optional[str] = None
     role: Role = Role.USUARIO_ESTANDAR
@@ -34,6 +35,7 @@ class UserResponse(BaseModel):
     """User response schema."""
     id: int
     email: str
+    username: str
     role: Role
     full_name: Optional[str]
     is_active: bool
@@ -47,3 +49,13 @@ class TokenResponse(BaseModel):
     """Token response schema."""
     access_token: str
     token_type: str = "bearer"
+
+
+class UserSearchResult(BaseModel):
+    """Minimal user info for email autocomplete."""
+    id: int
+    email: str
+    full_name: Optional[str]
+
+    class Config:
+        from_attributes = True

@@ -16,6 +16,8 @@ from app.config.settings import settings
 from app.features.authenticate.infrastructure.persistence.user_model import UserModel
 from app.features.view_images.infrastructure.persistence.image_model import ImageModel, CollectionModel
 from app.features.generate_narrative.infrastructure.persistence.narrative_model import NarrativeModel
+from app.features.manage_projects.infrastructure.persistence.project_model import ProjectModel, ProjectMemberModel
+from app.features.manage_projects.infrastructure.persistence.project_message_model import ProjectMessageModel
 
 # this is the Alembic Config object
 config = context.config

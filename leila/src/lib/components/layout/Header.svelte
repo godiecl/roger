@@ -1,6 +1,10 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { onMount } from 'svelte';
   import { authStore, isAuthenticated } from '$lib/stores/auth';
+  import { invitationsStore, pendingCount } from '$lib/stores/invitations';
+  import { invitationService } from '$lib/services/invitationService';
+  import { notificationsStore } from '$lib/stores/notifications';
 
   let isMenuOpen = false;
 
@@ -9,8 +13,48 @@
   }
 
   function handleLogout() {
+    invitationsStore.reset();
     authStore.logout();
   }
+
+  async function loadInvitations() {
+    if (!$isAuthenticated) return;
+    try {
+      invitationsStore.setLoading(true);
+      const resp = await invitationService.listPending();
+      invitationsStore.setPending(resp.invitations);
+    } catch {
+      // silent — not critical
+    } finally {
+      invitationsStore.setLoading(false);
+    }
+  }
+
+  async function handleAccept(invitationId: number) {
+    try {
+      await invitationService.accept(invitationId);
+      invitationsStore.remove(invitationId);
+      notificationsStore.success('Te has unido al proyecto');
+    } catch (e: any) {
+      notificationsStore.error(e.detail || 'Error al aceptar invitación');
+    }
+  }
+
+  async function handleDecline(invitationId: number) {
+    try {
+      await invitationService.decline(invitationId);
+      invitationsStore.remove(invitationId);
+      notificationsStore.success('Invitación rechazada');
+    } catch (e: any) {
+      notificationsStore.error(e.detail || 'Error al rechazar invitación');
+    }
+  }
+
+  onMount(() => {
+    loadInvitations();
+  });
+
+  $: if ($isAuthenticated) loadInvitations();
 </script>
 
 <header class="sticky top-0 z-50 bg-base-100 shadow-sm">
@@ -61,12 +105,17 @@
           {#if $isAuthenticated}
             <div class="dropdown dropdown-end">
               <button class="btn btn-ghost gap-2 normal-case">
-                <div class="avatar placeholder">
+                <div class="avatar placeholder relative">
                   <div class="w-8 h-8 rounded-full bg-primary text-primary-content">
                     <span class="text-sm font-semibold">
                       {$authStore.user?.full_name?.charAt(0).toUpperCase() || $authStore.user?.email?.charAt(0).toUpperCase()}
                     </span>
                   </div>
+                  {#if $pendingCount > 0}
+                    <span class="absolute -top-1 -right-1 badge badge-error badge-xs text-white font-bold min-w-[16px] h-4 flex items-center justify-center text-[10px] px-1">
+                      {$pendingCount}
+                    </span>
+                  {/if}
                 </div>
                 <div class="text-left hidden md:block">
                   <div class="text-sm font-semibold">{$authStore.user?.full_name || $authStore.user?.email}</div>
@@ -90,6 +139,12 @@
                   </svg>
                   Mi Perfil
                 </a></li>
+                <li><a href="/proyectos">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  Mis Proyectos
+                </a></li>
                 {#if $authStore.user?.role === 'curador' || $authStore.user?.role === 'administrador'}
                   <li><a href="/admin">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,6 +153,34 @@
                     </svg>
                     Administración
                   </a></li>
+                {/if}
+                {#if $pendingCount > 0}
+                  <div class="divider my-0"></div>
+                  <li class="menu-title px-4 py-2">
+                    <span class="text-xs font-semibold text-warning uppercase tracking-wide">
+                      Invitaciones ({$pendingCount})
+                    </span>
+                  </li>
+                  {#each $invitationsStore.pending as inv (inv.id)}
+                    <li>
+                      <div class="flex flex-col gap-1 px-3 py-2 cursor-default hover:bg-transparent">
+                        <span class="text-sm font-medium truncate">{inv.project_name}</span>
+                        <span class="text-xs text-base-content/50 truncate">de {inv.invited_by_email}</span>
+                        <div class="flex gap-2 mt-1">
+                          <button
+                            class="btn btn-success btn-xs flex-1"
+                            on:click|stopPropagation={() => handleAccept(inv.id)}>
+                            Aceptar
+                          </button>
+                          <button
+                            class="btn btn-ghost btn-xs flex-1 text-error"
+                            on:click|stopPropagation={() => handleDecline(inv.id)}>
+                            Rechazar
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  {/each}
                 {/if}
                 <div class="divider my-0"></div>
                 <li><button on:click={handleLogout} class="text-error">
@@ -170,6 +253,9 @@
         <li><a href="/map" on:click={toggleMenu}>Mapa</a></li>
         <li><a href="/research" on:click={toggleMenu}>Investigación</a></li>
         <li><a href="/about" on:click={toggleMenu}>Acerca del Proyecto</a></li>
+        {#if $isAuthenticated}
+          <li><a href="/proyectos" on:click={toggleMenu}>Mis Proyectos</a></li>
+        {/if}
         {#if !$isAuthenticated}
           <li><a href="/login" on:click={toggleMenu}>Iniciar sesión</a></li>
         {/if}

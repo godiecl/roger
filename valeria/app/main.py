@@ -19,6 +19,7 @@ from app.features.authenticate.interfaces.api.routes import router as auth_route
 from app.features.view_images.interfaces.api.routes import router as images_router
 from app.features.search_filter.interfaces.api.routes import router as search_router
 from app.features.generate_narrative.interfaces.api.routes import router as narratives_router
+from app.features.manage_projects.interfaces.api.routes import router as projects_router, invitations_router
 
 # Setup logging
 logger = structlog.get_logger()
@@ -101,6 +102,8 @@ app.include_router(auth_router, prefix=settings.api_prefix)
 app.include_router(images_router, prefix=settings.api_prefix)
 app.include_router(search_router, prefix=settings.api_prefix)
 app.include_router(narratives_router, prefix=settings.api_prefix)
+app.include_router(projects_router, prefix=settings.api_prefix)
+app.include_router(invitations_router, prefix=settings.api_prefix)
 
 # Serve static files (images, uploads)
 # app.mount("/storage", StaticFiles(directory="storage"), name="storage")

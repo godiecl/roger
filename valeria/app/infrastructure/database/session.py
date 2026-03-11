@@ -3,6 +3,7 @@ Database session management for ROGER - Valeria API
 """
 
 from typing import AsyncGenerator
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import NullPool
 
@@ -16,6 +17,14 @@ engine = create_async_engine(
     future=True,
     poolclass=NullPool if "sqlite" in settings.database_url else None
 )
+
+# Enable FK constraints for SQLite
+if "sqlite" in settings.database_url:
+    @event.listens_for(engine.sync_engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 # Create async session factory
 AsyncSessionLocal = async_sessionmaker(
@@ -48,7 +57,12 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     """Initialize database tables."""
     from app.infrastructure.database.base import Base
-    
+    # Import all models so Base.metadata knows about them
+    import app.features.authenticate.infrastructure.persistence.user_model  # noqa
+    import app.features.manage_projects.infrastructure.persistence.project_model  # noqa
+    import app.features.manage_projects.infrastructure.persistence.project_message_model  # noqa
+    import app.features.manage_projects.infrastructure.persistence.project_invitation_model  # noqa
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

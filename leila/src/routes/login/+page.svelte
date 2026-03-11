@@ -69,7 +69,7 @@
       loginRateLimiter.record();
 
       const attempts = loginRateLimiter.getAttempts();
-      let errorMessage = e.detail || 'Error al iniciar sesión';
+      let errorMessage = e.detail || e.message || 'Error al iniciar sesión';
 
       if (attempts >= 3) {
         errorMessage += `. ${5 - attempts} intentos restantes`;

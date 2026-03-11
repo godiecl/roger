@@ -97,7 +97,7 @@ class TokenRefreshService {
   /**
    * Refresh the access token using the refresh token
    */
-  async refreshToken(refreshToken: string): Promise<boolean> {
+  async refreshToken(refreshToken: string, logoutOnFailure = true): Promise<boolean> {
     if (this.isRefreshing) {
       console.log('Already refreshing token');
       return false;
@@ -131,8 +131,9 @@ class TokenRefreshService {
       return true;
     } catch (error) {
       console.error('Failed to refresh token:', error);
-      // If refresh fails, logout user
-      authStore.logout();
+      if (logoutOnFailure) {
+        authStore.logout();
+      }
       return false;
     } finally {
       this.isRefreshing = false;

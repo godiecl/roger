@@ -5,6 +5,7 @@ User repository implementation for ROGER - Valeria API
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 
 from app.features.authenticate.domain.user import User
 from app.features.authenticate.domain.auth_port import IUserRepository
@@ -21,6 +22,7 @@ class UserRepository(IUserRepository):
         """Create a new user."""
         user_model = UserModel(
             email=user.email,
+            username=user.username,
             hashed_password=user.hashed_password,
             role=user.role,
             full_name=user.full_name,
@@ -52,6 +54,18 @@ class UserRepository(IUserRepository):
         
         return self._to_entity(user_model) if user_model else None
     
+    async def search_by_email(self, query: str, limit: int = 8) -> list[User]:
+        """Search users by email (case-insensitive partial match)."""
+        result = await self.session.execute(
+            select(UserModel)
+            .where(
+                UserModel.is_active == True,
+                func.lower(UserModel.email).contains(query.lower())
+            )
+            .limit(limit)
+        )
+        return [self._to_entity(m) for m in result.scalars().all()]
+
     async def update(self, user: User) -> User:
         """Update an existing user."""
         result = await self.session.execute(
@@ -63,6 +77,7 @@ class UserRepository(IUserRepository):
             raise ValueError(f"User with id {user.id} not found")
         
         user_model.email = user.email
+        user_model.username = user.username
         user_model.hashed_password = user.hashed_password
         user_model.role = user.role
         user_model.full_name = user.full_name
@@ -91,6 +106,7 @@ class UserRepository(IUserRepository):
         return User(
             id=model.id,
             email=model.email,
+            username=model.username,
             hashed_password=model.hashed_password,
             role=model.role,
             full_name=model.full_name,

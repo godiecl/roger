@@ -45,7 +45,7 @@ export const securityConfig = {
     styleSrc: ["'self'", "'unsafe-inline'"], // Remove unsafe-inline in production
     imgSrc: ["'self'", 'data:', 'https:'],
     fontSrc: ["'self'", 'data:'],
-    connectSrc: ["'self'", process.env.VITE_API_URL || 'http://localhost:8000']
+    connectSrc: ["'self'", 'http://localhost:8000']
   }
 };
 

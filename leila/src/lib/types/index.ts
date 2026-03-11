@@ -128,3 +128,89 @@ export interface ApiError {
   detail: string;
   status?: number;
 }
+
+// --- Projects ---
+
+export type ProjectRole = 'lider' | 'investigador' | 'colaborador' | 'observador';
+
+export interface Project {
+  id: number;
+  name: string;
+  description?: string;
+  start_date?: string;
+  end_date?: string;
+  owner_id: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectMember {
+  id: number;
+  project_id: number;
+  user_id: number;
+  role: ProjectRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectListResponse {
+  total: number;
+  skip: number;
+  limit: number;
+  projects: Project[];
+}
+
+export interface MemberListResponse {
+  total: number;
+  members: ProjectMember[];
+}
+
+export interface ProjectMessage {
+  id: number;
+  project_id: number;
+  user_id: number;
+  content: string;
+  message_type: 'user' | 'ai';
+  sender_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MessageListResponse {
+  total: number;
+  messages: ProjectMessage[];
+}
+
+export interface AiMessageResponse {
+  user_message: ProjectMessage;
+  ai_message: ProjectMessage;
+}
+
+export interface ProjectInvitation {
+  id: number;
+  project_id: number;
+  project_name: string;
+  invited_by_email: string;
+  status: 'pending' | 'accepted' | 'declined';
+  created_at: string;
+}
+
+export interface InvitationListResponse {
+  total: number;
+  invitations: ProjectInvitation[];
+}
+
+export interface SentInvitation {
+  id: number;
+  project_id: number;
+  invited_email: string;
+  invited_by_email: string;
+  status: 'pending' | 'accepted' | 'declined';
+  created_at: string;
+}
+
+export interface SentInvitationListResponse {
+  total: number;
+  invitations: SentInvitation[];
+}

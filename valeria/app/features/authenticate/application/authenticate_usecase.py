@@ -71,6 +71,7 @@ class AuthenticateUseCase:
             "user": {
                 "id": user.id,
                 "email": user.email,
+                "username": user.username,
                 "role": user.role.value,
                 "full_name": user.full_name,
                 "is_active": user.is_active,

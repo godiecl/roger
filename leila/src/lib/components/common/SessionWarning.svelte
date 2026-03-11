@@ -11,6 +11,8 @@
   let intervalId: number | null = null;
 
   function checkTokenExpiration() {
+    if (!$authStore.user) { showWarning = false; return; }
+
     const tokens = $authStore.tokens;
     if (!tokens?.access_token) {
       showWarning = false;
@@ -18,34 +20,37 @@
     }
 
     const timeRemaining = getTimeUntilExpiration(tokens.access_token);
-    minutesRemaining = Math.floor(timeRemaining / 60000); // Convert to minutes
+    minutesRemaining = Math.max(0, Math.floor(timeRemaining / 60000));
 
-    // Check inactivity
     const timeSinceActivity = activityTracker.getTimeSinceLastActivity();
     inactivityMinutes = Math.floor(timeSinceActivity / 60000);
 
-    // Show warning if:
-    // 1. Less than 10 minutes until token expires, OR
-    // 2. Inactive for more than 25 minutes (5 min warning before 30 min timeout)
-    const tokenExpiringSoon = minutesRemaining <= 10 && minutesRemaining > 0;
-    const inactivityWarning = inactivityMinutes >= 25 && inactivityMinutes < 30;
+    // Logout by inactivity (takes priority)
+    if (inactivityMinutes >= 30) {
+      authStore.logout();
+      return;
+    }
+
+    // Logout if token already expired (refresh didn't succeed)
+    if (timeRemaining <= 0) {
+      authStore.logout();
+      return;
+    }
+
+    const tokenExpiringSoon = minutesRemaining <= 10;
+    const inactivityWarning = inactivityMinutes >= 25;
 
     showWarning = tokenExpiringSoon || inactivityWarning;
-
-    // If inactive for 30+ minutes, logout
-    if (inactivityMinutes >= 30 && $authStore.user) {
-      authStore.logout();
-    }
   }
 
   async function extendSession() {
     // Refresh activity
     activityTracker.updateActivity();
 
-    // Trigger token refresh if needed
+    // Try to refresh token but don't logout if it fails — let the user continue
     const tokens = $authStore.tokens;
     if (tokens?.refresh_token) {
-      await tokenRefreshService.refreshToken(tokens.refresh_token);
+      await tokenRefreshService.refreshToken(tokens.refresh_token, false);
     }
 
     showWarning = false;
@@ -91,13 +96,14 @@
       <div>
         <h3 class="font-bold">Tu sesión expirará pronto</h3>
         <div class="text-sm">
-          {minutesRemaining} minuto{minutesRemaining !== 1 ? 's' : ''} restante{minutesRemaining !== 1 ? 's' : ''}
+          {#if inactivityMinutes >= 25}
+            Sin actividad por {inactivityMinutes} min. Se cerrará en {30 - inactivityMinutes} min.
+          {:else}
+            {minutesRemaining} minuto{minutesRemaining !== 1 ? 's' : ''} restante{minutesRemaining !== 1 ? 's' : ''}
+          {/if}
         </div>
       </div>
       <div class="flex gap-2">
-        <button class="btn btn-sm btn-ghost" on:click={() => showWarning = false}>
-          Ignorar
-        </button>
         <button class="btn btn-sm btn-primary" on:click={extendSession}>
           Continuar sesión
         </button>
