@@ -23,6 +23,7 @@ class Project(BaseEntity):
         end_date: Optional[date] = None,
         owner_id: Optional[int] = None,
         is_active: bool = True,
+        ai_instructions: Optional[str] = None,
         id: Optional[int] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None
@@ -34,6 +35,7 @@ class Project(BaseEntity):
         self.end_date = end_date
         self.owner_id = owner_id
         self.is_active = is_active
+        self.ai_instructions = ai_instructions
 
         self.validate()
 

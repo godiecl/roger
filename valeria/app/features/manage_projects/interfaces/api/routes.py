@@ -2,7 +2,7 @@
 FastAPI routes for projects (RF-10: Grupos de Proyectos).
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.manage_projects.interfaces.api.schemas import (
@@ -21,7 +21,8 @@ from app.features.manage_projects.interfaces.api.schemas import (
     InvitationResponse,
     InvitationListResponse,
     SentInvitationResponse,
-    SentInvitationListResponse
+    SentInvitationListResponse,
+    PdfContextResponse
 )
 from app.features.manage_projects.application.create_project_usecase import (
     CreateProjectUseCase
@@ -172,7 +173,8 @@ async def update_project(
             description=request.description,
             start_date=request.start_date,
             end_date=request.end_date,
-            is_active=request.is_active
+            is_active=request.is_active,
+            ai_instructions=request.ai_instructions
         )
         return ProjectResponse.model_validate(project.__dict__)
     except EntityNotFoundError as e:
@@ -516,7 +518,8 @@ async def ask_ai(
             project_id=project_id,
             user_id=user_id,
             question=request.question,
-            sender_name=sender_name
+            sender_name=sender_name,
+            context=request.context
         )
         return AiMessageResponse(
             user_message=MessageResponse.model_validate(user_msg.__dict__),
@@ -533,3 +536,55 @@ async def ask_ai(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Error al consultar la IA: {str(e)}"
         )
+
+
+@router.post("/{project_id}/context/pdf", response_model=PdfContextResponse)
+async def upload_pdf_context(
+    project_id: int,
+    file: UploadFile = File(...),
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Extract text from a PDF to use as context for the AI assistant."""
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Solo se aceptan archivos PDF")
+
+    # Verify the user is a project member
+    project_repo = ProjectRepository(db)
+    project = await project_repo.get_by_id(project_id)
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proyecto no encontrado")
+    member = await project_repo.get_member(project_id, user_id)
+    if not member and not project.is_owner(user_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No eres miembro de este proyecto")
+
+    try:
+        import pdfplumber
+        import io
+        content = await file.read()
+        text_parts = []
+        num_pages = 0
+        with pdfplumber.open(io.BytesIO(content)) as pdf:
+            num_pages = len(pdf.pages)
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text_parts.append(page_text)
+        full_text = "\n\n".join(text_parts).strip()
+        if not full_text:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                detail="No se pudo extraer texto del PDF (puede ser una imagen escaneada)")
+        # Limit to ~15000 chars to stay within Groq/OpenAI context limits
+        if len(full_text) > 15000:
+            full_text = full_text[:15000] + "\n\n[... texto truncado por límite de contexto ...]"
+        return PdfContextResponse(
+            filename=file.filename,
+            pages=num_pages,
+            text=full_text,
+            char_count=len(full_text)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Error al procesar el PDF: {str(e)}")

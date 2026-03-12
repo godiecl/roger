@@ -38,6 +38,7 @@
   let editName = '';
   let editDescription = '';
   let editStartDate = '';
+  let editAiInstructions = '';
   let saving = false;
 
   // Chat
@@ -45,6 +46,12 @@
   let aiInput = '';
   let chatContainer: HTMLDivElement;
   let pollingInterval: ReturnType<typeof setInterval>;
+
+  // PDF context
+  let pdfContext: string | undefined = undefined;
+  let pdfFilename = '';
+  let uploadingPdf = false;
+  let pdfInput: HTMLInputElement;
 
   $: projectId = Number($page.params.id);
   $: currentUserId = $authStore.user?.id;
@@ -120,6 +127,7 @@
     editName = project.name;
     editDescription = project.description || '';
     editStartDate = project.start_date || '';
+    editAiInstructions = project.ai_instructions || '';
     editing = true;
   }
 
@@ -135,7 +143,8 @@
       const updated = await projectService.updateProject(projectId, {
         name: editName.trim(),
         description: editDescription.trim() || undefined,
-        start_date: editStartDate || undefined
+        start_date: editStartDate || undefined,
+        ai_instructions: editAiInstructions.trim() || undefined
       });
       project = updated;
       editing = false;
@@ -249,7 +258,7 @@
     aiInput = '';
     try {
       chatStore.setSending(true);
-      const resp = await chatService.askAI(projectId, question);
+      const resp = await chatService.askAI(projectId, question, pdfContext);
       chatStore.addMessage(resp.user_message);
       chatStore.addMessage(resp.ai_message);
       scrollToBottom();
@@ -259,6 +268,29 @@
     } finally {
       chatStore.setSending(false);
     }
+  }
+
+  async function handlePdfUpload(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      uploadingPdf = true;
+      const resp = await chatService.uploadPdfContext(projectId, file);
+      pdfContext = resp.text;
+      pdfFilename = resp.filename;
+      notificationsStore.success(`PDF cargado: ${resp.filename} (${resp.pages} págs., ${resp.char_count} caracteres)`);
+    } catch (e: any) {
+      notificationsStore.error(e.detail || 'Error al procesar el PDF');
+    } finally {
+      uploadingPdf = false;
+      input.value = '';
+    }
+  }
+
+  function clearPdfContext() {
+    pdfContext = undefined;
+    pdfFilename = '';
   }
 
   function onChatKeydown(e: KeyboardEvent) {
@@ -354,6 +386,21 @@
               <label class="label py-1" for="edit-start"><span class="label-text font-semibold text-sm">Fecha de inicio</span></label>
               <input id="edit-start" type="date" class="input input-bordered input-sm" bind:value={editStartDate} />
             </div>
+            {#if isLider}
+            <div class="form-control">
+              <label class="label py-1" for="edit-ai-instructions">
+                <span class="label-text font-semibold text-sm">Instrucciones para la IA</span>
+                <span class="label-text-alt text-base-content/40">Solo visibles para la IA</span>
+              </label>
+              <textarea
+                id="edit-ai-instructions"
+                class="textarea textarea-bordered textarea-sm"
+                rows="3"
+                placeholder="Ej: En este proyecto, 'planta madre' se refiere a la instalación central de tratamiento…"
+                bind:value={editAiInstructions}
+              ></textarea>
+            </div>
+            {/if}
             <div class="flex gap-2 justify-end">
               <button class="btn btn-ghost btn-sm" on:click={cancelEdit}>Cancelar</button>
               <button class="btn btn-primary btn-sm" on:click={saveEdit} disabled={saving}>
@@ -486,6 +533,17 @@
               </button>
             </div>
 
+            <!-- PDF context indicator -->
+            {#if pdfContext}
+              <div class="flex items-center gap-2 text-xs bg-secondary/10 text-secondary rounded px-2 py-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span class="truncate flex-1">Contexto PDF: <strong>{pdfFilename}</strong></span>
+                <button class="btn btn-ghost btn-xs text-error p-0 h-auto min-h-0" on:click={clearPdfContext} title="Quitar PDF">✕</button>
+              </div>
+            {/if}
+
             <!-- AI input -->
             <div class="flex gap-2">
               <input
@@ -496,6 +554,24 @@
                 on:keydown={onAiKeydown}
                 disabled={sending}
               />
+              <!-- PDF upload button -->
+              <input
+                type="file"
+                accept=".pdf"
+                class="hidden"
+                bind:this={pdfInput}
+                on:change={handlePdfUpload}
+              />
+              <button class="btn btn-ghost btn-sm" title="Subir PDF como contexto"
+                on:click={() => pdfInput.click()} disabled={uploadingPdf}>
+                {#if uploadingPdf}
+                  <span class="loading loading-spinner loading-xs"></span>
+                {:else}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                {/if}
+              </button>
               <button class="btn btn-secondary btn-sm gap-1" on:click={handleAskAI}
                 disabled={sending || !aiInput.trim()}>
                 {#if sending}

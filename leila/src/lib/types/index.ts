@@ -141,6 +141,7 @@ export interface Project {
   end_date?: string;
   owner_id: number;
   is_active: boolean;
+  ai_instructions?: string;
   created_at: string;
   updated_at: string;
 }
@@ -213,4 +214,11 @@ export interface SentInvitation {
 export interface SentInvitationListResponse {
   total: number;
   invitations: SentInvitation[];
+}
+
+export interface PdfContextResponse {
+  filename: string;
+  pages: number;
+  text: string;
+  char_count: number;
 }

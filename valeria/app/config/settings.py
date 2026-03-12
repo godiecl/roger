@@ -91,6 +91,14 @@ class Settings(BaseSettings):
     )
     openai_max_tokens: int = Field(default=1000, alias="OPENAI_MAX_TOKENS")
     openai_temperature: float = Field(default=0.7, alias="OPENAI_TEMPERATURE")
+
+    # ===================================
+    # GROQ (proveedor gratuito)
+    # ===================================
+    groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
+    groq_model: str = Field(default="llama-3.3-70b-versatile", alias="GROQ_MODEL")
+    groq_max_tokens: int = Field(default=1000, alias="GROQ_MAX_TOKENS")
+    groq_temperature: float = Field(default=0.7, alias="GROQ_TEMPERATURE")
     
     # ===================================
     # ANTHROPIC (optional)

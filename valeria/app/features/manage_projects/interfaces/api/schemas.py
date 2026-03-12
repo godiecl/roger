@@ -33,6 +33,7 @@ class ProjectUpdateRequest(BaseModel):
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     is_active: Optional[bool] = None
+    ai_instructions: Optional[str] = None
 
 
 class ProjectResponse(BaseModel):
@@ -44,6 +45,7 @@ class ProjectResponse(BaseModel):
     end_date: Optional[date]
     owner_id: int
     is_active: bool
+    ai_instructions: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -99,6 +101,7 @@ class MessageCreateRequest(BaseModel):
 class AiMessageRequest(BaseModel):
     """Request to ask the AI assistant a question."""
     question: str = Field(..., min_length=1, max_length=2000)
+    context: Optional[str] = Field(None, description="Texto de contexto extra (ej. contenido de PDF)")
 
 
 class MessageResponse(BaseModel):
@@ -170,3 +173,11 @@ class SentInvitationResponse(BaseModel):
 class SentInvitationListResponse(BaseModel):
     total: int
     invitations: List[SentInvitationResponse]
+
+
+class PdfContextResponse(BaseModel):
+    """Response after uploading a PDF for AI context."""
+    filename: str
+    pages: int
+    text: str
+    char_count: int

@@ -99,3 +99,4 @@ structlog>=24.4.0
 # GEOLOCATION
 # ===================================
 # geopy==2.4.1                 # Geocoding (opcional)
+pdfplumber>=0.11.0

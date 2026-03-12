@@ -3,7 +3,7 @@
  * Handles project chat messages and AI assistant queries.
  */
 import { apiClient } from './apiClient';
-import type { ProjectMessage, MessageListResponse, AiMessageResponse } from '$lib/types';
+import type { ProjectMessage, MessageListResponse, AiMessageResponse, PdfContextResponse } from '$lib/types';
 
 class ChatService {
   async listMessages(
@@ -24,10 +24,19 @@ class ChatService {
     );
   }
 
-  async askAI(projectId: number, question: string): Promise<AiMessageResponse> {
+  async askAI(projectId: number, question: string, context?: string): Promise<AiMessageResponse> {
     return apiClient.post<AiMessageResponse>(
       `/projects/${projectId}/messages/ai`,
-      { question }
+      { question, context }
+    );
+  }
+
+  async uploadPdfContext(projectId: number, file: File): Promise<PdfContextResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.upload<PdfContextResponse>(
+      `/projects/${projectId}/context/pdf`,
+      formData
     );
   }
 }

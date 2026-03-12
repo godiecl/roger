@@ -27,6 +27,7 @@ class ProjectModel(BaseModel):
         index=True
     )
     is_active = Column(Boolean, default=True, nullable=False, index=True)
+    ai_instructions = Column(Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"<ProjectModel(id={self.id}, name={self.name})>"
