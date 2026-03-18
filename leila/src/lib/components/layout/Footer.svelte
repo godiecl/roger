@@ -21,7 +21,7 @@
         </div>
         <p class="text-sm text-slate-300 mb-6 max-w-md leading-relaxed">
           Plataforma digital para la visibilización, preservación y enriquecimiento
-          del archivo fotográfico de Roberto Gerstmann mediante inteligencia artificial.
+          del archivo fotográfico de Robert Gerstmann mediante inteligencia artificial.
         </p>
         <div class="flex gap-4 mb-6">
           <div class="w-20 h-20 bg-slate-700 rounded-lg flex items-center justify-center hover:bg-slate-600 transition-colors">

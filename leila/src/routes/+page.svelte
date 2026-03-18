@@ -49,7 +49,7 @@
       <div class="badge badge-accent badge-lg mb-6 shadow-lg">Patrimonio Digital</div>
 
       <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-        Explora el Legado Visual de Roberto Gerstmann
+        Explora el Legado Visual de Robert Gerstmann
       </h1>
 
       <p class="text-lg md:text-xl text-slate-200 mb-8 max-w-3xl mx-auto">

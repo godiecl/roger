@@ -85,7 +85,7 @@
           </div>
           <div>
             <div class="text-xs text-slate-500 uppercase tracking-wide">Universidad Católica del Norte</div>
-            <div class="text-lg font-bold text-slate-800">Fondo Roberto Gerstmann</div>
+            <div class="text-lg font-bold text-slate-800">Fondo Robert Gerstmann</div>
           </div>
         </a>
 

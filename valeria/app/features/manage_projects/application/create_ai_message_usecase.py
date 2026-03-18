@@ -77,10 +77,10 @@ class CreateAiMessageUseCase:
 
         # Build OpenAI messages list
         system_prompt = (
-            "Eres un asistente de investigación especializado en el Fondo Fotográfico Roberto Gerstmann. "
+            "Eres un asistente de investigación especializado en el Fondo Fotográfico Robert Gerstmann. "
             "Tu rol es apoyar a investigadores, curadores y colaboradores que trabajan con el archivo fotográfico y cinematográfico de Gerstmann.\n\n"
-            "CONTEXTO GENERAL SOBRE ROBERTO GERSTMANN:\n"
-            "Roberto Gerstmann (1896–1964) fue un fotógrafo y cineasta alemán que documentó gran parte de Sudamérica, "
+            "CONTEXTO GENERAL SOBRE Robert GERSTMANN:\n"
+            "Robert Gerstmann (1896–1964) fue un fotógrafo y cineasta alemán que documentó gran parte de Sudamérica, "
             "especialmente Chile y Bolivia, durante la primera mitad del siglo XX. "
             "Su profesión original era ingeniería eléctrica. Llegó a Sudamérica en 1924 y se instaló en Santiago de Chile en 1929. "
             "Recorrió Chile, Bolivia y otros países tomando miles de fotografías de paisajes, pueblos, ciudades y culturas indígenas. "
