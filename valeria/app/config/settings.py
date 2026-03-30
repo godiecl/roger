@@ -173,6 +173,18 @@ class Settings(BaseSettings):
     log_file: str = Field(default="./logs/app.log", alias="LOG_FILE")
 
     # ===================================
+    # EMAIL (SMTP)
+    # ===================================
+    smtp_host: str = Field(default="smtp.gmail.com", alias="SMTP_HOST")
+    smtp_port: int = Field(default=587, alias="SMTP_PORT")
+    smtp_user: str = Field(default="", alias="SMTP_USER")
+    smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
+    smtp_from: str = Field(default="noreply@roger.ucn.cl", alias="SMTP_FROM")
+    smtp_from_name: str = Field(default="Archivo ROGER", alias="SMTP_FROM_NAME")
+    frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
+    reset_token_expire_minutes: int = Field(default=15, alias="RESET_TOKEN_EXPIRE_MINUTES")
+
+    # ===================================
     # PAGINATION
     # ===================================
     default_page_size: int = Field(default=20, alias="DEFAULT_PAGE_SIZE")

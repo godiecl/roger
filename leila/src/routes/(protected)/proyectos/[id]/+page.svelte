@@ -53,6 +53,19 @@
   let uploadingPdf = false;
   let pdfInput: HTMLInputElement;
 
+  // AI thinking + typewriter
+  let aiThinking = false;
+  let typewriterMsgId: number | null = null;
+  let typewriterContent = '';
+  let typewriterTimer: ReturnType<typeof setInterval> | null = null;
+
+  // Client-side rate limit tracking (mirrors backend 10/hour)
+  let aiRequestTimestamps: number[] = [];
+  $: aiUsedThisHour = aiRequestTimestamps.filter(t => Date.now() - t < 3600000).length;
+  $: aiRemaining = Math.max(0, 10 - aiUsedThisHour);
+
+  $: if (aiThinking) scrollToBottom();
+
   $: projectId = Number($page.params.id);
   $: currentUserId = $authStore.user?.id;
   $: isOwner = project?.owner_id === currentUserId;
@@ -70,6 +83,7 @@
 
   onDestroy(() => {
     clearInterval(pollingInterval);
+    if (typewriterTimer) clearInterval(typewriterTimer);
     chatStore.reset();
   });
 
@@ -252,17 +266,43 @@
     }
   }
 
+  function startTypewriter(msgId: number, content: string) {
+    typewriterMsgId = msgId;
+    typewriterContent = '';
+    let i = 0;
+    if (typewriterTimer) clearInterval(typewriterTimer);
+    typewriterTimer = setInterval(() => {
+      i += 3;
+      typewriterContent = content.slice(0, i);
+      scrollToBottom();
+      if (i >= content.length) {
+        clearInterval(typewriterTimer!);
+        typewriterTimer = null;
+        typewriterMsgId = null;
+        typewriterContent = '';
+      }
+    }, 18);
+  }
+
   async function handleAskAI() {
     if (!aiInput.trim() || sending) return;
     const question = aiInput.trim();
     aiInput = '';
+    // Track timestamp for client-side counter
+    aiRequestTimestamps = [...aiRequestTimestamps.filter(t => Date.now() - t < 3600000), Date.now()];
     try {
       chatStore.setSending(true);
+      aiThinking = true;
       const resp = await chatService.askAI(projectId, question, pdfContext);
       chatStore.addMessage(resp.user_message);
+      aiThinking = false;
       chatStore.addMessage(resp.ai_message);
       scrollToBottom();
+      startTypewriter(resp.ai_message.id, resp.ai_message.content);
     } catch (e: any) {
+      aiThinking = false;
+      // Roll back timestamp on failure
+      aiRequestTimestamps = aiRequestTimestamps.slice(0, -1);
       notificationsStore.error(e.detail || e.message || 'Error al consultar la IA');
       aiInput = question;
     } finally {
@@ -322,7 +362,7 @@
   <title>{project?.name || 'Proyecto'} - ROGER</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
   <div class="mb-4">
     <a href="/proyectos" class="btn btn-ghost btn-sm gap-1">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -468,7 +508,7 @@
                         Asistente IA · {formatTime(msg.created_at)}
                       </p>
                       <div class="bg-secondary/10 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm whitespace-pre-wrap">
-                        {msg.content}
+                        {msg.id === typewriterMsgId ? typewriterContent : msg.content}
                       </div>
                     </div>
                   </div>
@@ -506,6 +546,25 @@
                   </div>
                 {/if}
               {/each}
+            {/if}
+
+            <!-- AI thinking indicator -->
+            {#if aiThinking}
+              <div class="flex gap-2 items-start">
+                <div class="w-8 h-8 rounded-full bg-secondary/20 text-secondary flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2" />
+                  </svg>
+                </div>
+                <div class="max-w-[78%]">
+                  <p class="text-xs text-secondary font-semibold mb-0.5">Asistente IA · pensando…</p>
+                  <div class="bg-secondary/10 rounded-2xl rounded-tl-sm px-4 py-3 flex gap-1.5 items-center">
+                    <span class="w-2 h-2 rounded-full bg-secondary animate-bounce" style="animation-delay:0ms"></span>
+                    <span class="w-2 h-2 rounded-full bg-secondary animate-bounce" style="animation-delay:150ms"></span>
+                    <span class="w-2 h-2 rounded-full bg-secondary animate-bounce" style="animation-delay:300ms"></span>
+                  </div>
+                </div>
+              </div>
             {/if}
           </div>
 
@@ -545,6 +604,12 @@
             {/if}
 
             <!-- AI input -->
+            <div class="flex items-center justify-between mb-0.5 px-0.5">
+              <span class="text-xs text-base-content/40">Consultas IA disponibles esta hora:</span>
+              <span class="text-xs font-semibold {aiRemaining <= 2 ? 'text-error' : aiRemaining <= 5 ? 'text-warning' : 'text-secondary'}">
+                {aiRemaining}/10
+              </span>
+            </div>
             <div class="flex gap-2">
               <input
                 type="text"

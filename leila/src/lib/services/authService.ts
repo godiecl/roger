@@ -10,6 +10,13 @@ export interface RegisterRequest {
   username: string;
   password: string;
   full_name?: string;
+  verification_token: string;
+  verification_code: string;
+}
+
+export interface SendVerificationCodeResponse {
+  token: string;
+  message: string;
 }
 
 export interface RegisterResponse {
@@ -66,6 +73,27 @@ class AuthService {
       current_password: currentPassword,
       new_password: newPassword
     });
+  }
+
+  /**
+   * Send email verification code for registration
+   */
+  async sendVerificationCode(email: string): Promise<SendVerificationCodeResponse> {
+    return apiClient.post('/auth/send-verification-code', { email });
+  }
+
+  /**
+   * Request password reset email
+   */
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    return apiClient.post('/auth/forgot-password', { email });
+  }
+
+  /**
+   * Reset password using token from email
+   */
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    return apiClient.post('/auth/reset-password', { token, new_password: newPassword });
   }
 }
 

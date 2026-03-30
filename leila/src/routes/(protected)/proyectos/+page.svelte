@@ -55,7 +55,7 @@
   <title>Mis Proyectos - ROGER</title>
 </svelte:head>
 
-<div class="max-w-5xl mx-auto">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
   <!-- Header -->
   <div class="flex items-center justify-between mb-8">
     <div>

@@ -58,6 +58,44 @@ class JWTService(IJWTService):
         except JWTError as e:
             raise UnauthorizedError(f"Invalid token: {str(e)}")
 
+    def create_email_verification_token(self, email: str, code_hash: str) -> str:
+        """Create a short-lived email verification token (10 min)."""
+        expire = datetime.utcnow() + timedelta(minutes=10)
+        payload = {
+            "sub": email,
+            "code_hash": code_hash,
+            "exp": expire,
+            "type": "email_verify",
+        }
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+
+    def decode_email_verification_token(self, token: str) -> Dict:
+        """Decode an email verification token and validate its type."""
+        payload = self.decode_token(token)
+        if payload.get("type") != "email_verify":
+            raise UnauthorizedError("Invalid token type")
+        return payload
+
+    def create_reset_token(self, user_id: int, email: str) -> str:
+        """Create a short-lived password reset token (15 min)."""
+        expire = datetime.utcnow() + timedelta(
+            minutes=settings.reset_token_expire_minutes
+        )
+        payload = {
+            "sub": email,
+            "user_id": user_id,
+            "exp": expire,
+            "type": "reset",
+        }
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+
+    def decode_reset_token(self, token: str) -> Dict:
+        """Decode a reset token and validate its type."""
+        payload = self.decode_token(token)
+        if payload.get("type") != "reset":
+            raise UnauthorizedError("Invalid token type")
+        return payload
+
 
 # Global instance
 jwt_service = JWTService()

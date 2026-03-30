@@ -5,8 +5,8 @@
   import DevPanel from '$lib/components/dev/DevPanel.svelte';
   import { page } from '$app/stores';
 
-  // Check if current page should hide header/footer
   $: isFullscreen = $page.url.pathname.includes('/viewer/');
+  $: isMapPage = $page.url.pathname === '/mapa';
 </script>
 
 <div class="min-h-screen flex flex-col">
@@ -14,11 +14,11 @@
     <Header />
   {/if}
 
-  <main class="flex-1 {isFullscreen ? '' : 'container mx-auto px-4 py-8'}">
+  <main class="flex-1 min-h-0 w-full">
     <slot />
   </main>
 
-  {#if !isFullscreen}
+  {#if !isFullscreen && !isMapPage}
     <Footer />
   {/if}
 

@@ -29,6 +29,8 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=6)
     full_name: Optional[str] = None
     role: Role = Role.USUARIO_ESTANDAR
+    verification_token: str
+    verification_code: str = Field(..., min_length=6, max_length=6)
 
 
 class UserResponse(BaseModel):
@@ -49,6 +51,33 @@ class TokenResponse(BaseModel):
     """Token response schema."""
     access_token: str
     token_type: str = "bearer"
+
+
+class SendVerificationCodeRequest(BaseModel):
+    """Request to send email verification code."""
+    email: EmailStr
+
+
+class SendVerificationCodeResponse(BaseModel):
+    """Response after sending verification code."""
+    token: str
+    message: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Forgot password request schema."""
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Reset password request schema."""
+    token: str
+    new_password: str = Field(..., min_length=8)
+
+
+class MessageResponse(BaseModel):
+    """Generic message response."""
+    message: str
 
 
 class UserSearchResult(BaseModel):

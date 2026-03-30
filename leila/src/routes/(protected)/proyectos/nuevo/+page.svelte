@@ -45,7 +45,7 @@
   <title>Crear Proyecto - ROGER</title>
 </svelte:head>
 
-<div class="max-w-2xl mx-auto">
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-8">
   <div class="mb-6">
     <a href="/proyectos" class="btn btn-ghost btn-sm gap-1">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

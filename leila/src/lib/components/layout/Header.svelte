@@ -5,6 +5,8 @@
   import { invitationsStore, pendingCount } from '$lib/stores/invitations';
   import { invitationService } from '$lib/services/invitationService';
   import { notificationsStore } from '$lib/stores/notifications';
+  import ThemeToggle from '$lib/components/common/ThemeToggle.svelte';
+  import { locale, t, switchLocale, LOCALES } from '$lib/stores/locale';
 
   let isMenuOpen = false;
 
@@ -57,44 +59,73 @@
   $: if ($isAuthenticated) loadInvitations();
 </script>
 
-<header class="sticky top-0 z-50 bg-base-100 shadow-sm">
+<header class="sticky top-0 z-50 bg-base-100/90 backdrop-blur-sm border-b border-base-content/10">
   <!-- Top Bar -->
-  <div class="bg-slate-600 text-white">
+  <div class="bg-neutral text-neutral-content">
     <div class="container mx-auto px-4">
       <div class="flex justify-end items-center h-8 text-xs">
-        <a href="/help" class="hover:text-slate-200 px-3 transition-colors">Ayuda</a>
-        <a href="/contact" class="hover:text-slate-200 px-3 transition-colors">Contacto</a>
-        <a href="/en" class="hover:text-slate-200 px-3 transition-colors">English</a>
+        <a href="/ayuda" class="hover:text-neutral-content/70 px-3 transition-colors">{$t.topbar.help}</a>
+        <a href="/contacto" class="hover:text-neutral-content/70 px-3 transition-colors">{$t.topbar.contact}</a>
+        <div class="dropdown dropdown-end">
+          <button
+            tabindex="0"
+            class="hover:text-neutral-content/70 px-3 transition-colors flex items-center gap-1.5 font-semibold"
+            aria-label="Cambiar idioma"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+            </svg>
+            <span class="uppercase text-xs" translate="no">{$locale}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+          <ul tabindex="0" role="menu" class="dropdown-content menu menu-sm bg-neutral text-neutral-content shadow-lg rounded-box mt-1 w-36 p-1 z-[999]">
+            {#each LOCALES as lang}
+              <li>
+                <button
+                  class="flex items-center gap-2 w-full {$locale === lang.code ? 'font-bold opacity-100' : 'opacity-70 hover:opacity-100'}"
+                  on:click={() => switchLocale(lang.code)}
+                >
+                  <span class="uppercase text-xs w-6" translate="no">{lang.code}</span>
+                  <span translate="no">{lang.label}</span>
+                  {#if $locale === lang.code}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  {/if}
+                </button>
+              </li>
+            {/each}
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Main Header -->
-  <div class="bg-base-100 border-b border-base-300">
-    <div class="container mx-auto px-4 py-4">
+  <div class="bg-transparent">
+    <div class="container mx-auto px-4 py-3">
       <div class="flex items-center justify-between">
         <!-- Logo and Branding -->
         <a href="/" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <div class="avatar">
-            <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
+          <div class="rounded-lg overflow-hidden bg-base-100 p-1">
+            <img src="/images/ucn.png" alt="UCN" class="h-12 w-auto object-contain" />
           </div>
           <div>
-            <div class="text-xs text-slate-500 uppercase tracking-wide">Universidad Católica del Norte</div>
-            <div class="text-lg font-bold text-slate-800">Fondo Robert Gerstmann</div>
+            <div class="text-xs text-base-content/50 uppercase tracking-widest font-semibold" translate="no">Universidad Católica del Norte</div>
+            <div class="text-lg font-bold text-base-content" translate="no">Fondo Robert Gerstmann</div>
           </div>
         </a>
 
         <!-- Search and User Actions -->
-        <div class="hidden md:flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-2">
+          <ThemeToggle />
           <div class="form-control">
             <div class="join">
-              <input type="text" placeholder="Buscar en el archivo..." class="input input-bordered join-item w-64 focus:outline-primary" />
-              <button class="btn btn-primary join-item">
+              <input type="text" placeholder={$t.search.placeholder} class="input input-bordered join-item w-64 focus:outline-primary" />
+              <button class="btn btn-primary join-item btn-search-animated">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -119,7 +150,7 @@
                 </div>
                 <div class="text-left hidden md:block">
                   <div class="text-sm font-semibold">{$authStore.user?.full_name || $authStore.user?.email}</div>
-                  <div class="text-xs text-slate-500 capitalize">{$authStore.user?.role?.replace('_', ' ')}</div>
+                  <div class="text-xs text-base-content/50 capitalize">{$authStore.user?.role?.replace('_', ' ')}</div>
                 </div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -128,8 +159,8 @@
               <ul class="menu menu-sm dropdown-content mt-3 z-10 p-2 shadow-lg bg-base-100 rounded-box w-64 border border-base-300">
                 <li class="menu-title px-4 py-3 border-b border-base-300">
                   <div>
-                    <div class="text-sm font-semibold text-slate-800">{$authStore.user?.full_name}</div>
-                    <div class="text-xs text-slate-500">{$authStore.user?.email}</div>
+                    <div class="text-sm font-semibold text-base-content">{$authStore.user?.full_name}</div>
+                    <div class="text-xs text-base-content/50">{$authStore.user?.email}</div>
                     <div class="badge badge-primary badge-sm mt-1 capitalize">{$authStore.user?.role?.replace('_', ' ')}</div>
                   </div>
                 </li>
@@ -137,13 +168,13 @@
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  Mi Perfil
+                  {$t.auth.profile}
                 </a></li>
                 <li><a href="/proyectos">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
-                  Mis Proyectos
+                  {$t.auth.projects}
                 </a></li>
                 {#if $authStore.user?.role === 'curador' || $authStore.user?.role === 'administrador'}
                   <li><a href="/admin">
@@ -151,14 +182,14 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Administración
+                    {$t.auth.admin}
                   </a></li>
                 {/if}
                 {#if $pendingCount > 0}
                   <div class="divider my-0"></div>
                   <li class="menu-title px-4 py-2">
                     <span class="text-xs font-semibold text-warning uppercase tracking-wide">
-                      Invitaciones ({$pendingCount})
+                      {$t.invitations.title} ({$pendingCount})
                     </span>
                   </li>
                   {#each $invitationsStore.pending as inv (inv.id)}
@@ -170,12 +201,12 @@
                           <button
                             class="btn btn-success btn-xs flex-1"
                             on:click|stopPropagation={() => handleAccept(inv.id)}>
-                            Aceptar
+                            {$t.invitations.accept}
                           </button>
                           <button
                             class="btn btn-ghost btn-xs flex-1 text-error"
                             on:click|stopPropagation={() => handleDecline(inv.id)}>
-                            Rechazar
+                            {$t.invitations.decline}
                           </button>
                         </div>
                       </div>
@@ -187,7 +218,7 @@
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
-                  Cerrar sesión
+                  {$t.auth.logout}
                 </button></li>
               </ul>
             </div>
@@ -201,43 +232,52 @@
           {/if}
         </div>
 
-        <!-- Mobile Menu Button -->
-        <button class="btn btn-ghost lg:hidden" on:click={toggleMenu}>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+        <!-- Mobile Actions -->
+        <div class="flex items-center gap-1 lg:hidden">
+          <ThemeToggle />
+          <button class="btn btn-ghost btn-circle" on:click={toggleMenu} aria-label="Menú">
+            {#if isMenuOpen}
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            {/if}
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Navigation Bar -->
-  <div class="bg-primary text-primary-content">
+  <div class="border-t border-base-content/10 hidden lg:block">
     <div class="container mx-auto px-4">
-      <ul class="menu menu-horizontal hidden lg:flex p-0">
+      <ul class="menu menu-horizontal p-0 gap-1">
         <li>
-          <a href="/" class="rounded-none hover:bg-primary-focus" class:bg-primary-focus={$page.url.pathname === '/'}>
-            Inicio
+          <a href="/" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/'} class:text-primary-content={$page.url.pathname === '/'}>
+            {$t.nav.home}
           </a>
         </li>
         <li>
-          <a href="/gallery" class="rounded-none hover:bg-primary-focus" class:bg-primary-focus={$page.url.pathname === '/gallery'}>
-            Colecciones Digitales
+          <a href="/colecciones" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/colecciones'} class:text-primary-content={$page.url.pathname === '/colecciones'}>
+            {$t.nav.collections}
           </a>
         </li>
         <li>
-          <a href="/map" class="rounded-none hover:bg-primary-focus" class:bg-primary-focus={$page.url.pathname === '/map'}>
-            Mapa
+          <a href="/mapa" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/mapa'} class:text-primary-content={$page.url.pathname === '/mapa'}>
+            {$t.nav.map}
           </a>
         </li>
         <li>
-          <a href="/research" class="rounded-none hover:bg-primary-focus" class:bg-primary-focus={$page.url.pathname === '/research'}>
-            Investigación
+          <a href="/investigacion" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/investigacion'} class:text-primary-content={$page.url.pathname === '/investigacion'}>
+            {$t.nav.research}
           </a>
         </li>
         <li>
-          <a href="/about" class="rounded-none hover:bg-primary-focus" class:bg-primary-focus={$page.url.pathname === '/about'}>
-            Acerca del Proyecto
+          <a href="/sobre-roger" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/sobre-roger'} class:text-primary-content={$page.url.pathname === '/sobre-roger'}>
+            {$t.nav.about}
           </a>
         </li>
       </ul>
@@ -246,18 +286,25 @@
 
   <!-- Mobile Menu Drawer -->
   {#if isMenuOpen}
-    <div class="lg:hidden bg-base-100 border-b border-base-300">
-      <ul class="menu p-4">
-        <li><a href="/" on:click={toggleMenu}>Inicio</a></li>
-        <li><a href="/gallery" on:click={toggleMenu}>Colecciones Digitales</a></li>
-        <li><a href="/map" on:click={toggleMenu}>Mapa</a></li>
-        <li><a href="/research" on:click={toggleMenu}>Investigación</a></li>
-        <li><a href="/about" on:click={toggleMenu}>Acerca del Proyecto</a></li>
+    <div class="lg:hidden bg-base-100 border-b border-base-content/10 shadow-lg">
+      <ul class="menu p-4 gap-1 text-base font-semibold">
+        <li><a href="/" class="rounded-lg" on:click={toggleMenu}>{$t.nav.home}</a></li>
+        <li><a href="/colecciones" class="rounded-lg" on:click={toggleMenu}>{$t.nav.collections}</a></li>
+        <li><a href="/mapa" class="rounded-lg" on:click={toggleMenu}>{$t.nav.map}</a></li>
+        <li><a href="/investigacion" class="rounded-lg" on:click={toggleMenu}>{$t.nav.research}</a></li>
+        <li><a href="/sobre-roger" class="rounded-lg" on:click={toggleMenu}>{$t.nav.about}</a></li>
         {#if $isAuthenticated}
-          <li><a href="/proyectos" on:click={toggleMenu}>Mis Proyectos</a></li>
-        {/if}
-        {#if !$isAuthenticated}
-          <li><a href="/login" on:click={toggleMenu}>Iniciar sesión</a></li>
+          <div class="divider my-1"></div>
+          <li><a href="/proyectos" class="rounded-lg" on:click={toggleMenu}>Mis Proyectos</a></li>
+          <li><a href="/profile" class="rounded-lg" on:click={toggleMenu}>Mi Perfil</a></li>
+          <li>
+            <button class="rounded-lg text-error" on:click={() => { handleLogout(); toggleMenu(); }}>
+              {$t.auth.logout}
+            </button>
+          </li>
+        {:else}
+          <div class="divider my-1"></div>
+          <li><a href="/login" class="btn btn-primary rounded-lg" on:click={toggleMenu}>{$t.auth.login}</a></li>
         {/if}
       </ul>
     </div>

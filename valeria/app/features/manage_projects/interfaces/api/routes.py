@@ -2,8 +2,16 @@
 FastAPI routes for projects (RF-10: Grupos de Proyectos).
 """
 
+import time
+from collections import defaultdict
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# In-memory AI rate limiter: {user_id: [timestamp, ...]}
+_ai_rate_limit: dict[int, list[float]] = defaultdict(list)
+_AI_RATE_LIMIT = 10
+_AI_RATE_WINDOW = 3600  # 1 hour in seconds
 
 from app.features.manage_projects.interfaces.api.schemas import (
     ProjectCreateRequest,
@@ -503,6 +511,16 @@ async def ask_ai(
     db: AsyncSession = Depends(get_db)
 ):
     """Ask the AI assistant a question within the project context."""
+    # Rate limiting: 10 AI requests per user per hour
+    now = time.time()
+    _ai_rate_limit[user_id] = [t for t in _ai_rate_limit[user_id] if now - t < _AI_RATE_WINDOW]
+    if len(_ai_rate_limit[user_id]) >= _AI_RATE_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Has alcanzado el límite de {_AI_RATE_LIMIT} consultas a la IA por hora. Intenta de nuevo más tarde."
+        )
+    _ai_rate_limit[user_id].append(now)
+
     user_repo = UserRepository(db)
     current_user = await user_repo.get_by_id(user_id)
     sender_name = (

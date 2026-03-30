@@ -2,26 +2,29 @@
 export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
-    extend: {},
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: '1rem',
+        sm: '1.5rem',
+        lg: '2rem',
+        xl: '2.5rem',
+      },
+      screens: {
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
+      },
+    },
+    extend: {
+      fontFamily: {
+        urbanist: ['Urbanist', 'sans-serif'],
+      },
+    },
   },
   plugins: [require('daisyui')],
   daisyui: {
-    themes: [
-      {
-        roger: {
-          "primary": "#2563eb",        // Blue
-          "secondary": "#64748b",      // Slate
-          "accent": "#f59e0b",         // Amber/Orange
-          "neutral": "#1e293b",        // Dark slate
-          "base-100": "#ffffff",       // White
-          "base-200": "#f8fafc",       // Very light gray
-          "base-300": "#e2e8f0",       // Light gray
-          "info": "#3b82f6",
-          "success": "#10b981",
-          "warning": "#f59e0b",
-          "error": "#ef4444",
-        },
-      },
-    ],
+    themes: ['lofi', 'dark', 'nord', 'cupcake', 'luxury', 'corporate', 'retro'],
   },
 }

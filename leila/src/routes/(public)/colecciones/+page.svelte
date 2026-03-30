@@ -86,7 +86,7 @@
     loadNarratives(image.id);
 
     // Update URL
-    goto(`/gallery?image=${image.id}`, { replaceState: true });
+    goto(`/colecciones?image=${image.id}`, { replaceState: true });
   }
 
   function handleCloseViewer() {
@@ -95,7 +95,7 @@
     narratives = [];
 
     // Remove image from URL
-    goto('/gallery', { replaceState: true });
+    goto('/colecciones', { replaceState: true });
   }
 
   async function loadNarratives(imageId: number) {
@@ -175,14 +175,14 @@
 </script>
 
 <svelte:head>
-  <title>Galería - ROGER</title>
+  <title>Colecciones - ROGER</title>
   <meta name="description" content="Explora la colección completa de fotografías históricas" />
 </svelte:head>
 
-<div class="space-y-6">
+<div class="container mx-auto px-4 sm:px-6 py-8 space-y-6">
   <!-- Header -->
   <div class="flex items-center justify-between">
-    <h1 class="text-4xl font-bold">Galería</h1>
+    <h1 class="text-4xl font-bold">Colecciones</h1>
     <div class="text-sm text-base-content/70">
       {$imagesStore.total} imágenes
     </div>
@@ -242,13 +242,26 @@
         <!-- Semantic Search Toggle -->
         <div class="form-control">
           <label class="label cursor-pointer">
-            <span class="label-text">Búsqueda semántica (IA)</span>
+            <div class="flex items-center gap-1.5">
+              <span class="label-text">Búsqueda semántica (IA)</span>
+              <div class="tooltip tooltip-right"
+                data-tip="Modo normal: busca palabras exactas en títulos y etiquetas. Modo IA: entiende el significado de tu consulta y encuentra fotografías conceptualmente similares, aunque no compartan las mismas palabras. Ej: «personas trabajando bajo el sol» puede devolver fotos de faenas mineras.">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-base-content/40 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
             <input
               type="checkbox"
               class="toggle toggle-primary"
               bind:checked={semanticSearch}
             />
           </label>
+          {#if semanticSearch}
+            <p class="text-xs text-primary/70 mt-1 leading-relaxed">
+              Describe lo que buscas con tus propias palabras. La IA encontrará fotografías conceptualmente similares.
+            </p>
+          {/if}
         </div>
       </div>
 
