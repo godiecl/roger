@@ -37,8 +37,8 @@ function createNotificationsStore() {
     const newNotification: Notification = {
       id,
       dismissible: true,
-      duration: 5000,
-      ...notification
+      ...notification,
+      duration: notification.duration ?? 3000
     };
 
     update(state => ({
@@ -78,7 +78,7 @@ function createNotificationsStore() {
         type: 'error',
         message,
         title,
-        duration: duration || 7000 // Errors stay longer
+        duration: duration || 3000
       });
     },
 

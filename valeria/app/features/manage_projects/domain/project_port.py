@@ -43,6 +43,11 @@ class IProjectRepository(ABC):
         """Delete a project and all its memberships."""
         pass
 
+    @abstractmethod
+    async def count_owned_by_user(self, user_id: int) -> int:
+        """Count projects owned (created) by a user."""
+        pass
+
     # --- Member management ---
 
     @abstractmethod

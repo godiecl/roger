@@ -2,8 +2,46 @@
 FastAPI routes for authentication
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import time
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# ── Login rate limiter (IP + email, in-memory) ──────────────────────────────
+_login_attempts: dict[str, dict] = {}
+_LOGIN_MAX_ATTEMPTS = 5
+_LOGIN_WINDOW_S     = 15 * 60   # 15 min window before counter resets
+_LOGIN_BLOCK_S      = 30 * 60   # 30 min block after max attempts
+
+def _login_key(ip: str, email: str) -> str:
+    return f"{ip}:{email.lower().strip()}"
+
+def _check_limit(key: str) -> tuple[bool, int]:
+    """(allowed, seconds_blocked_remaining)"""
+    now = time.time()
+    rec = _login_attempts.get(key)
+    if not rec:
+        return True, 0
+    blocked_until = rec.get("blocked_until", 0)
+    if blocked_until and now < blocked_until:
+        return False, int(blocked_until - now)
+    if now - rec["first"] > _LOGIN_WINDOW_S:
+        _login_attempts.pop(key, None)
+        return True, 0
+    if rec["count"] >= _LOGIN_MAX_ATTEMPTS:
+        rec["blocked_until"] = now + _LOGIN_BLOCK_S
+        return False, _LOGIN_BLOCK_S
+    return True, 0
+
+def _record_failure(key: str) -> int:
+    now = time.time()
+    if key not in _login_attempts:
+        _login_attempts[key] = {"count": 0, "first": now}
+    _login_attempts[key]["count"] += 1
+    return _login_attempts[key]["count"]
+
+def _reset_limit(key: str) -> None:
+    _login_attempts.pop(key, None)
 
 from app.features.authenticate.interfaces.api.schemas import (
     LoginRequest,
@@ -13,6 +51,7 @@ from app.features.authenticate.interfaces.api.schemas import (
     UserSearchResult,
     ForgotPasswordRequest,
     ResetPasswordRequest,
+    ChangePasswordRequest,
     MessageResponse,
     SendVerificationCodeRequest,
     SendVerificationCodeResponse,
@@ -45,34 +84,45 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/login", response_model=LoginResponse)
 async def login(
     request: LoginRequest,
+    http_request: Request,
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Login endpoint.
-    
-    Returns access token and refresh token.
-    """
+    """Login endpoint. Rate-limited by IP + email (5 attempts / 15 min)."""
+    client_ip = http_request.client.host if http_request.client else "unknown"
+    key = _login_key(client_ip, request.email)
+
+    allowed, remaining = _check_limit(key)
+    if not allowed:
+        minutes = max(1, remaining // 60)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Demasiados intentos fallidos. Intenta de nuevo en {minutes} minuto{'s' if minutes != 1 else ''}."
+        )
+
     try:
-        # Create use case
         user_repository = UserRepository(db)
         authenticate_usecase = AuthenticateUseCase(
             user_repository,
             password_hasher,
             jwt_service
         )
-        
-        # Execute use case
         result = await authenticate_usecase.execute(
             email=request.email,
             password=request.password
         )
-        
+        _reset_limit(key)
         return result
-        
-    except UnauthorizedError as e:
+
+    except UnauthorizedError:
+        count = _record_failure(key)
+        left = _LOGIN_MAX_ATTEMPTS - count
+        if left > 0:
+            detail = f"Credenciales incorrectas. {left} intento{'s' if left != 1 else ''} restante{'s' if left != 1 else ''} antes del bloqueo."
+        else:
+            detail = "Cuenta bloqueada temporalmente. Intenta de nuevo en 30 minutos."
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
+            detail=detail
         )
 
 
@@ -276,3 +326,34 @@ async def get_current_user(
         is_active=user.is_active,
         is_verified=user.is_verified
     )
+
+
+@router.post("/change-password", response_model=MessageResponse)
+async def change_password(
+    request: ChangePasswordRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Change password for the currently authenticated user."""
+    user_repository = UserRepository(db)
+    user = await user_repository.get_by_id(user_id)
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    if not password_hasher.verify(request.current_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña actual es incorrecta"
+        )
+
+    if request.current_password == request.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La nueva contraseña debe ser diferente a la actual"
+        )
+
+    user.hashed_password = password_hasher.hash(request.new_password)
+    await user_repository.update(user)
+
+    return MessageResponse(message="Contraseña actualizada correctamente")

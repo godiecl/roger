@@ -20,7 +20,8 @@ class CreateProjectUseCase:
         owner_id: int,
         description: str = None,
         start_date=None,
-        end_date=None
+        end_date=None,
+        ai_instructions: str = None
     ) -> Project:
         """
         Create a new project and add the owner as LIDER member.
@@ -45,10 +46,19 @@ class CreateProjectUseCase:
                 start_date=start_date,
                 end_date=end_date,
                 owner_id=owner_id,
-                is_active=True
+                is_active=True,
+                ai_instructions=ai_instructions
             )
         except ValueError as e:
             raise ValidationError(str(e))
+
+        # Limit: each user can own at most 3 projects
+        owned = await self.project_repository.count_owned_by_user(owner_id)
+        if owned >= 3:
+            raise ValidationError(
+                "Has alcanzado el límite de 3 proyectos propios. "
+                "Elimina uno existente para crear uno nuevo."
+            )
 
         created_project = await self.project_repository.create(project)
 

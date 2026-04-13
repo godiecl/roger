@@ -5,13 +5,16 @@
   import { authService } from '$lib/services';
   import { notificationsStore } from '$lib/stores/notifications';
   import { sanitizeEmail, sanitizeUsername, sanitizeText } from '$lib/utils/sanitize';
-  import { loginRateLimiter } from '$lib/utils/rateLimiter';
 
   let email = '';
   let password = '';
   let loading = false;
   let showRegister = false;
   let loginError = '';
+
+  let showPassword = false;
+  let showRegisterPassword = false;
+  let showRegisterConfirm = false;
 
   $: redirectUrl = $page.url.searchParams.get('redirect') || '/';
 
@@ -154,15 +157,6 @@
   }
 
   async function handleLogin() {
-    if (!loginRateLimiter.check()) {
-      const blockTime = Math.ceil(loginRateLimiter.getBlockTime() / 60000);
-      notificationsStore.error(
-        'Demasiados intentos de inicio de sesión',
-        `Por favor espera ${blockTime} minutos antes de intentar nuevamente`
-      );
-      return;
-    }
-
     if (!email || !password) {
       notificationsStore.warning('Por favor completa todos los campos');
       return;
@@ -181,8 +175,6 @@
       loading = true;
       const response = await authService.login(sanitizedEmail, sanitizedPassword);
 
-      loginRateLimiter.reset();
-
       authStore.login(response.user, {
         access_token: response.access_token,
         refresh_token: response.refresh_token,
@@ -192,12 +184,8 @@
       notificationsStore.success(`Bienvenido, ${response.user.full_name || response.user.email}!`);
       goto(redirectUrl);
     } catch (e: any) {
-      loginRateLimiter.record();
-      const attempts = loginRateLimiter.getAttempts();
-      loginError = attempts >= 3
-        ? `Credenciales incorrectas. ${5 - attempts} intentos restantes antes del bloqueo.`
-        : 'Credenciales incorrectas. Verifica tu email y contraseña.';
-      notificationsStore.error(loginError, 'Verifica tus credenciales');
+      loginError = e.detail || 'Credenciales incorrectas. Verifica tu email o contraseña.';
+      password = '';
     } finally {
       loading = false;
     }
@@ -255,19 +243,25 @@
             <label class="label" for="password">
               <span class="label-text">Contraseña</span>
             </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              class="input input-bordered"
-              bind:value={password}
-              required
-            />
-            <label class="label">
+            <div class="relative">
+              {#if showPassword}
+                <input id="password" type="text" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={password} required />
+              {:else}
+                <input id="password" type="password" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={password} required />
+              {/if}
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showPassword = !showPassword} tabindex="-1">
+                {#if showPassword}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                {:else}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                {/if}
+              </button>
+            </div>
+            <div class="label">
               <a href="/forgot-password" class="label-text-alt link link-hover">
                 ¿Olvidaste tu contraseña?
               </a>
-            </label>
+            </div>
           </div>
 
           {#if loginError}
@@ -343,28 +337,40 @@
             <label class="label" for="register-password">
               <span class="label-text">Contraseña *</span>
             </label>
-            <input
-              id="register-password"
-              type="password"
-              placeholder="••••••••"
-              class="input input-bordered"
-              bind:value={registerPassword}
-              required
-            />
+            <div class="relative">
+              {#if showRegisterPassword}
+                <input id="register-password" type="text" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={registerPassword} required />
+              {:else}
+                <input id="register-password" type="password" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={registerPassword} required />
+              {/if}
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showRegisterPassword = !showRegisterPassword} tabindex="-1">
+                {#if showRegisterPassword}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                {:else}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                {/if}
+              </button>
+            </div>
           </div>
 
           <div class="form-control">
             <label class="label" for="register-confirm-password">
               <span class="label-text">Confirmar contraseña *</span>
             </label>
-            <input
-              id="register-confirm-password"
-              type="password"
-              placeholder="••••••••"
-              class="input input-bordered"
-              bind:value={registerConfirmPassword}
-              required
-            />
+            <div class="relative">
+              {#if showRegisterConfirm}
+                <input id="register-confirm-password" type="text" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={registerConfirmPassword} required />
+              {:else}
+                <input id="register-confirm-password" type="password" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={registerConfirmPassword} required />
+              {/if}
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showRegisterConfirm = !showRegisterConfirm} tabindex="-1">
+                {#if showRegisterConfirm}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                {:else}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                {/if}
+              </button>
+            </div>
             {#if registerConfirmPassword && registerPassword !== registerConfirmPassword}
               <p class="text-error text-xs mt-1 ml-1">Las contraseñas no coinciden</p>
             {/if}

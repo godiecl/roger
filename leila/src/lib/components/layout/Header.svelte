@@ -4,7 +4,6 @@
   import { authStore, isAuthenticated } from '$lib/stores/auth';
   import { invitationsStore, pendingCount } from '$lib/stores/invitations';
   import { invitationService } from '$lib/services/invitationService';
-  import { notificationsStore } from '$lib/stores/notifications';
   import ThemeToggle from '$lib/components/common/ThemeToggle.svelte';
   import { locale, t, switchLocale, LOCALES } from '$lib/stores/locale';
 
@@ -29,26 +28,6 @@
       // silent — not critical
     } finally {
       invitationsStore.setLoading(false);
-    }
-  }
-
-  async function handleAccept(invitationId: number) {
-    try {
-      await invitationService.accept(invitationId);
-      invitationsStore.remove(invitationId);
-      notificationsStore.success('Te has unido al proyecto');
-    } catch (e: any) {
-      notificationsStore.error(e.detail || 'Error al aceptar invitación');
-    }
-  }
-
-  async function handleDecline(invitationId: number) {
-    try {
-      await invitationService.decline(invitationId);
-      invitationsStore.remove(invitationId);
-      notificationsStore.success('Invitación rechazada');
-    } catch (e: any) {
-      notificationsStore.error(e.detail || 'Error al rechazar invitación');
     }
   }
 
@@ -187,31 +166,24 @@
                 {/if}
                 {#if $pendingCount > 0}
                   <div class="divider my-0"></div>
-                  <li class="menu-title px-4 py-2">
-                    <span class="text-xs font-semibold text-warning uppercase tracking-wide">
-                      {$t.invitations.title} ({$pendingCount})
-                    </span>
-                  </li>
-                  {#each $invitationsStore.pending as inv (inv.id)}
-                    <li>
-                      <div class="flex flex-col gap-1 px-3 py-2 cursor-default hover:bg-transparent">
-                        <span class="text-sm font-medium truncate">{inv.project_name}</span>
-                        <span class="text-xs text-base-content/50 truncate">de {inv.invited_by_email}</span>
-                        <div class="flex gap-2 mt-1">
-                          <button
-                            class="btn btn-success btn-xs flex-1"
-                            on:click|stopPropagation={() => handleAccept(inv.id)}>
-                            {$t.invitations.accept}
-                          </button>
-                          <button
-                            class="btn btn-ghost btn-xs flex-1 text-error"
-                            on:click|stopPropagation={() => handleDecline(inv.id)}>
-                            {$t.invitations.decline}
-                          </button>
-                        </div>
+                  <li>
+                    <a href="/proyectos" class="flex items-center gap-3 px-3 py-2.5 text-warning hover:bg-warning/10">
+                      <div class="relative flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span class="absolute -top-1.5 -right-1.5 badge badge-error badge-xs text-white font-bold min-w-[14px] h-3.5 text-[9px] px-0.5">
+                          {$pendingCount}
+                        </span>
                       </div>
-                    </li>
-                  {/each}
+                      <div class="min-w-0">
+                        <p class="text-xs font-semibold leading-tight">
+                          {$pendingCount === 1 ? '1 invitación pendiente' : `${$pendingCount} invitaciones pendientes`}
+                        </p>
+                        <p class="text-[10px] text-base-content/40 leading-tight mt-0.5">Ver en Mis Proyectos →</p>
+                      </div>
+                    </a>
+                  </li>
                 {/if}
                 <div class="divider my-0"></div>
                 <li><button on:click={handleLogout} class="text-error">

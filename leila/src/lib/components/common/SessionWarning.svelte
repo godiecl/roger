@@ -9,6 +9,8 @@
   let minutesRemaining = 0;
   let inactivityMinutes = 0;
   let intervalId: number | null = null;
+  // Período de gracia: no volver a mostrar la advertencia durante 5 min tras extender
+  let gracePeriodUntil = 0;
 
   function checkTokenExpiration() {
     if (!$authStore.user) { showWarning = false; return; }
@@ -19,19 +21,25 @@
       return;
     }
 
+    // Dentro del período de gracia → no molestar
+    if (Date.now() < gracePeriodUntil) {
+      showWarning = false;
+      return;
+    }
+
     const timeRemaining = getTimeUntilExpiration(tokens.access_token);
     minutesRemaining = Math.max(0, Math.floor(timeRemaining / 60000));
 
     const timeSinceActivity = activityTracker.getTimeSinceLastActivity();
     inactivityMinutes = Math.floor(timeSinceActivity / 60000);
 
-    // Logout by inactivity (takes priority)
+    // Logout por inactividad (tiene prioridad)
     if (inactivityMinutes >= 30) {
       authStore.logout();
       return;
     }
 
-    // Logout if token already expired (refresh didn't succeed)
+    // Logout si el token ya expiró y el refresh no funcionó
     if (timeRemaining <= 0) {
       authStore.logout();
       return;
@@ -44,16 +52,16 @@
   }
 
   async function extendSession() {
-    // Refresh activity
+    showWarning = false;
+    // Resetear actividad → reinicia el contador de 30 minutos
     activityTracker.updateActivity();
+    // Período de gracia: evita que el aviso reaparezca mientras se refresca el token
+    gracePeriodUntil = Date.now() + 5 * 60 * 1000;
 
-    // Try to refresh token but don't logout if it fails — let the user continue
     const tokens = $authStore.tokens;
     if (tokens?.refresh_token) {
       await tokenRefreshService.refreshToken(tokens.refresh_token, false);
     }
-
-    showWarning = false;
   }
 
   onMount(() => {

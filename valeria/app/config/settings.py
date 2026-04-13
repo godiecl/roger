@@ -81,6 +81,19 @@ class Settings(BaseSettings):
     )
     
     # ===================================
+    # LLM — configuración agnóstica al proveedor
+    # Cambia LLM_PROVIDER en el .env para cambiar de proveedor sin tocar código.
+    # Opciones: groq | openai | anthropic | openai_compatible | together | mistral | ...
+    # ===================================
+    llm_provider: str = Field(default="groq", alias="LLM_PROVIDER")
+    llm_max_tokens: int = Field(default=1000, alias="LLM_MAX_TOKENS")
+    llm_temperature: float = Field(default=0.7, alias="LLM_TEMPERATURE")
+    # Para proveedores genéricos OpenAI-compatibles (Together, Mistral, etc.)
+    llm_api_key: str = Field(default="", alias="LLM_API_KEY")
+    llm_model: str = Field(default="", alias="LLM_MODEL")
+    llm_base_url: str = Field(default="", alias="LLM_BASE_URL")
+
+    # ===================================
     # OPENAI
     # ===================================
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")

@@ -35,7 +35,13 @@ export class ApiClient {
 
       try {
         const errorData = await response.json();
-        errorMessage = errorData.detail || errorData.message || errorMessage;
+        const detail = errorData.detail;
+        if (Array.isArray(detail)) {
+          // Pydantic validation errors return an array of error objects
+          errorMessage = detail.map((e: any) => e.msg || String(e)).join('. ');
+        } else {
+          errorMessage = detail || errorData.message || errorMessage;
+        }
       } catch (e) {
         errorMessage = response.statusText || errorMessage;
       }
@@ -45,9 +51,13 @@ export class ApiClient {
         status: response.status
       };
 
-      // If unauthorized, logout
+      // If unauthorized AND there is an active session, logout (token expired)
+      // Don't logout on login attempts (no session exists yet)
       if (response.status === 401) {
-        authStore.logout();
+        const currentAuth = get(authStore);
+        if (currentAuth.user) {
+          authStore.logout();
+        }
       }
 
       throw error;

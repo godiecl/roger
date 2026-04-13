@@ -79,10 +79,18 @@ setup_cors(app)
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
+    from app.infrastructure.ai.llm.llm_factory import create_llm_provider
+    try:
+        llm = create_llm_provider()
+        llm_status = {"provider": llm.provider_name, "status": "configured"}
+    except Exception as e:
+        llm_status = {"provider": settings.llm_provider, "status": "error", "detail": str(e)}
+
     return {
         "status": "healthy",
         "version": settings.app_version,
-        "environment": settings.environment
+        "environment": settings.environment,
+        "llm": llm_status
     }
 
 # Root endpoint

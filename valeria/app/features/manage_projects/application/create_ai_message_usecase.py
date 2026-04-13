@@ -1,5 +1,9 @@
 """
-Create AI message use case — queries OpenAI and stores the response.
+Create AI message use case.
+
+Este use case es completamente agnóstico al proveedor de LLM:
+solo depende de ILLMProvider, nunca de Groq, OpenAI ni Anthropic.
+El proveedor se inyecta desde fuera (infraestructura).
 """
 
 from typing import Tuple
@@ -10,22 +14,24 @@ from app.features.manage_projects.domain.project_message import (
 )
 from app.features.manage_projects.domain.project_port import IProjectRepository
 from app.shared.domain.exceptions import EntityNotFoundError, PermissionDeniedError
-from app.config.settings import settings
+from app.shared.ports.llm_provider import ILLMProvider
 
 
 class CreateAiMessageUseCase:
     """
-    Use case for querying the AI assistant within a project chat.
-    Persists both the user question and the AI answer.
+    Consulta al asistente IA dentro del chat de un proyecto
+    y persiste tanto la pregunta del usuario como la respuesta.
     """
 
     def __init__(
         self,
         project_repository: IProjectRepository,
-        message_repository: IProjectMessageRepository
+        message_repository: IProjectMessageRepository,
+        llm_provider: ILLMProvider
     ):
         self.project_repository = project_repository
         self.message_repository = message_repository
+        self.llm = llm_provider
 
     async def execute(
         self,
@@ -36,32 +42,20 @@ class CreateAiMessageUseCase:
         context: str | None = None
     ) -> Tuple[ProjectMessage, ProjectMessage]:
         """
-        Ask the AI assistant a question and persist both messages.
+        Pregunta al LLM y persiste ambos mensajes (pregunta + respuesta).
 
         Returns:
-            Tuple of (user_message, ai_message).
-
-        Raises:
-            EntityNotFoundError: If project not found.
-            PermissionDeniedError: If user is not a project member.
-            ValueError: If OpenAI API key is not configured.
+            Tuple (user_message, ai_message).
         """
-        use_groq = bool(settings.groq_api_key)
-        if not use_groq and not settings.openai_api_key:
-            raise ValueError(
-                "No hay API key configurada. Agrega GROQ_API_KEY en el .env (gratis en console.groq.com) "
-                "o OPENAI_API_KEY."
-            )
-
         project = await self.project_repository.get_by_id(project_id)
         if not project:
             raise EntityNotFoundError("Project", project_id)
 
         member = await self.project_repository.get_member(project_id, user_id)
         if not member and not project.is_owner(user_id):
-            raise PermissionDeniedError("Only project members can use the AI assistant")
+            raise PermissionDeniedError("Solo los miembros del proyecto pueden usar el asistente IA.")
 
-        # Persist the user's question
+        # Persistir pregunta del usuario
         user_message = await self.message_repository.create(ProjectMessage(
             project_id=project_id,
             user_id=user_id,
@@ -70,74 +64,41 @@ class CreateAiMessageUseCase:
             sender_name=sender_name
         ))
 
-        # Build conversation history (last 30 messages for context)
-        history = await self.message_repository.list_by_project(
-            project_id, skip=0, limit=30
-        )
-
-        # Build OpenAI messages list
+        # Construir el system prompt
         system_prompt = (
-            "Eres un asistente de investigación especializado en el Fondo Fotográfico Robert Gerstmann. "
-            "Tu rol es apoyar a investigadores, curadores y colaboradores que trabajan con el archivo fotográfico y cinematográfico de Gerstmann.\n\n"
-            "CONTEXTO GENERAL SOBRE Robert GERSTMANN:\n"
-            "Robert Gerstmann (1896–1964) fue un fotógrafo y cineasta alemán que documentó gran parte de Sudamérica, "
-            "especialmente Chile y Bolivia, durante la primera mitad del siglo XX. "
-            "Su profesión original era ingeniería eléctrica. Llegó a Sudamérica en 1924 y se instaló en Santiago de Chile en 1929. "
-            "Recorrió Chile, Bolivia y otros países tomando miles de fotografías de paisajes, pueblos, ciudades y culturas indígenas. "
-            "Su trabajo ayudó a mostrar el territorio sudamericano al mundo. "
-            "Fotografió paisajes de todo Chile, desde el norte desértico hasta la Patagonia, y participó en expediciones "
-            "a lugares poco documentados como Isla de Pascua, Juan Fernández y la Antártica. "
-            "Entre sus publicaciones destacan: 'Chile: 280 grabados en cobre' (1932), 'Bolivia' (1928) y 'Chile en 235 cuadros' (1959). "
-            "Se le considera uno de los primeros grandes fotógrafos documentales de Chile; sus imágenes ayudaron a construir "
-            "la imagen visual del país en el siglo XX. "
-            "Parte de su archivo fotográfico se conserva en instituciones chilenas, incluyendo material en el norte del país.\n\n"
-            f"Estás asistiendo en el proyecto '{project.name}'. "
+            "Eres un asistente de investigación especializado en colecciones patrimoniales. "
+            "Tu rol es apoyar a investigadores, curadores y colaboradores en el estudio, descripción "
+            "y análisis de fondos documentales, fotográficos, audiovisuales y archivísticos.\n\n"
+            "PRINCIPIOS DE TRABAJO:\n"
+            "- Prioriza la precisión histórica y documental por sobre la especulación.\n"
+            "- Cuando no tengas certeza sobre un dato, indícalo explícitamente en lugar de inventarlo.\n"
+            "- Ayuda a contextualizar piezas dentro de su época, territorio y colección.\n"
+            "- Responde siempre en el idioma en que te hablen, de forma clara y concisa.\n\n"
+            f"PROYECTO ACTUAL: '{project.name}'."
         )
         if project.description:
-            system_prompt += f"Descripción del proyecto: {project.description}. "
-        system_prompt += (
-            "\nResponde siempre en el idioma que te hablen de manera clara y concisa. "
-            "Cuando no tengas certeza sobre algún dato, indícalo explícitamente en lugar de inventar información."
-        )
+            system_prompt += f"\nDescripción: {project.description}."
         if project.ai_instructions:
             system_prompt += (
-                f"\n\nINSTRUCCIONES ESPECÍFICAS DEL PROYECTO "
-                f"(Solo puedes responder especificamente de proyectos y estudios fotograficos con prioridad en el contexto general de Robert Gerstmann tienen prioridad sobre cualquier otra fuente de información):\n{project.ai_instructions}"
+                f"\n\nCONTEXTO ESPECÍFICO DEL PROYECTO "
+                f"(tiene prioridad sobre cualquier otra consideración):\n{project.ai_instructions}"
             )
         if context:
             system_prompt += f"\n\nCONTEXTO ADICIONAL (documento subido por el usuario):\n{context}"
 
-        openai_messages = [{"role": "system", "content": system_prompt}]
+        # Historial de conversación (últimos 30 mensajes)
+        history = await self.message_repository.list_by_project(project_id, skip=0, limit=30)
+        messages = [{"role": "system", "content": system_prompt}]
         for msg in history:
-            role = "assistant" if msg.message_type == 'ai' else "user"
-            openai_messages.append({"role": role, "content": msg.content})
+            role = "assistant" if msg.message_type == "ai" else "user"
+            messages.append({"role": role, "content": msg.content})
 
-        # Use Groq if configured, otherwise fall back to OpenAI
-        from openai import AsyncOpenAI
-        if use_groq:
-            client = AsyncOpenAI(
-                api_key=settings.groq_api_key,
-                base_url="https://api.groq.com/openai/v1"
-            )
-            model = settings.groq_model
-            max_tokens = settings.groq_max_tokens
-            temperature = settings.groq_temperature
-        else:
-            client = AsyncOpenAI(api_key=settings.openai_api_key)
-            model = settings.openai_model
-            max_tokens = settings.openai_max_tokens
-            temperature = settings.openai_temperature
+        # Llamar al proveedor (agnóstico)
+        ai_content = await self.llm.complete(messages)
+        if not ai_content:
+            ai_content = "No se pudo generar una respuesta."
 
-        response = await client.chat.completions.create(
-            model=model,
-            messages=openai_messages,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-
-        ai_content = response.choices[0].message.content or "No se pudo generar una respuesta."
-
-        # Persist AI response
+        # Persistir respuesta IA
         ai_message = await self.message_repository.create(ProjectMessage(
             project_id=project_id,
             user_id=user_id,

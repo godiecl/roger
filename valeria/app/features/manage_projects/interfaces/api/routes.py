@@ -6,6 +6,7 @@ import time
 from collections import defaultdict
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # In-memory AI rate limiter: {user_id: [timestamp, ...]}
@@ -77,6 +78,7 @@ from app.features.manage_projects.application.list_messages_usecase import (
 from app.features.manage_projects.application.create_ai_message_usecase import (
     CreateAiMessageUseCase
 )
+from app.infrastructure.ai.llm.llm_factory import create_llm_provider
 from app.features.manage_projects.infrastructure.adapters.project_repository import (
     ProjectRepository
 )
@@ -119,7 +121,8 @@ async def create_project(
             owner_id=owner_id,
             description=request.description,
             start_date=request.start_date,
-            end_date=request.end_date
+            end_date=request.end_date,
+            ai_instructions=request.ai_instructions
         )
         return ProjectResponse.model_validate(project.__dict__)
     except ValidationError as e:
@@ -260,6 +263,11 @@ async def invite_member(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except BusinessRuleViolationError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este usuario ya tiene una invitación activa para este proyecto"
+        )
 
 
 @router.get("/{project_id}/invitations", response_model=SentInvitationListResponse)
@@ -284,7 +292,10 @@ async def list_project_invitations(
 
         invitation_repo = ProjectInvitationRepository(db)
         user_repo = UserRepository(db)
-        invitations = await invitation_repo.list_by_project(project_id)
+        all_invitations = await invitation_repo.list_by_project(project_id)
+        # Only show pending and declined invitations; accepted ones are already active members
+        from app.features.manage_projects.domain.project_invitation import InvitationStatus
+        invitations = [i for i in all_invitations if i.status != InvitationStatus.ACCEPTED]
 
         result = []
         for inv in invitations:
@@ -324,6 +335,9 @@ async def remove_member(
             user_id=user_id,
             requesting_user_id=requesting_user_id
         )
+        # Clean up any invitation record so the user can be re-invited in the future
+        invitation_repo = ProjectInvitationRepository(db)
+        await invitation_repo.delete_by_project_and_user(project_id, user_id)
         return None
     except EntityNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -347,10 +361,22 @@ async def list_members(
             project_id=project_id,
             requesting_user_id=requesting_user_id
         )
-        return MemberListResponse(
-            total=len(members),
-            members=[MemberResponse.model_validate(m.__dict__) for m in members]
-        )
+        # Enrich with user info
+        user_repo = UserRepository(db)
+        enriched = []
+        for m in members:
+            user = await user_repo.get_by_id(m.user_id)
+            enriched.append(MemberResponse(
+                id=m.id,
+                project_id=m.project_id,
+                user_id=m.user_id,
+                role=m.role,
+                user_email=user.email if user else None,
+                user_full_name=user.full_name if user else None,
+                created_at=m.created_at,
+                updated_at=m.updated_at
+            ))
+        return MemberListResponse(total=len(enriched), members=enriched)
     except EntityNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionDeniedError as e:
@@ -531,7 +557,7 @@ async def ask_ai(
     try:
         project_repo = ProjectRepository(db)
         message_repo = ProjectMessageRepository(db)
-        usecase = CreateAiMessageUseCase(project_repo, message_repo)
+        usecase = CreateAiMessageUseCase(project_repo, message_repo, create_llm_provider())
         user_msg, ai_msg = await usecase.execute(
             project_id=project_id,
             user_id=user_id,
@@ -554,6 +580,14 @@ async def ask_ai(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Error al consultar la IA: {str(e)}"
         )
+
+
+@router.get("/ai-usage")
+async def get_ai_usage(user_id: int = Depends(get_current_user_id)):
+    """Return how many AI requests the current user has used in the last hour."""
+    now = time.time()
+    _ai_rate_limit[user_id] = [t for t in _ai_rate_limit[user_id] if now - t < _AI_RATE_WINDOW]
+    return {"used": len(_ai_rate_limit[user_id]), "limit": _AI_RATE_LIMIT}
 
 
 @router.post("/{project_id}/context/pdf", response_model=PdfContextResponse)

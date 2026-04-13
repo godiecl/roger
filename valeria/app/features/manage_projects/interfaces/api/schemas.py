@@ -17,6 +17,7 @@ class ProjectCreateRequest(BaseModel):
     description: Optional[str] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
+    ai_instructions: Optional[str] = None
 
     @field_validator('start_date')
     @classmethod
@@ -78,6 +79,8 @@ class MemberResponse(BaseModel):
     project_id: int
     user_id: int
     role: ProjectRole
+    user_email: Optional[str] = None
+    user_full_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

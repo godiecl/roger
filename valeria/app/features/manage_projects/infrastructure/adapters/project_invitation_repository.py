@@ -78,6 +78,19 @@ class ProjectInvitationRepository:
         await self.session.refresh(model)
         return self._to_entity(model)
 
+    async def delete_by_project_and_user(self, project_id: int, user_id: int) -> None:
+        """Delete all invitations for a user in a project (any status)."""
+        result = await self.session.execute(
+            select(ProjectInvitationModel).where(
+                ProjectInvitationModel.project_id == project_id,
+                ProjectInvitationModel.invited_user_id == user_id
+            )
+        )
+        models = result.scalars().all()
+        for model in models:
+            await self.session.delete(model)
+        await self.session.flush()
+
     def _to_entity(self, model: ProjectInvitationModel) -> ProjectInvitation:
         return ProjectInvitation(
             id=model.id,

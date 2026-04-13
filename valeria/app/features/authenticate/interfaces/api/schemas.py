@@ -75,6 +75,12 @@ class ResetPasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8)
 
 
+class ChangePasswordRequest(BaseModel):
+    """Change password request for authenticated users."""
+    current_password: str
+    new_password: str = Field(..., min_length=8)
+
+
 class MessageResponse(BaseModel):
     """Generic message response."""
     message: str

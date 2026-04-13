@@ -60,6 +60,10 @@ class CreateInvitationUseCase:
         if existing_invitation:
             raise BusinessRuleViolationError("There is already a pending invitation for this user")
 
+        # Remove any stale non-pending invitation (e.g. accepted from a previously removed member)
+        # so the unique constraint doesn't block re-inviting
+        await self.invitation_repository.delete_by_project_and_user(project_id, invited_user_id)
+
         invitation = ProjectInvitation(
             project_id=project_id,
             invited_user_id=invited_user_id,

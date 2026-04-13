@@ -41,7 +41,7 @@
         <h2 class="text-2xl font-bold mb-4 pb-2 border-b border-base-300">Vida y trayectoria</h2>
         <div class="prose prose-base max-w-none text-base-content/80 space-y-4">
           <p>
-            Nacido en 1896 en Alemania, Gerstmann llegó a Chile en la década de 1920 portando
+            Nacido en 1896 en Rusia de padres alemanes, Gerstmann llegó a Chile en la década de 1920 portando
             su cámara como herramienta de exploración. Con una mirada atenta y sensible,
             recorrió ciudades, puertos, desiertos y valles, construyendo un registro visual
             de Chile que hoy constituye un patrimonio histórico de primer orden.
@@ -152,7 +152,7 @@
           <dl class="divide-y divide-base-200">
             <div class="px-5 py-3 flex justify-between gap-4">
               <dt class="text-sm text-base-content/50 shrink-0">Nacimiento</dt>
-              <dd class="text-sm font-medium text-right">1896, Alemania</dd>
+              <dd class="text-sm font-medium text-right">1896, Rusia</dd>
             </div>
             <div class="px-5 py-3 flex justify-between gap-4">
               <dt class="text-sm text-base-content/50 shrink-0">Fallecimiento</dt>

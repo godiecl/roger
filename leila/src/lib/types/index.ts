@@ -124,11 +124,6 @@ export interface SearchResponse {
   limit: number;
 }
 
-export interface FacetItem {
-  value: string;
-  count: number;
-}
-
 export interface SearchFacets {
   years: { year: number; count: number }[];
   locations: { location: string; count: number }[];
@@ -163,6 +158,8 @@ export interface ProjectMember {
   project_id: number;
   user_id: number;
   role: ProjectRole;
+  user_email?: string;
+  user_full_name?: string;
   created_at: string;
   updated_at: string;
 }

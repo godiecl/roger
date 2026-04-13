@@ -17,6 +17,7 @@ export interface CreateProjectRequest {
   description?: string;
   start_date?: string;
   end_date?: string;
+  ai_instructions?: string;
 }
 
 export interface UpdateProjectRequest {

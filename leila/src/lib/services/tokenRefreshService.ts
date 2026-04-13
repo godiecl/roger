@@ -51,8 +51,6 @@ class TokenRefreshService {
       // Refresh 5 minutes before expiration
       const refreshTime = Math.max(timeUntilExpiration - (5 * 60 * 1000), 60000); // At least 1 minute
 
-      console.log(`Token refresh scheduled in ${Math.round(refreshTime / 60000)} minutes`);
-
       this.refreshTimer = setTimeout(() => {
         this.checkAndRefresh();
       }, refreshTime) as unknown as number;
@@ -71,7 +69,6 @@ class TokenRefreshService {
     })();
 
     if (!currentAuth?.tokens?.refresh_token) {
-      console.log('No refresh token available');
       return;
     }
 
@@ -80,7 +77,6 @@ class TokenRefreshService {
     const THIRTY_MINUTES = 30 * 60 * 1000;
 
     if (timeSinceActivity > THIRTY_MINUTES) {
-      console.log('User inactive for 30+ minutes, logging out');
       authStore.logout();
       return;
     }
@@ -99,15 +95,12 @@ class TokenRefreshService {
    */
   async refreshToken(refreshToken: string, logoutOnFailure = true): Promise<boolean> {
     if (this.isRefreshing) {
-      console.log('Already refreshing token');
       return false;
     }
 
     this.isRefreshing = true;
 
     try {
-      console.log('Refreshing access token...');
-
       const response = await apiClient.post<{
         access_token: string;
         refresh_token: string;
@@ -122,8 +115,6 @@ class TokenRefreshService {
         refresh_token: response.refresh_token,
         token_type: response.token_type
       });
-
-      console.log('Token refreshed successfully');
 
       // Schedule next refresh
       this.scheduleRefresh();

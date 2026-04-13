@@ -5,7 +5,7 @@ Project repository implementation for ROGER - Valeria API.
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from app.features.manage_projects.domain.project import Project, ProjectMember
 from app.features.manage_projects.domain.project_port import IProjectRepository
@@ -78,6 +78,13 @@ class ProjectRepository(IProjectRepository):
         project_models = result.scalars().all()
 
         return [self._to_entity(model) for model in project_models]
+
+    async def count_owned_by_user(self, user_id: int) -> int:
+        """Count projects owned by a user."""
+        result = await self.session.execute(
+            select(func.count()).where(ProjectModel.owner_id == user_id)
+        )
+        return result.scalar_one()
 
     async def update(self, project: Project) -> Project:
         """Update an existing project."""
