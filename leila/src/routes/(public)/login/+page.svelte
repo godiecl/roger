@@ -25,6 +25,7 @@
   let registerPassword = '';
   let registerConfirmPassword = '';
   let registerFullName = '';
+  let registerCompany = '';
 
   // Registration — step 2: math captcha
   let captchaA = 0;
@@ -118,6 +119,7 @@
         username: sanitizedUsername,
         password: registerPassword,
         full_name: sanitizedFullName,
+        company: registerCompany.trim() || undefined,
         verification_token: verificationToken,
         verification_code: verificationCode
       });
@@ -346,6 +348,19 @@
               placeholder="Juan Pérez"
               class="input input-bordered"
               bind:value={registerFullName}
+            />
+          </div>
+
+          <div class="form-control">
+            <label class="label" for="register-company">
+              <span class="label-text">Empresa / Institución <span class="text-base-content/40 font-normal text-xs">(opcional)</span></span>
+            </label>
+            <input
+              id="register-company"
+              type="text"
+              placeholder="Universidad, empresa u organización"
+              class="input input-bordered"
+              bind:value={registerCompany}
             />
           </div>
 

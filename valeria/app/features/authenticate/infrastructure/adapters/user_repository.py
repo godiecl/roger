@@ -26,6 +26,7 @@ class UserRepository(IUserRepository):
             hashed_password=user.hashed_password,
             role=user.role,
             full_name=user.full_name,
+            company=user.company,
             is_active=user.is_active,
             is_verified=user.is_verified
         )
@@ -88,6 +89,7 @@ class UserRepository(IUserRepository):
         user_model.hashed_password = user.hashed_password
         user_model.role = user.role
         user_model.full_name = user.full_name
+        user_model.company = user.company
         user_model.is_active = user.is_active
         user_model.is_verified = user.is_verified
         
@@ -117,6 +119,7 @@ class UserRepository(IUserRepository):
             hashed_password=model.hashed_password,
             role=model.role,
             full_name=model.full_name,
+            company=model.company,
             is_active=model.is_active,
             is_verified=model.is_verified,
             created_at=model.created_at,

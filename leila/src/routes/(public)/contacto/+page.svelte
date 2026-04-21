@@ -1,14 +1,33 @@
 <script lang="ts">
+  import { apiClient } from '$lib/services/apiClient';
+
   let name = '';
   let email = '';
+  let company = '';
   let subject = '';
   let message = '';
   let sent = false;
+  let sending = false;
+  let errorMsg = '';
 
-  function handleSubmit(e: Event) {
+  async function handleSubmit(e: Event) {
     e.preventDefault();
-    // Placeholder: conectar con backend o servicio de email
-    sent = true;
+    sending = true;
+    errorMsg = '';
+    try {
+      await apiClient.post('/auth/contact', {
+        name: name.trim(),
+        email: email.trim(),
+        company: company.trim() || undefined,
+        subject,
+        message: message.trim(),
+      });
+      sent = true;
+    } catch (err: any) {
+      errorMsg = err.detail || 'Error al enviar el mensaje. Intenta de nuevo.';
+    } finally {
+      sending = false;
+    }
   }
 </script>
 
@@ -104,7 +123,7 @@
             </div>
             <h3 class="text-xl font-bold text-base-content">Mensaje enviado</h3>
             <p class="text-base-content/60 text-sm max-w-xs">Gracias por escribirnos. Te responderemos a la brevedad posible.</p>
-            <button class="btn btn-ghost btn-sm mt-2" on:click={() => { sent = false; name = ''; email = ''; subject = ''; message = ''; }}>
+            <button class="btn btn-ghost btn-sm mt-2" on:click={() => { sent = false; name = ''; email = ''; company = ''; subject = ''; message = ''; errorMsg = ''; }}>
               Enviar otro mensaje
             </button>
           </div>
@@ -124,6 +143,13 @@
                 <span class="label-text font-medium">Correo electrónico</span>
               </label>
               <input id="email" type="email" class="input input-bordered w-full" placeholder="tu@email.com" bind:value={email} required />
+            </div>
+
+            <div class="form-control">
+              <label class="label pb-1" for="company">
+                <span class="label-text font-medium">Empresa / Institución <span class="text-base-content/40 font-normal text-xs">(opcional)</span></span>
+              </label>
+              <input id="company" type="text" class="input input-bordered w-full" placeholder="Universidad, empresa u organización" bind:value={company} />
             </div>
 
             <div class="form-control">
@@ -148,11 +174,22 @@
               <textarea id="message" class="textarea textarea-bordered w-full h-36 resize-none" placeholder="Cuéntanos en qué podemos ayudarte..." bind:value={message} required></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary w-full gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-              Enviar mensaje
+            {#if errorMsg}
+              <div class="alert alert-error py-2 px-3 text-sm rounded-xl">
+                <span>{errorMsg}</span>
+              </div>
+            {/if}
+
+            <button type="submit" class="btn btn-primary w-full gap-2 rounded-xl" disabled={sending}>
+              {#if sending}
+                <span class="loading loading-spinner loading-sm"></span>
+                Enviando...
+              {:else}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Enviar mensaje
+              {/if}
             </button>
           </form>
         {/if}

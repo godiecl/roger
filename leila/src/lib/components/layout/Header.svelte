@@ -6,6 +6,7 @@
   import { invitationService } from '$lib/services/invitationService';
   import ThemeToggle from '$lib/components/common/ThemeToggle.svelte';
   import { locale, t, switchLocale, LOCALES } from '$lib/stores/locale';
+  import { getRoleLabel } from '$lib/utils/roles';
 
   let isMenuOpen = false;
 
@@ -129,7 +130,7 @@
                 </div>
                 <div class="text-left hidden md:block">
                   <div class="text-sm font-semibold">{$authStore.user?.full_name || $authStore.user?.email}</div>
-                  <div class="text-xs text-base-content/50 capitalize">{$authStore.user?.role?.replace('_', ' ')}</div>
+                  <div class="text-xs text-base-content/50 capitalize">{getRoleLabel($authStore.user?.role)}</div>
                 </div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -140,7 +141,7 @@
                   <div>
                     <div class="text-sm font-semibold text-base-content">{$authStore.user?.full_name}</div>
                     <div class="text-xs text-base-content/50">{$authStore.user?.email}</div>
-                    <div class="badge badge-primary badge-sm mt-1 capitalize">{$authStore.user?.role?.replace('_', ' ')}</div>
+                    <div class="badge badge-primary badge-sm mt-1 capitalize">{getRoleLabel($authStore.user?.role)}</div>
                   </div>
                 </li>
                 <li><a href="/profile">

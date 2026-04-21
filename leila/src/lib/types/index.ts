@@ -35,6 +35,7 @@ export interface User {
   email: string;
   username: string;
   full_name?: string;
+  company?: string;
   role: UserRole;
   is_active: boolean;
   is_verified: boolean;

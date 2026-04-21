@@ -16,8 +16,9 @@ class UserModel(BaseModel):
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String(100), unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(SQLEnum(Role), nullable=False, default=Role.USUARIO_ESTANDAR)
+    role = Column(SQLEnum(Role, values_callable=lambda x: [e.value for e in x]), nullable=False, default=Role.USUARIO_ESTANDAR)
     full_name = Column(String, nullable=True)
+    company = Column(String, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
     

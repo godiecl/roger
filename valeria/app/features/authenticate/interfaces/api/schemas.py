@@ -28,6 +28,7 @@ class RegisterRequest(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=100)
     password: str = Field(..., min_length=6)
     full_name: Optional[str] = None
+    company: Optional[str] = Field(None, max_length=255)
     role: Role = Role.USUARIO_ESTANDAR
     verification_token: str
     verification_code: str = Field(..., min_length=6, max_length=6)
@@ -40,6 +41,7 @@ class UserResponse(BaseModel):
     username: str
     role: Role
     full_name: Optional[str]
+    company: Optional[str]
     is_active: bool
     is_verified: bool
     
@@ -84,6 +86,7 @@ class ChangePasswordRequest(BaseModel):
 class UpdateProfileRequest(BaseModel):
     """Update profile request for authenticated users."""
     full_name: Optional[str] = Field(None, max_length=255)
+    company: Optional[str] = Field(None, max_length=255)
 
 
 class UserAdminResponse(BaseModel):
@@ -92,6 +95,7 @@ class UserAdminResponse(BaseModel):
     email: str
     username: str
     full_name: Optional[str]
+    company: Optional[str]
     role: Role
     is_active: bool
     is_verified: bool
@@ -104,6 +108,30 @@ class UserAdminListResponse(BaseModel):
     """List of users for admin panel."""
     total: int
     users: list[UserAdminResponse]
+
+
+class RequestEmailChangeRequest(BaseModel):
+    """Request to change the authenticated user's email."""
+    new_email: EmailStr
+
+
+class AdminCreateUserRequest(BaseModel):
+    """Admin: create a new user."""
+    email: EmailStr
+    username: str = Field(..., min_length=3, max_length=100)
+    full_name: Optional[str] = Field(None, max_length=255)
+    company: Optional[str] = Field(None, max_length=255)
+    role: Role = Role.USUARIO_ESTANDAR
+    password: str = Field(..., min_length=8)
+
+
+class ContactRequest(BaseModel):
+    """Contact form submission."""
+    name: str = Field(..., min_length=2, max_length=200)
+    email: EmailStr
+    company: Optional[str] = Field(None, max_length=255)
+    subject: str = Field(..., min_length=2, max_length=200)
+    message: str = Field(..., min_length=10, max_length=3000)
 
 
 class MessageResponse(BaseModel):

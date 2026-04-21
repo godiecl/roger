@@ -74,6 +74,7 @@ class AuthenticateUseCase:
                 "username": user.username,
                 "role": user.role.value,
                 "full_name": user.full_name,
+                "company": user.company,
                 "is_active": user.is_active,
                 "is_verified": user.is_verified
             }

@@ -96,6 +96,24 @@ class JWTService(IJWTService):
             raise UnauthorizedError("Invalid token type")
         return payload
 
+    def create_email_change_token(self, user_id: int, new_email: str) -> str:
+        """Create a short-lived email change token (30 min)."""
+        expire = datetime.utcnow() + timedelta(minutes=30)
+        payload = {
+            "sub": str(user_id),
+            "new_email": new_email,
+            "exp": expire,
+            "type": "email_change",
+        }
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+
+    def decode_email_change_token(self, token: str) -> Dict:
+        """Decode an email change token and validate its type."""
+        payload = self.decode_token(token)
+        if payload.get("type") != "email_change":
+            raise UnauthorizedError("Invalid token type")
+        return payload
+
 
 # Global instance
 jwt_service = JWTService()

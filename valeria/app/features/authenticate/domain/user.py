@@ -22,6 +22,7 @@ class User(BaseEntity):
         role: Role,
         username: Optional[str] = None,
         full_name: Optional[str] = None,
+        company: Optional[str] = None,
         is_active: bool = True,
         is_verified: bool = False,
         id: Optional[int] = None,
@@ -34,6 +35,7 @@ class User(BaseEntity):
         self.hashed_password = hashed_password
         self.role = role
         self.full_name = full_name
+        self.company = company
         self.is_active = is_active
         self.is_verified = is_verified
     

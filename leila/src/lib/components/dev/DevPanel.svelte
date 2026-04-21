@@ -3,6 +3,7 @@
   import { dev } from '$app/environment';
   import { authStore } from '$lib/stores/auth';
   import { activityTracker } from '$lib/services/activityTracker';
+  import { getRoleLabel } from '$lib/utils/roles';
   import { getTimeUntilExpiration, getTokenExpiration, parseJWT } from '$lib/utils/token.utils';
 
   // Only show in development
@@ -127,7 +128,7 @@
                 <div>
                   <span class="text-slate-500">Rol:</span>
                   <span class="badge badge-primary badge-xs capitalize">
-                    {$authStore.user.role?.replace('_', ' ')}
+                    {getRoleLabel($authStore.user.role)}
                   </span>
                 </div>
                 <div>

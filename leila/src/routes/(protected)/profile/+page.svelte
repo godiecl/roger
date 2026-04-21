@@ -2,36 +2,63 @@
   import { authStore } from '$lib/stores/auth';
   import { apiClient } from '$lib/services/apiClient';
   import { notificationsStore } from '$lib/stores/notifications';
+  import { getRoleLabel } from '$lib/utils/roles';
 
   // ── Edit profile ────────────────────────────────────────────────────────
   let editingProfile = false;
   let editFullName = '';
   let editEmail = '';
+  let editCompany = '';
   let savingProfile = false;
+  let requestingEmailChange = false;
+  let emailChangePending = false;
 
   function startEditProfile() {
     editFullName = $authStore.user?.full_name || '';
     editEmail = $authStore.user?.email || '';
+    editCompany = $authStore.user?.company || '';
     editingProfile = true;
+    emailChangePending = false;
   }
 
   function cancelEditProfile() {
     editingProfile = false;
     editFullName = '';
     editEmail = '';
+    editCompany = '';
+    emailChangePending = false;
   }
 
   async function handleSaveProfile() {
     savingProfile = true;
     try {
-      const updated = await apiClient.patch<any>('/auth/me', { full_name: editFullName.trim() || null });
-      authStore.updateUser({ ...$authStore.user!, full_name: updated.full_name });
+      const updated = await apiClient.patch<any>('/auth/me', {
+        full_name: editFullName.trim() || null,
+        company: editCompany.trim() || null,
+      });
+      authStore.updateUser({ ...$authStore.user!, full_name: updated.full_name, company: updated.company });
       notificationsStore.success('Perfil actualizado');
       cancelEditProfile();
     } catch (e: any) {
       notificationsStore.error(e.detail || 'Error al guardar');
     } finally {
       savingProfile = false;
+    }
+  }
+
+  $: emailChanged = editEmail.trim().toLowerCase() !== ($authStore.user?.email || '').toLowerCase();
+
+  async function handleRequestEmailChange() {
+    if (!emailChanged || !editEmail.trim()) return;
+    requestingEmailChange = true;
+    try {
+      await apiClient.post('/auth/me/request-email-change', { new_email: editEmail.trim() });
+      emailChangePending = true;
+      notificationsStore.success('Correo de confirmacion enviado a ' + editEmail.trim());
+    } catch (e: any) {
+      notificationsStore.error(e.detail || 'Error al solicitar cambio de correo');
+    } finally {
+      requestingEmailChange = false;
     }
   }
 
@@ -103,7 +130,7 @@
         <div>
           <h2 class="text-xl font-bold">{$authStore.user?.full_name || 'Usuario'}</h2>
           <span class="badge badge-primary badge-sm capitalize mt-1">
-            {$authStore.user?.role?.replace('_', ' ')}
+            {getRoleLabel($authStore.user?.role)}
           </span>
         </div>
       </div>
@@ -116,6 +143,10 @@
         <div>
           <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wide mb-0.5">Nombre completo</p>
           <p class="text-sm">{$authStore.user?.full_name || 'No especificado'}</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wide mb-0.5">Empresa / Institución</p>
+          <p class="text-sm">{$authStore.user?.company || 'No especificada'}</p>
         </div>
         <div>
           <p class="text-xs font-semibold text-base-content/50 uppercase tracking-wide mb-0.5">Estado de cuenta</p>
@@ -172,26 +203,61 @@
             />
           </div>
 
-          <!-- Email (pendiente de verificación) -->
+          <!-- Empresa -->
+          <div class="form-control">
+            <label class="label py-0.5" for="ep-company">
+              <span class="label-text text-xs font-semibold">Empresa / Institución <span class="text-base-content/40 font-normal">(opcional)</span></span>
+            </label>
+            <input
+              id="ep-company"
+              type="text"
+              class="input input-bordered input-sm"
+              bind:value={editCompany}
+              placeholder="Universidad, empresa u organización"
+              maxlength="255"
+            />
+          </div>
+
+          <!-- Email (con cambio verificado) -->
           <div class="form-control">
             <label class="label py-0.5" for="ep-email">
               <span class="label-text text-xs font-semibold">Correo electrónico</span>
-              <span class="label-text-alt text-[10px] text-base-content/40">Requiere verificación</span>
+              <span class="label-text-alt text-[10px] text-base-content/40">Requiere confirmación</span>
             </label>
-            <div class="relative">
-              <input
-                id="ep-email"
-                type="email"
-                class="input input-bordered input-sm w-full pr-24"
-                bind:value={editEmail}
-                placeholder="nuevo@correo.com"
-                disabled
-              />
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-base-content/40 font-medium">Próximamente</span>
-            </div>
-            <p class="text-[10px] text-base-content/40 mt-1 ml-1">
-              El cambio de correo requiere confirmación por email. Esta función estará disponible pronto.
-            </p>
+            {#if emailChangePending}
+              <div class="alert bg-info/10 border border-info/30 py-2 px-3 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-info flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <p class="text-xs text-info">Correo de confirmacion enviado a <strong>{editEmail}</strong>. Revisa tu bandeja.</p>
+              </div>
+            {:else}
+              <div class="flex gap-2">
+                <input
+                  id="ep-email"
+                  type="email"
+                  class="input input-bordered input-sm flex-1"
+                  bind:value={editEmail}
+                  placeholder="nuevo@correo.com"
+                />
+                {#if emailChanged}
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline"
+                    on:click={handleRequestEmailChange}
+                    disabled={requestingEmailChange}>
+                    {#if requestingEmailChange}
+                      <span class="loading loading-spinner loading-xs"></span>
+                    {:else}
+                      Enviar confirmacion
+                    {/if}
+                  </button>
+                {/if}
+              </div>
+              <p class="text-[10px] text-base-content/40 mt-1 ml-1">
+                Escribe el nuevo correo y haz clic en "Enviar confirmacion" para continuar.
+              </p>
+            {/if}
           </div>
 
           <div class="flex gap-2 justify-end pt-1">

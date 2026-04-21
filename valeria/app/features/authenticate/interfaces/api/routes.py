@@ -55,6 +55,9 @@ from app.features.authenticate.interfaces.api.schemas import (
     UpdateProfileRequest,
     UserAdminResponse,
     UserAdminListResponse,
+    RequestEmailChangeRequest,
+    AdminCreateUserRequest,
+    ContactRequest,
     MessageResponse,
     SendVerificationCodeRequest,
     SendVerificationCodeResponse,
@@ -82,6 +85,7 @@ import secrets
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -218,6 +222,7 @@ async def register(
         hashed_password=password_hasher.hash(request.password),
         role=request.role,
         full_name=request.full_name,
+        company=request.company,
         is_active=True,
         is_verified=True
     )
@@ -230,6 +235,7 @@ async def register(
         username=created_user.username,
         role=created_user.role,
         full_name=created_user.full_name,
+        company=created_user.company,
         is_active=created_user.is_active,
         is_verified=created_user.is_verified
     )
@@ -331,6 +337,7 @@ async def get_current_user(
         username=user.username,
         role=user.role,
         full_name=user.full_name,
+        company=user.company,
         is_active=user.is_active,
         is_verified=user.is_verified
     )
@@ -381,11 +388,13 @@ async def update_profile(
 
     if request.full_name is not None:
         user.full_name = request.full_name.strip() or None
+    if request.company is not None:
+        user.company = request.company.strip() or None
 
     user = await user_repository.update(user)
     return UserResponse(
         id=user.id, email=user.email, username=user.username,
-        role=user.role, full_name=user.full_name,
+        role=user.role, full_name=user.full_name, company=user.company,
         is_active=user.is_active, is_verified=user.is_verified
     )
 
@@ -408,7 +417,7 @@ async def list_all_users(
         total=len(users),
         users=[UserAdminResponse(
             id=u.id, email=u.email, username=u.username,
-            full_name=u.full_name, role=u.role,
+            full_name=u.full_name, company=u.company, role=u.role,
             is_active=u.is_active, is_verified=u.is_verified
         ) for u in users]
     )
@@ -437,6 +446,219 @@ async def toggle_user_active(
     target = await user_repository.update(target)
     return UserAdminResponse(
         id=target.id, email=target.email, username=target.username,
-        full_name=target.full_name, role=target.role,
+        full_name=target.full_name, company=target.company, role=target.role,
         is_active=target.is_active, is_verified=target.is_verified
     )
+
+
+@router.patch("/admin/users/{target_id}/role", response_model=UserAdminResponse)
+async def change_user_role(
+    target_id: int,
+    role: str,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Change a user's role. Admin only. Cannot change own role."""
+    user_repository = UserRepository(db)
+    requester = await user_repository.get_by_id(user_id)
+    if not requester or requester.role.value != "administrador":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso restringido a administradores")
+
+    if target_id == user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No puedes modificar tu propio rol")
+
+    try:
+        new_role = Role(role)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Rol inválido")
+
+    target = await user_repository.get_by_id(target_id)
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    target.role = new_role
+    target = await user_repository.update(target)
+    return UserAdminResponse(
+        id=target.id, email=target.email, username=target.username,
+        full_name=target.full_name, company=target.company, role=target.role,
+        is_active=target.is_active, is_verified=target.is_verified,
+    )
+
+
+@router.post("/admin/users", response_model=UserAdminResponse, status_code=status.HTTP_201_CREATED)
+async def admin_create_user(
+    request: AdminCreateUserRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Create a new user from the admin panel. Sends welcome email with credentials."""
+    user_repository = UserRepository(db)
+    requester = await user_repository.get_by_id(user_id)
+    if not requester or requester.role.value != "administrador":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso restringido a administradores")
+
+    existing = await user_repository.get_by_email(request.email)
+    if existing:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ya existe un usuario con ese correo")
+
+    new_user = User(
+        email=request.email,
+        username=request.username,
+        hashed_password=password_hasher.hash(request.password),
+        role=request.role,
+        full_name=request.full_name,
+        company=request.company,
+        is_active=True,
+        is_verified=True,
+    )
+    created = await user_repository.create(new_user)
+
+    try:
+        email_service.send_welcome_email(
+            to=created.email,
+            full_name=created.full_name,
+            username=created.username,
+            password=request.password,
+        )
+    except Exception:
+        pass
+
+    return UserAdminResponse(
+        id=created.id, email=created.email, username=created.username,
+        full_name=created.full_name, company=created.company, role=created.role,
+        is_active=created.is_active, is_verified=created.is_verified,
+    )
+
+
+# ── Email change endpoints ────────────────────────────────────────────────────
+
+@router.post("/me/request-email-change", response_model=MessageResponse)
+async def request_email_change(
+    request: RequestEmailChangeRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Request an email address change. Sends confirmation link to the new address."""
+    user_repository = UserRepository(db)
+    user = await user_repository.get_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    if request.new_email.lower() == user.email.lower():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El nuevo correo debe ser diferente al actual")
+
+    existing = await user_repository.get_by_email(request.new_email)
+    if existing:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ese correo ya está en uso")
+
+    token = jwt_service.create_email_change_token(user_id, request.new_email)
+    confirm_url = f"{settings.frontend_url}/confirm-email-change?token={token}"
+
+    try:
+        email_service.send_email_change_confirmation(to=request.new_email, confirm_url=confirm_url)
+    except Exception:
+        pass
+
+    return MessageResponse(message="Se ha enviado un correo de confirmación a la nueva dirección. El enlace es válido por 30 minutos.")
+
+
+@router.get("/me/confirm-email-change", response_model=MessageResponse)
+async def confirm_email_change(
+    token: str = Query(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """Confirm email change using the token received by email."""
+    try:
+        payload = jwt_service.decode_email_change_token(token)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El enlace es inválido o ha expirado.")
+
+    user_id = int(payload.get("sub"))
+    new_email: str = payload.get("new_email")
+
+    user_repository = UserRepository(db)
+
+    existing = await user_repository.get_by_email(new_email)
+    if existing:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ese correo ya está en uso por otra cuenta.")
+
+    user = await user_repository.get_by_id(user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El enlace es inválido o ha expirado.")
+
+    user.email = new_email
+    await user_repository.update(user)
+
+    return MessageResponse(message="Correo actualizado correctamente. Ya puedes iniciar sesión con tu nuevo correo.")
+
+
+# ── Contact form ───────────────────────────────────────────────────────────────
+
+@router.post("/contact", response_model=MessageResponse)
+async def contact(request: ContactRequest):
+    """Send a contact form message to the archive team."""
+    company_line = f"<p><strong>Empresa / Institución:</strong> {request.company}</p>" if request.company else ""
+    html = f"""
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8" /></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:system-ui,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
+        <table width="100%" style="max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:#1d1d1f;padding:28px 32px;text-align:center;">
+              <p style="margin:0;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:2px;">ROGER</p>
+              <p style="margin:4px 0 0;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Nuevo mensaje de contacto</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+                <tr style="background:#f9fafb;">
+                  <td style="padding:10px 16px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:1px;width:120px;">Nombre</td>
+                  <td style="padding:10px 16px;font-size:14px;color:#1d1d1f;">{request.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 16px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #e5e7eb;">Correo</td>
+                  <td style="padding:10px 16px;font-size:14px;color:#2563eb;border-top:1px solid #e5e7eb;"><a href="mailto:{request.email}" style="color:#2563eb;">{request.email}</a></td>
+                </tr>
+                {"" if not request.company else f'''<tr style="background:#f9fafb;"><td style="padding:10px 16px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #e5e7eb;">Empresa</td><td style="padding:10px 16px;font-size:14px;color:#1d1d1f;border-top:1px solid #e5e7eb;">{request.company}</td></tr>'''}
+                <tr {"" if not request.company else 'style=""'}>
+                  <td style="padding:10px 16px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #e5e7eb;">Asunto</td>
+                  <td style="padding:10px 16px;font-size:14px;color:#1d1d1f;border-top:1px solid #e5e7eb;">{request.subject}</td>
+                </tr>
+              </table>
+
+              <div style="margin-top:24px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px 20px;">
+                <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Mensaje</p>
+                <p style="margin:0;font-size:14px;color:#1d1d1f;line-height:1.7;white-space:pre-wrap;">{request.message}</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px;background:#f9f9f9;border-top:1px solid #eee;text-align:center;">
+              <p style="margin:0;font-size:11px;color:#bbb;">
+                Universidad Católica del Norte · Proyecto FONDEF ROGER<br />
+                Este mensaje fue enviado desde el formulario de contacto público.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    """
+    try:
+        email_service.send(
+            to=settings.smtp_from,
+            subject=f"[ROGER Contacto] {request.subject} — {request.name}",
+            html=html,
+        )
+    except Exception:
+        pass
+
+    return MessageResponse(message="Mensaje enviado correctamente. Te responderemos a la brevedad.")

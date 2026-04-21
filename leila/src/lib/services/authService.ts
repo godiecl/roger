@@ -10,6 +10,9 @@ export interface RegisterRequest {
   username: string;
   password: string;
   full_name?: string;
+  company?: string;
+  /** Defaults to 'usuario_estandar' (shown as Explorador) */
+  role?: 'usuario_estandar';
   verification_token: string;
   verification_code: string;
 }
