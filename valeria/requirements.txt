@@ -86,7 +86,7 @@ httpx>=0.28.0
 # ===================================
 # UTILS
 # ===================================
-python-dotenv>=1.0.1
+python-dotenv>=1.2.2
 # tiktoken==0.5.2              # Token counting - Requires Rust compilation, skip for Python 3.13
 tenacity>=9.0.0                # Retry logic
 
