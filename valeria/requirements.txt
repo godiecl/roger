@@ -6,7 +6,7 @@ mypy==1.19.1                 # Optional static typing for Python
 openai==2.15.0               # OpenAI Python library to access the OpenAI API
 openpyxl==3.1.5              # A Python library to read/write Excel 2010 xlsx/xlsm files
 pydantic==2.12.5             # Data validation using Python type hints
-python-dotenv==1.2.1         # Read key-value pairs from a .env file and set them as environment variables
+python-dotenv==1.2.2         # Read key-value pairs from a .env file and set them as environment variables
 ruff==0.14.13                # An extremely fast Python linter and code formatter, written in Rust.
 tqdm==4.67.1                 # Fast, Extensible Progress Meter
 typeguard==4.4.4             # Run-time type checker for Python
