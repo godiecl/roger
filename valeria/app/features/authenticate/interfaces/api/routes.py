@@ -52,6 +52,9 @@ from app.features.authenticate.interfaces.api.schemas import (
     ForgotPasswordRequest,
     ResetPasswordRequest,
     ChangePasswordRequest,
+    UpdateProfileRequest,
+    UserAdminResponse,
+    UserAdminListResponse,
     MessageResponse,
     SendVerificationCodeRequest,
     SendVerificationCodeResponse,
@@ -74,7 +77,7 @@ from app.features.authenticate.domain.user import User
 from app.features.authenticate.domain.role import Role
 from app.features.authenticate.interfaces.api.dependencies import get_current_user_id
 from app.infrastructure.database.session import get_db
-from app.shared.domain.exceptions import UnauthorizedError
+from app.shared.domain.exceptions import UnauthorizedError, InactiveAccountError
 import secrets
 
 
@@ -113,6 +116,11 @@ async def login(
         _reset_limit(key)
         return result
 
+    except InactiveAccountError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tu cuenta ha sido deshabilitada. Contacta al administrador para más información."
+        )
     except UnauthorizedError:
         count = _record_failure(key)
         left = _LOGIN_MAX_ATTEMPTS - count
@@ -357,3 +365,78 @@ async def change_password(
     await user_repository.update(user)
 
     return MessageResponse(message="Contraseña actualizada correctamente")
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_profile(
+    request: UpdateProfileRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update the authenticated user's profile (full_name only)."""
+    user_repository = UserRepository(db)
+    user = await user_repository.get_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    if request.full_name is not None:
+        user.full_name = request.full_name.strip() or None
+
+    user = await user_repository.update(user)
+    return UserResponse(
+        id=user.id, email=user.email, username=user.username,
+        role=user.role, full_name=user.full_name,
+        is_active=user.is_active, is_verified=user.is_verified
+    )
+
+
+# ── Admin endpoints ────────────────────────────────────────────────────────────
+
+@router.get("/admin/users", response_model=UserAdminListResponse)
+async def list_all_users(
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """List all users. Admin only."""
+    user_repository = UserRepository(db)
+    requester = await user_repository.get_by_id(user_id)
+    if not requester or requester.role.value != "administrador":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso restringido a administradores")
+
+    users = await user_repository.list_all()
+    return UserAdminListResponse(
+        total=len(users),
+        users=[UserAdminResponse(
+            id=u.id, email=u.email, username=u.username,
+            full_name=u.full_name, role=u.role,
+            is_active=u.is_active, is_verified=u.is_verified
+        ) for u in users]
+    )
+
+
+@router.patch("/admin/users/{target_id}/toggle-active", response_model=UserAdminResponse)
+async def toggle_user_active(
+    target_id: int,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Enable or disable a user account. Admin only."""
+    user_repository = UserRepository(db)
+    requester = await user_repository.get_by_id(user_id)
+    if not requester or requester.role.value != "administrador":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso restringido a administradores")
+
+    if target_id == user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No puedes modificar tu propia cuenta")
+
+    target = await user_repository.get_by_id(target_id)
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    target.is_active = not target.is_active
+    target = await user_repository.update(target)
+    return UserAdminResponse(
+        id=target.id, email=target.email, username=target.username,
+        full_name=target.full_name, role=target.role,
+        is_active=target.is_active, is_verified=target.is_verified
+    )

@@ -6,7 +6,7 @@ export const load: PageLoad = ({ url }) => {
   requireAuth(url.pathname);
 
   // Then check if user has required role
-  requireRole(['administrador', 'curador']);
+  requireRole(['administrador']);
 
   return {};
 };

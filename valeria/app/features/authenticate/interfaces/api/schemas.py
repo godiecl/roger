@@ -81,6 +81,31 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8)
 
 
+class UpdateProfileRequest(BaseModel):
+    """Update profile request for authenticated users."""
+    full_name: Optional[str] = Field(None, max_length=255)
+
+
+class UserAdminResponse(BaseModel):
+    """User info for admin panel."""
+    id: int
+    email: str
+    username: str
+    full_name: Optional[str]
+    role: Role
+    is_active: bool
+    is_verified: bool
+
+    class Config:
+        from_attributes = True
+
+
+class UserAdminListResponse(BaseModel):
+    """List of users for admin panel."""
+    total: int
+    users: list[UserAdminResponse]
+
+
 class MessageResponse(BaseModel):
     """Generic message response."""
     message: str

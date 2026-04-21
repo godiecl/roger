@@ -11,6 +11,7 @@
   let loading = false;
   let showRegister = false;
   let loginError = '';
+  let loginInactive = false;
 
   let showPassword = false;
   let showRegisterPassword = false;
@@ -171,6 +172,7 @@
     }
 
     loginError = '';
+    loginInactive = false;
     try {
       loading = true;
       const response = await authService.login(sanitizedEmail, sanitizedPassword);
@@ -184,7 +186,11 @@
       notificationsStore.success(`Bienvenido, ${response.user.full_name || response.user.email}!`);
       goto(redirectUrl);
     } catch (e: any) {
-      loginError = e.detail || 'Credenciales incorrectas. Verifica tu email o contraseña.';
+      if (e.status === 403) {
+        loginInactive = true;
+      } else {
+        loginError = e.detail || 'Credenciales incorrectas. Verifica tu email o contraseña.';
+      }
       password = '';
     } finally {
       loading = false;
@@ -264,7 +270,17 @@
             </div>
           </div>
 
-          {#if loginError}
+          {#if loginInactive}
+            <div class="alert bg-warning/10 border border-warning/30 py-3 px-4 text-sm rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              <div>
+                <p class="font-semibold text-warning">Cuenta deshabilitada</p>
+                <p class="text-xs text-base-content/60 mt-0.5">Tu cuenta ha sido deshabilitada. Contacta al administrador para más información.</p>
+              </div>
+            </div>
+          {:else if loginError}
             <div class="alert alert-error py-2 px-3 text-sm">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />

@@ -27,6 +27,11 @@ class UnauthorizedError(DomainException):
     pass
 
 
+class InactiveAccountError(DomainException):
+    """Raised when user account is disabled."""
+    pass
+
+
 class PermissionDeniedError(DomainException):
     """Raised when user doesn't have permission."""
     pass

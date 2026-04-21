@@ -3,6 +3,39 @@
   import { apiClient } from '$lib/services/apiClient';
   import { notificationsStore } from '$lib/stores/notifications';
 
+  // ── Edit profile ────────────────────────────────────────────────────────
+  let editingProfile = false;
+  let editFullName = '';
+  let editEmail = '';
+  let savingProfile = false;
+
+  function startEditProfile() {
+    editFullName = $authStore.user?.full_name || '';
+    editEmail = $authStore.user?.email || '';
+    editingProfile = true;
+  }
+
+  function cancelEditProfile() {
+    editingProfile = false;
+    editFullName = '';
+    editEmail = '';
+  }
+
+  async function handleSaveProfile() {
+    savingProfile = true;
+    try {
+      const updated = await apiClient.patch<any>('/auth/me', { full_name: editFullName.trim() || null });
+      authStore.updateUser({ ...$authStore.user!, full_name: updated.full_name });
+      notificationsStore.success('Perfil actualizado');
+      cancelEditProfile();
+    } catch (e: any) {
+      notificationsStore.error(e.detail || 'Error al guardar');
+    } finally {
+      savingProfile = false;
+    }
+  }
+
+  // ── Change password ─────────────────────────────────────────────────────
   let changingPassword = false;
   let currentPassword = '';
   let newPassword = '';
@@ -101,6 +134,75 @@
           {/if}
         </div>
       </div>
+    </div>
+
+    <!-- Edit profile card -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 shadow-sm">
+      <button
+        class="w-full flex items-center justify-between px-6 py-4 text-left"
+        on:click={() => { if (editingProfile) cancelEditProfile(); else startEditProfile(); }}>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-base-200 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <span class="font-semibold text-sm">Editar perfil</span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 transition-transform {editingProfile ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {#if editingProfile}
+        <div class="px-6 pb-6 border-t border-base-300 pt-4 space-y-4">
+
+          <!-- Nombre -->
+          <div class="form-control">
+            <label class="label py-0.5" for="ep-fullname">
+              <span class="label-text text-xs font-semibold">Nombre completo</span>
+            </label>
+            <input
+              id="ep-fullname"
+              type="text"
+              class="input input-bordered input-sm"
+              bind:value={editFullName}
+              placeholder="Tu nombre completo"
+              maxlength="255"
+            />
+          </div>
+
+          <!-- Email (pendiente de verificación) -->
+          <div class="form-control">
+            <label class="label py-0.5" for="ep-email">
+              <span class="label-text text-xs font-semibold">Correo electrónico</span>
+              <span class="label-text-alt text-[10px] text-base-content/40">Requiere verificación</span>
+            </label>
+            <div class="relative">
+              <input
+                id="ep-email"
+                type="email"
+                class="input input-bordered input-sm w-full pr-24"
+                bind:value={editEmail}
+                placeholder="nuevo@correo.com"
+                disabled
+              />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-base-content/40 font-medium">Próximamente</span>
+            </div>
+            <p class="text-[10px] text-base-content/40 mt-1 ml-1">
+              El cambio de correo requiere confirmación por email. Esta función estará disponible pronto.
+            </p>
+          </div>
+
+          <div class="flex gap-2 justify-end pt-1">
+            <button class="btn btn-ghost btn-sm" on:click={cancelEditProfile} disabled={savingProfile}>Cancelar</button>
+            <button class="btn btn-primary btn-sm" on:click={handleSaveProfile} disabled={savingProfile}>
+              {#if savingProfile}<span class="loading loading-spinner loading-xs"></span>{/if}
+              Guardar cambios
+            </button>
+          </div>
+        </div>
+      {/if}
     </div>
 
     <!-- Change password card -->

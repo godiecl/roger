@@ -8,7 +8,7 @@ from app.features.authenticate.domain.auth_port import (
     IPasswordHasher,
     IJWTService
 )
-from app.shared.domain.exceptions import UnauthorizedError
+from app.shared.domain.exceptions import UnauthorizedError, InactiveAccountError
 
 
 class AuthenticateUseCase:
@@ -52,7 +52,7 @@ class AuthenticateUseCase:
         
         # Check if user is active
         if not user.is_active:
-            raise UnauthorizedError("User account is inactive")
+            raise InactiveAccountError("User account is disabled")
         
         # Create tokens
         token_data = {

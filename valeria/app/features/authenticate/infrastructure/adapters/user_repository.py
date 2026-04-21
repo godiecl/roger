@@ -66,6 +66,13 @@ class UserRepository(IUserRepository):
         )
         return [self._to_entity(m) for m in result.scalars().all()]
 
+    async def list_all(self) -> list[User]:
+        """List all users ordered by id."""
+        result = await self.session.execute(
+            select(UserModel).order_by(UserModel.id)
+        )
+        return [self._to_entity(m) for m in result.scalars().all()]
+
     async def update(self, user: User) -> User:
         """Update an existing user."""
         result = await self.session.execute(
