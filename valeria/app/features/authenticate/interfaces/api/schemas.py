@@ -29,7 +29,7 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=6)
     full_name: Optional[str] = None
     company: Optional[str] = Field(None, max_length=255)
-    role: Role = Role.USUARIO_ESTANDAR
+    role: Role = Role.COLABORADOR
     verification_token: str
     verification_code: str = Field(..., min_length=6, max_length=6)
 
@@ -121,7 +121,7 @@ class AdminCreateUserRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=100)
     full_name: Optional[str] = Field(None, max_length=255)
     company: Optional[str] = Field(None, max_length=255)
-    role: Role = Role.USUARIO_ESTANDAR
+    role: Role = Role.COLABORADOR
     password: str = Field(..., min_length=8)
 
 

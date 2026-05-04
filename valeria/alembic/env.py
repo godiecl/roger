@@ -12,12 +12,36 @@ import asyncio
 from app.infrastructure.database.base import Base
 from app.config.settings import settings
 
-# Import all models so Alembic can detect them
+# ── Existing models ───────────────────────────────────────────────────────────
 from app.features.authenticate.infrastructure.persistence.user_model import UserModel
 from app.features.view_images.infrastructure.persistence.image_model import ImageModel, CollectionModel
 from app.features.generate_narrative.infrastructure.persistence.narrative_model import NarrativeModel
-from app.features.manage_projects.infrastructure.persistence.project_model import ProjectModel, ProjectMemberModel
+from app.features.manage_projects.infrastructure.persistence.project_model import (
+    ProjectModel, ProjectMemberModel, ProjectCollectionModel, ProjectPhotographModel,
+)
 from app.features.manage_projects.infrastructure.persistence.project_message_model import ProjectMessageModel
+
+# ── New archive models ────────────────────────────────────────────────────────
+from app.features.archive.infrastructure.persistence.archive_model import (
+    BoxModel, RollModel, PhotographModel, PhotographFileModel,
+)
+
+# ── New taxonomy models ───────────────────────────────────────────────────────
+from app.features.taxonomy.infrastructure.persistence.taxonomy_model import (
+    AttrTechnicalMetadataModel,
+    AttrChronologyDatingModel,
+    AttrGeographicReferenceModel,
+    AttrEnvironmentalSpatialModel,
+)
+
+# ── New tagging models ────────────────────────────────────────────────────────
+from app.features.tagging.infrastructure.persistence.tag_model import TagModel, PhotographTagModel
+
+# ── New contribution models ───────────────────────────────────────────────────
+from app.features.contributions.infrastructure.persistence.contribution_model import MetadataContributionModel
+
+# ── New analysis models ───────────────────────────────────────────────────────
+from app.features.analysis.infrastructure.persistence.analysis_model import AnalysisJobModel, ExperimentModel
 
 # this is the Alembic Config object
 config = context.config
@@ -36,7 +60,7 @@ target_metadata = Base.metadata
 def run_migrations_offline() -> None:
     """
     Run migrations in 'offline' mode.
-    
+
     This configures the context with just a URL
     and not an Engine, though an Engine is acceptable
     here as well. By skipping the Engine creation

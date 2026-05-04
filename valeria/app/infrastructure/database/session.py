@@ -37,12 +37,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """
-    Dependency that provides a database session.
-    
-    Yields:
-        AsyncSession: Database session
-    """
+    """Dependency that provides a database session."""
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -57,11 +52,21 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     """Initialize database tables."""
     from app.infrastructure.database.base import Base
-    # Import all models so Base.metadata knows about them
+
+    # ── Existing models ───────────────────────────────────────────────────────
     import app.features.authenticate.infrastructure.persistence.user_model  # noqa
+    import app.features.view_images.infrastructure.persistence.image_model  # noqa
+    import app.features.generate_narrative.infrastructure.persistence.narrative_model  # noqa
     import app.features.manage_projects.infrastructure.persistence.project_model  # noqa
     import app.features.manage_projects.infrastructure.persistence.project_message_model  # noqa
     import app.features.manage_projects.infrastructure.persistence.project_invitation_model  # noqa
+
+    # ── New models ────────────────────────────────────────────────────────────
+    import app.features.archive.infrastructure.persistence.archive_model  # noqa
+    import app.features.taxonomy.infrastructure.persistence.taxonomy_model  # noqa
+    import app.features.tagging.infrastructure.persistence.tag_model  # noqa
+    import app.features.contributions.infrastructure.persistence.contribution_model  # noqa
+    import app.features.analysis.infrastructure.persistence.analysis_model  # noqa
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
