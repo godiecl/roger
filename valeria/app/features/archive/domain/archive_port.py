@@ -5,10 +5,36 @@ Archive repository port (interface) for ROGER - Valeria API.
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from app.features.archive.domain.archive import Box, Roll, Photograph, PhotographFile
+from app.features.archive.domain.archive import Collection, Box, Roll, Photograph, PhotographFile
 
 
 class IArchiveRepository(ABC):
+
+    # ── Collections ───────────────────────────────────────────────────────────
+
+    @abstractmethod
+    async def create_collection(self, collection: Collection) -> Collection:
+        pass
+
+    @abstractmethod
+    async def get_collection(self, collection_id: int) -> Optional[Collection]:
+        pass
+
+    @abstractmethod
+    async def get_collection_by_slug(self, slug: str) -> Optional[Collection]:
+        pass
+
+    @abstractmethod
+    async def list_collections(self, skip: int = 0, limit: int = 100, public_only: bool = False) -> List[Collection]:
+        pass
+
+    @abstractmethod
+    async def update_collection(self, collection: Collection) -> Collection:
+        pass
+
+    @abstractmethod
+    async def delete_collection(self, collection_id: int) -> bool:
+        pass
 
     # ── Boxes ─────────────────────────────────────────────────────────────────
 

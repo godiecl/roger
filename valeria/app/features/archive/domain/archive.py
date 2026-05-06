@@ -1,13 +1,61 @@
 """
 Archive domain entities for ROGER - Valeria API.
-Box → Roll → Photograph → PhotographFile physical hierarchy.
+Collection → Box → Roll → Photograph → PhotographFile physical hierarchy.
 """
 
+import re
 from datetime import datetime, date
 from enum import Enum
 from typing import Optional
 
 from app.shared.domain.base_entity import BaseEntity
+
+
+def _slugify(text: str) -> str:
+    text = text.lower().strip()
+    text = re.sub(r"[^\w\s-]", "", text)
+    return re.sub(r"[\s_-]+", "-", text)
+
+
+class Collection(BaseEntity):
+    """Top-level grouping of a photographic archive (e.g. Robert Gerstmann)."""
+
+    def __init__(
+        self,
+        name: str,
+        slug: Optional[str] = None,
+        description: Optional[str] = None,
+        photographer_name: Optional[str] = None,
+        origin_country: Optional[str] = None,
+        date_range_from: Optional[int] = None,
+        date_range_to: Optional[int] = None,
+        is_public: bool = True,
+        cover_image_path: Optional[str] = None,
+        license: Optional[str] = None,
+        copyright_notes: Optional[str] = None,
+        created_by: Optional[int] = None,
+        id: Optional[int] = None,
+        created_at: Optional[datetime] = None,
+        updated_at: Optional[datetime] = None,
+    ):
+        super().__init__(id, created_at, updated_at)
+        if not name or not name.strip():
+            raise ValueError("El nombre de la colección no puede estar vacío.")
+        self.name = name.strip()
+        self.slug = slug or _slugify(self.name)
+        self.description = description
+        self.photographer_name = photographer_name
+        self.origin_country = origin_country
+        self.date_range_from = date_range_from
+        self.date_range_to = date_range_to
+        self.is_public = is_public
+        self.cover_image_path = cover_image_path
+        self.license = license
+        self.copyright_notes = copyright_notes
+        self.created_by = created_by
+
+    def __repr__(self) -> str:
+        return f"Collection(id={self.id}, name={self.name})"
 
 
 class ImageType(str, Enum):

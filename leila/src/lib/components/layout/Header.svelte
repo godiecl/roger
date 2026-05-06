@@ -156,6 +156,22 @@
                   </svg>
                   {$t.auth.projects}
                 </a></li>
+                {#if $isAuthenticated}
+                  <li><a href="/archivo">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                    Catalogación
+                  </a></li>
+                {/if}
+                {#if $authStore.user?.role === 'curador' || $authStore.user?.role === 'administrador' || $authStore.user?.role === 'mesa_evaluadora'}
+                  <li><a href="/curador">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    Cola de revisión
+                  </a></li>
+                {/if}
                 {#if $authStore.user?.role === 'curador' || $authStore.user?.role === 'administrador'}
                   <li><a href="/admin">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -268,6 +284,7 @@
         <li><a href="/sobre-roger" class="rounded-lg" on:click={toggleMenu}>{$t.nav.about}</a></li>
         {#if $isAuthenticated}
           <div class="divider my-1"></div>
+          <li><a href="/archivo" class="rounded-lg" on:click={toggleMenu}>Catalogación</a></li>
           <li><a href="/proyectos" class="rounded-lg" on:click={toggleMenu}>Mis Proyectos</a></li>
           <li><a href="/profile" class="rounded-lg" on:click={toggleMenu}>Mi Perfil</a></li>
           <li>

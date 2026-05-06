@@ -10,6 +10,62 @@ from pydantic import BaseModel, Field
 from app.features.archive.domain.archive import ColorMode, FileType, ImageType, PhysicalStatus, SupportType
 
 
+# ── Collection ────────────────────────────────────────────────────────────────
+
+class CollectionCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=255)
+    slug: Optional[str] = Field(None, max_length=100)
+    description: Optional[str] = None
+    photographer_name: Optional[str] = None
+    origin_country: Optional[str] = None
+    date_range_from: Optional[int] = Field(None, ge=1800, le=2100)
+    date_range_to: Optional[int] = Field(None, ge=1800, le=2100)
+    is_public: bool = True
+    cover_image_path: Optional[str] = None
+    license: Optional[str] = None
+    copyright_notes: Optional[str] = None
+
+
+class CollectionUpdateRequest(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    photographer_name: Optional[str] = None
+    origin_country: Optional[str] = None
+    date_range_from: Optional[int] = Field(None, ge=1800, le=2100)
+    date_range_to: Optional[int] = Field(None, ge=1800, le=2100)
+    is_public: Optional[bool] = None
+    cover_image_path: Optional[str] = None
+    license: Optional[str] = None
+    copyright_notes: Optional[str] = None
+
+
+class CollectionResponse(BaseModel):
+    id: int
+    name: str
+    slug: Optional[str]
+    description: Optional[str]
+    photographer_name: Optional[str]
+    origin_country: Optional[str]
+    date_range_from: Optional[int]
+    date_range_to: Optional[int]
+    is_public: bool
+    cover_image_path: Optional[str]
+    license: Optional[str]
+    copyright_notes: Optional[str]
+    created_by: Optional[int]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CollectionListResponse(BaseModel):
+    total: int
+    skip: int
+    limit: int
+    collections: List[CollectionResponse]
+
+
 # ── Box ───────────────────────────────────────────────────────────────────────
 
 class BoxCreateRequest(BaseModel):

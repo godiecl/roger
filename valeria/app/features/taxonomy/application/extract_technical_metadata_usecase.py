@@ -95,8 +95,6 @@ class ExtractTechnicalMetadataUseCase:
         await self.repository.supersede_active_technical(photograph_id)
 
         # 6. Build and save new TechnicalMetadata record
-        camera_settings = analysis.get("camera_model")
-
         record = TechnicalMetadata(
             photograph_id=photograph_id,
             status=AttributeStatus.ACTIVE,
@@ -106,7 +104,7 @@ class ExtractTechnicalMetadataUseCase:
             exposure=analysis.get("exposure"),
             diaphragm_aperture=analysis.get("diaphragm_aperture"),
             lens_optical=analysis.get("lens_optical"),
-            camera_settings=camera_settings,
+            camera_settings=analysis.get("camera_model"),
             is_estimated=False,
             analysis_provider=analysis.get("provider"),
             provider_version=analysis.get("provider_version"),
@@ -114,10 +112,19 @@ class ExtractTechnicalMetadataUseCase:
         )
         saved = await self.repository.save_technical_metadata(record)
 
-        # 7. Close job as COMPLETED
+        # 7. Auto-update photograph dimensions if they were missing
+        width = analysis.get("width_px")
+        height = analysis.get("height_px")
+        if (width or height) and (not photo.width_px or not photo.height_px):
+            if width:
+                photo.width_px = int(width)
+            if height:
+                photo.height_px = int(height)
+            await self.session.flush()
+
+        # 8. Close job as COMPLETED
         job.status = JobStatus.COMPLETED
         job.completed_at = datetime.now(timezone.utc)
-        job.analysis_job_id = saved.id if hasattr(job, "analysis_job_id") else None
         await self.session.flush()
 
         return saved

@@ -7,17 +7,112 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.features.archive.domain.archive import Box, Roll, Photograph, PhotographFile
+from app.features.archive.domain.archive import Collection, Box, Roll, Photograph, PhotographFile
 from app.features.archive.domain.archive_port import IArchiveRepository
 from app.features.archive.infrastructure.persistence.archive_model import (
     BoxModel, RollModel, PhotographModel, PhotographFileModel,
 )
+from app.features.view_images.infrastructure.persistence.image_model import CollectionModel
 
 
 class ArchiveRepository(IArchiveRepository):
 
     def __init__(self, session: AsyncSession):
         self.session = session
+
+    # ── Collections ───────────────────────────────────────────────────────────
+
+    async def create_collection(self, collection: Collection) -> Collection:
+        model = CollectionModel(
+            name=collection.name,
+            slug=collection.slug,
+            description=collection.description,
+            photographer_name=collection.photographer_name,
+            origin_country=collection.origin_country,
+            date_range_from=collection.date_range_from,
+            date_range_to=collection.date_range_to,
+            is_public=collection.is_public,
+            cover_image_path=collection.cover_image_path,
+            license=collection.license,
+            copyright_notes=collection.copyright_notes,
+            created_by=collection.created_by,
+        )
+        self.session.add(model)
+        await self.session.flush()
+        await self.session.refresh(model)
+        return self._collection_to_entity(model)
+
+    async def get_collection(self, collection_id: int) -> Optional[Collection]:
+        result = await self.session.execute(
+            select(CollectionModel).where(CollectionModel.id == collection_id)
+        )
+        model = result.scalar_one_or_none()
+        return self._collection_to_entity(model) if model else None
+
+    async def get_collection_by_slug(self, slug: str) -> Optional[Collection]:
+        result = await self.session.execute(
+            select(CollectionModel).where(CollectionModel.slug == slug)
+        )
+        model = result.scalar_one_or_none()
+        return self._collection_to_entity(model) if model else None
+
+    async def list_collections(self, skip: int = 0, limit: int = 100, public_only: bool = False) -> List[Collection]:
+        q = select(CollectionModel)
+        if public_only:
+            q = q.where(CollectionModel.is_public == True)
+        q = q.order_by(CollectionModel.name).offset(skip).limit(limit)
+        result = await self.session.execute(q)
+        return [self._collection_to_entity(m) for m in result.scalars().all()]
+
+    async def update_collection(self, collection: Collection) -> Collection:
+        result = await self.session.execute(
+            select(CollectionModel).where(CollectionModel.id == collection.id)
+        )
+        model = result.scalar_one_or_none()
+        if not model:
+            raise ValueError(f"Collection id={collection.id} not found")
+        model.name = collection.name
+        model.description = collection.description
+        model.photographer_name = collection.photographer_name
+        model.origin_country = collection.origin_country
+        model.date_range_from = collection.date_range_from
+        model.date_range_to = collection.date_range_to
+        model.is_public = collection.is_public
+        model.cover_image_path = collection.cover_image_path
+        model.license = collection.license
+        model.copyright_notes = collection.copyright_notes
+        await self.session.flush()
+        await self.session.refresh(model)
+        return self._collection_to_entity(model)
+
+    async def delete_collection(self, collection_id: int) -> bool:
+        result = await self.session.execute(
+            select(CollectionModel).where(CollectionModel.id == collection_id)
+        )
+        model = result.scalar_one_or_none()
+        if model:
+            await self.session.delete(model)
+            return True
+        return False
+
+    def _collection_to_entity(self, m: CollectionModel) -> Collection:
+        return Collection(
+            id=m.id,
+            name=m.name,
+            slug=m.slug,
+            description=m.description,
+            photographer_name=m.photographer_name,
+            origin_country=m.origin_country,
+            date_range_from=m.date_range_from,
+            date_range_to=m.date_range_to,
+            is_public=m.is_public,
+            cover_image_path=m.cover_image_path,
+            license=m.license,
+            copyright_notes=m.copyright_notes,
+            created_by=m.created_by,
+            created_at=m.created_at,
+            updated_at=m.updated_at,
+        )
 
     # ── Boxes ─────────────────────────────────────────────────────────────────
 

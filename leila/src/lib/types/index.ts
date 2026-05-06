@@ -232,3 +232,119 @@ export interface PdfContextResponse {
   text: string;
   char_count: number;
 }
+
+// ── Archive ───────────────────────────────────────────────────────────────────
+
+export interface Collection {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  photographer_name?: string;
+  origin_country?: string;
+  date_range_from?: string;
+  date_range_to?: string;
+  is_public: boolean;
+  cover_image_path?: string;
+  license?: string;
+  copyright_notes?: string;
+  created_by: number;
+  created_at: string;
+}
+
+export interface CollectionListResponse {
+  total: number;
+  skip: number;
+  limit: number;
+  collections: Collection[];
+}
+
+export interface Box {
+  id: number;
+  collection_id: number;
+  box_number: number;
+  name?: string;
+  location_in_archive?: string;
+  created_at: string;
+}
+
+export interface BoxListResponse {
+  total: number;
+  skip: number;
+  limit: number;
+  boxes: Box[];
+}
+
+export interface Roll {
+  id: number;
+  box_id: number;
+  general_number: number;
+  internal_number?: number;
+  og_number?: string;
+  strip_letter?: string;
+  name?: string;
+  image_type?: string;
+  support?: string;
+  physical_status?: string;
+  color_mode?: string;
+  frame_count?: number;
+  created_at: string;
+}
+
+export interface RollListResponse {
+  total: number;
+  skip: number;
+  limit: number;
+  rolls: Roll[];
+}
+
+export interface Photograph {
+  id: number;
+  roll_id: number;
+  frame_number?: number;
+  identifier?: string;
+  physical_location_ref?: string;
+  digitalization_date?: string;
+  width_px?: number;
+  height_px?: number;
+  color_depth?: number;
+  resolution_dpi?: number;
+  internal_cronology?: string;
+  license?: string;
+  is_public: boolean;
+  created_at: string;
+}
+
+export interface PhotographListResponse {
+  total: number;
+  skip: number;
+  limit: number;
+  photographs: Photograph[];
+}
+
+// ── Contributions ─────────────────────────────────────────────────────────────
+
+export type AttributeType = 'CHRONOLOGY' | 'GEOGRAPHIC' | 'ENVIRONMENTAL' | 'TAG';
+export type ContributionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface Contribution {
+  id: number;
+  photograph_id: number;
+  contributor_id: number;
+  attribute_type: AttributeType;
+  field_name: string;
+  proposed_value: string;
+  evidence_notes?: string;
+  status: ContributionStatus;
+  reviewed_by?: number;
+  reviewed_at?: string;
+  rejection_reason?: string;
+  created_at: string;
+}
+
+export interface ContributionListResponse {
+  total: number;
+  skip: number;
+  limit: number;
+  contributions: Contribution[];
+}

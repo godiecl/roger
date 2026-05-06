@@ -9,6 +9,9 @@ export { searchService } from './searchService';
 export { projectService } from './projectService';
 export { chatService } from './chatService';
 export { invitationService } from './invitationService';
+export { archiveService } from './archiveService';
+export { contributionService } from './contributionService';
+export type { SubmitContributionRequest } from './contributionService';
 
 // Re-export types
 export type { RegisterRequest, RegisterResponse } from './authService';

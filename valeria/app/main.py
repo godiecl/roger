@@ -23,6 +23,7 @@ from app.features.manage_projects.interfaces.api.routes import router as project
 from app.features.archive.interfaces.api.routes import router as archive_router
 from app.features.taxonomy.interfaces.api.routes import router as taxonomy_router
 from app.features.contributions.interfaces.api.routes import router as contributions_router
+from app.features.tagging.interfaces.api.routes import router as tags_router
 
 # Setup logging
 logger = structlog.get_logger()
@@ -118,6 +119,7 @@ app.include_router(invitations_router, prefix=settings.api_prefix)
 app.include_router(archive_router, prefix=settings.api_prefix)
 app.include_router(taxonomy_router, prefix=settings.api_prefix)
 app.include_router(contributions_router, prefix=settings.api_prefix)
+app.include_router(tags_router, prefix=settings.api_prefix)
 
 # Serve static files (images, uploads)
 # app.mount("/storage", StaticFiles(directory="storage"), name="storage")
