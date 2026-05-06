@@ -1,0 +1,365 @@
+@startuml
+
+skin rose
+hide empty members
+left to right direction
+
+skinparam  {
+    defaultFontSize             16
+    shadowing                   true
+    RoundCorner                 10
+    packageBackgroundColor      LightGoldenRodYellow
+}
+
+package roger {
+
+    package "Usuarios" {
+
+        entity Persona {
+            * id
+            * RUT/Pasaporte
+            * Nombres
+            * Apellidos
+            * Correo Electrónico
+            * Celular
+            * Nacionalidad
+            * Género
+            * Afiliación
+            * Organización
+            * Cargo
+            ..
+            * Login
+            * Contraseña
+            * Fecha de Creación
+            * Fecha de Caducidad
+            * Activa
+            * Verificada
+        }
+
+        enum Rol {
+            * Administrador
+            * Curador/Experto
+            * Mesa Evaluadora
+            * Investigador
+            * Digitalizador
+            * Colaborador
+            * Usuario Estándar
+        }
+        Rol "1..*" <-- Persona : < tiene roles
+
+    }
+
+    package "Archivo Físico" {
+
+        entity "Colección" as Coleccion {
+            * id
+            * Nombre
+            * Slug
+            * Descripción
+            * Nombre Fotógrafo
+            * País de Origen
+            * Año Inicio
+            * Año Término
+            * Licencia
+            * Derechos de Autor/Uso
+            * Pública
+            * Fecha de Creación
+        }
+        Coleccion "*" <-- Persona : < creada por
+
+        entity "Cajón" as Cajon {
+            * id
+            * Número de Cajón
+            * Nombre
+            * Ubicación en Archivo
+        }
+        Cajon "1..*" <-- Coleccion : < contiene
+
+        entity Rollo {
+            * id
+            * Número General
+            * Número Interno
+            * Og
+            * Letra de Tira
+            * Nombre/Descripción
+            ..
+            * Tipo (NEG/POS)
+            * Soporte (PAPER/GLASS/FLEX)
+            * Estado Físico (GOOD/INTER/BAD)
+            * Modo Color (BW/COLOR)
+            * Número de Fotogramas
+        }
+        Rollo "1..*" <-- Cajon : < almacena
+
+        entity "Fotografía" as Fotografia {
+            * id
+            * Número de Frame
+            * Identificador
+            * Referencia Localización Física
+            * Fecha de Digitalización
+            ..
+            * Alto (px)
+            * Ancho (px)
+            * Profundidad de Color
+            * Resolución (DPI)
+            * Cronología Interna
+            ..
+            * Licencia
+            * Derechos de Autor/Uso
+            * Pública
+        }
+        Fotografia "1..*" <-- Rollo : < tiene
+        Fotografia "*" <-- Persona : < responsable
+        Fotografia "*" <-- Persona : < digitalizado por
+
+        entity "Archivo de Fotografía" as ArchivoFotografia {
+            * id
+            * Tipo de Archivo
+            * Ruta del Archivo
+            * Es Maestro
+            * Tamaño (bytes)
+            * Fecha de Creación
+        }
+        ArchivoFotografia "1..*" <-- Fotografia : < archivos de
+
+        enum "Tipo de Archivo" as TipoArchivo {
+            * CR3 [master]
+            * TIFF
+            * JPG
+            * PNG
+        }
+        TipoArchivo "1" <-- ArchivoFotografia : < es de tipo
+
+    }
+
+    package "Taxonomía Multimodal" {
+
+        ' Atributo 01 — Solo escritura por herramientas. INMUTABLE.
+        entity "01 · Metadato Técnico" as MetadatoTecnico {
+            * id
+            * Estado (ACTIVE/SUPERSEDED)
+            ..
+            * Formato de Película
+            * Fabricante
+            * Tipo de Emulsión
+            * Sensibilidad ISO
+            * Marcas de Montaje
+            * Artefactos de Escaneo
+            * Estado Físico
+            ..
+            * Exposición
+            * Apertura de Diafragma
+            * Óptica/Lente
+            * Configuración de Cámara
+            * Notas de Deterioro
+            * Persona Digitalizadora
+            * Es Estimado
+            ..
+            * Proveedor de Análisis
+            * Versión del Proveedor
+            * Nivel de Confianza
+            * Salida Cruda (JSON)
+            * Fecha de Análisis
+        }
+        MetadatoTecnico "0..*" <-- Fotografia : < analizado en
+
+        ' Atributo 02 — Acepta contribuciones aprobadas.
+        entity "02 · Datación Cronológica" as Cronologia {
+            * id
+            * Estado (ACTIVE/SUPERSEDED/PENDING)
+            * Tipo de Fuente (AI/CURATOR/USER_APPROVED)
+            ..
+            * Tipo de Fecha
+            * Fecha Precisa
+            * Fecha Desde
+            * Fecha Hasta
+            * Hipótesis de Fecha
+            * Fuente de Verificación
+            * Metodología
+            * Evidencia Visual
+            ..
+            * Proveedor de Análisis
+            * Nivel de Confianza
+            * Salida Cruda (JSON)
+            * Fecha de Análisis
+        }
+        Cronologia "0..*" <-- Fotografia : < fechado en
+
+        ' Atributo 03 — Acepta contribuciones aprobadas.
+        entity "03 · Referencia Geográfica" as ReferenciaGeografica {
+            * id
+            * Estado (ACTIVE/SUPERSEDED/PENDING)
+            * Tipo de Fuente (AI/CURATOR/USER_APPROVED)
+            ..
+            * Tipo de Localización
+            * Localización Geográfica
+            * Latitud
+            * Longitud
+            * Radio de Incerteza (km)
+            * Señales Encontradas
+            * Hitos Arquitectónicos
+            * Características del Paisaje
+            ..
+            * Proveedor de Análisis
+            * Nivel de Confianza
+            * Salida Cruda (JSON)
+            * Fecha de Análisis
+        }
+        ReferenciaGeografica "0..*" <-- Fotografia : < georreferenciado en
+
+        ' Atributo 04 — Acepta contribuciones aprobadas.
+        entity "04 · Contexto Ambiental y Espacial" as ContextoAmbiental {
+            * id
+            * Estado (ACTIVE/SUPERSEDED/PENDING)
+            * Tipo de Fuente (AI/CURATOR/USER_APPROVED)
+            ..
+            * Tipo de Entorno
+            * Tipología Específica
+            * Estado de Conservación
+            * Relación Humano-Entorno
+            ..
+            * Proveedor de Análisis
+            * Nivel de Confianza
+            * Salida Cruda (JSON)
+            * Fecha de Análisis
+        }
+        ContextoAmbiental "0..*" <-- Fotografia : < contextualizado en
+
+        enum "Estado de Atributo" as EstadoAtributo {
+            * ACTIVE
+            * SUPERSEDED
+            * PENDING
+        }
+
+        enum "Tipo de Fecha" as TipoFecha {
+            * PRECISE
+            * APPROXIMATE
+            * RANGE
+            * UNKNOWN
+        }
+
+        enum "Tipo de Localización" as TipoLocalizacion {
+            * PRECISE
+            * APPROXIMATE
+            * UNKNOWN
+        }
+
+        enum "Tipo de Entorno" as TipoEntorno {
+            * NATURAL
+            * URBAN
+            * INTERIOR
+            * EXTERIOR
+            * MIXED
+        }
+
+        enum "Estado de Conservación" as EstadoConservacion {
+            * PRISTINE
+            * BUILT
+            * ANTHROPOGENIC
+        }
+
+    }
+
+    package "Etiquetas" {
+
+        entity Etiqueta {
+            * id
+            * Nombre
+            * Categoría
+        }
+        Etiqueta "*" <-- Coleccion : < pertenece a
+
+        entity "Fotografía-Etiqueta" as FotografiaEtiqueta {
+            * Fuente (MANUAL/AI/USER_CONTRIBUTED)
+            * Confianza
+            * Estado (APPROVED/PENDING/REJECTED)
+            * Atributo de Origen
+            * Fecha de Aprobación
+        }
+        FotografiaEtiqueta "*" <-- Fotografia : < etiquetado con
+        FotografiaEtiqueta "*" <-- Etiqueta : < aplicado en
+        FotografiaEtiqueta "*" <-- Persona : < aprobado por
+
+        enum "Categoría de Etiqueta" as CategoriaEtiqueta {
+            * geographic
+            * temporal
+            * iconographic
+            * technical
+            * ai_inferred
+        }
+        CategoriaEtiqueta "1" <-- Etiqueta : < categoría
+
+    }
+
+    package "Contribuciones" {
+
+        ' Solo aplica a atributos 02, 03, 04 y etiquetas.
+        ' El Metadato Técnico (01) es INMUTABLE.
+        entity "Contribución de Metadato" as ContribucionMetadato {
+            * id
+            * Tipo de Atributo /' NO incluye TECHNICAL '/
+            * Nombre de Campo
+            * Valor Propuesto
+            * Notas de Evidencia
+            ..
+            * Estado (PENDING/APPROVED/REJECTED)
+            * Razón de Rechazo
+            * Fecha de Revisión
+        }
+        ContribucionMetadato "*" <-- Fotografia : < recibe aportes
+        ContribucionMetadato "*" <-- Persona : < contribuye
+        ContribucionMetadato "*" <-- Persona : < revisado por
+
+    }
+
+    package "Research" {
+
+        entity Proyecto {
+            * id
+            * Nombre
+            * Descripción
+            * Fecha de Inicio
+            * Fecha de Término
+            * Instrucciones IA
+            * Activo
+        }
+        Proyecto "*" <-- Persona : < es responsable
+        Proyecto --> "*" Coleccion : > utiliza colecciones
+        Proyecto --> "*" Fotografia : > utiliza fotografías
+
+        entity Experimento {
+            * id
+            * Descripción
+            * Fecha
+            * Tipo de Atributo
+            * Estado (PLANNED/RUNNING/COMPLETED/FAILED)
+            * Notas
+            * Fecha de Creación
+        }
+        Experimento --> "1" Fotografia : > sobre
+        Experimento --> "1" Persona : > conducido por
+        Experimento --> "1" Proyecto : > enmarcado en
+        Experimento --> "0..1" "Trabajo de Análisis" : > genera
+
+    }
+
+    package "Análisis IA" {
+
+        entity "Trabajo de Análisis" as TrabajoAnalisis {
+            * id
+            * Tipo de Atributo
+            * Nombre de Herramienta /' pillow, places365, geocLIP, claude, ... '/
+            * Versión de Herramienta
+            * Estado (PENDING/RUNNING/COMPLETED/FAILED)
+            * Fecha de Inicio
+            * Fecha de Término
+            * Mensaje de Error
+        }
+        TrabajoAnalisis "*" <-- Fotografia : < procesado en
+        TrabajoAnalisis "*" <-- Persona : < disparado por
+
+    }
+
+}
+
+@enduml
