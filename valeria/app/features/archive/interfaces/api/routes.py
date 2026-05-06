@@ -37,6 +37,9 @@ from app.features.authenticate.interfaces.api.dependencies import get_current_us
 from app.infrastructure.database.session import get_db
 from app.features.analysis.infrastructure.persistence.analysis_model import AnalysisJobModel
 from app.features.taxonomy.application.extract_technical_metadata_usecase import ExtractTechnicalMetadataUseCase
+from app.features.taxonomy.application.extract_chronology_usecase import ExtractChronologyUseCase
+from app.features.taxonomy.application.extract_geographic_usecase import ExtractGeographicUseCase
+from app.features.taxonomy.application.extract_environmental_usecase import ExtractEnvironmentalUseCase
 from app.features.taxonomy.infrastructure.adapters.taxonomy_repository import TaxonomyRepository
 from app.shared.domain.exceptions import EntityNotFoundError, ValidationError, BusinessRuleViolationError
 
@@ -376,16 +379,27 @@ async def register_file(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     analysis_triggered = False
-    analysis_error = None
+    analysis_errors: list[str] = []
+
     if request.is_master:
         analysis_triggered = True
-        try:
-            tax_repo = TaxonomyRepository(db)
-            await ExtractTechnicalMetadataUseCase(tax_repo, db).execute(photograph_id, triggered_by=user_id)
-        except Exception as exc:
-            analysis_error = str(exc)
+        tax_repo = TaxonomyRepository(db)
+        for UseCase in (
+            ExtractTechnicalMetadataUseCase,
+            ExtractChronologyUseCase,
+            ExtractGeographicUseCase,
+            ExtractEnvironmentalUseCase,
+        ):
+            try:
+                await UseCase(tax_repo, db).execute(photograph_id, triggered_by=user_id)
+            except Exception as exc:
+                analysis_errors.append(str(exc))
 
-    return PhotographFileWithAnalysisResponse(**pf.__dict__, analysis_triggered=analysis_triggered, analysis_error=analysis_error)
+    return PhotographFileWithAnalysisResponse(
+        **pf.__dict__,
+        analysis_triggered=analysis_triggered,
+        analysis_error="; ".join(analysis_errors) if analysis_errors else None,
+    )
 
 
 @router.get("/photographs/{photograph_id}/files", response_model=PhotographFileListResponse)

@@ -1,0 +1,36 @@
+# ===================================
+# ANALIZADORES DE TAXONOMÍA — OPCIONALES
+# ===================================
+# Dependencias para los proveedores reales de los Atributos 02, 03 y 04.
+# No están en requirements.txt porque son pesadas (~2 GB) y opcionales.
+#
+# Instalar con:
+#   pip install -r requirements-analyzers.txt
+#
+# Luego activar cada proveedor en el .env:
+#   ATTR02_ANALYZER=clip        # Atributo 02 — Datación cronológica
+#   ATTR03_ANALYZER=geoclip     # Atributo 03 — Referencia geográfica
+#   ATTR04_ANALYZER=places365   # Atributo 04 — Contexto ambiental
+#
+# Sin este archivo, los tres atributos usan el analizador stub (sin deps, sin análisis real).
+# ===================================
+
+# Base — requerido por todos los analizadores reales
+torch>=2.6.0
+torchvision>=0.20.0
+
+# Embeddings semánticos (sentence-transformers y reranker)
+sentence-transformers>=3.0.0
+transformers>=4.40.0
+
+# Atributo 02 — Datación cronológica
+# Zero-shot classification por décadas con CLIP (ViT-B/32 de OpenAI)
+open-clip-torch>=2.24.0
+
+# Atributo 03 — Referencia geográfica
+# Estimación de coordenadas GPS a partir del contenido visual
+geoclip>=0.1.0
+
+# Atributo 04 — Contexto ambiental y espacial
+# Clasificación de escena con ResNet50 entrenado en Places365
+# (torchvision ya declarado arriba en Base)

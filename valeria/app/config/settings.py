@@ -32,6 +32,18 @@ class Settings(BaseSettings):
     # ===================================
     use_local_embeddings: bool = Field(default=True, alias="USE_LOCAL_EMBEDDINGS")
     use_local_object_detection: bool = Field(default=True, alias="USE_LOCAL_OBJECT_DETECTION")
+
+    # ===================================
+    # TAXONOMY ANALYZERS — agnósticos al proveedor
+    # Cambia el valor en .env para cambiar de herramienta sin tocar código.
+    #
+    # ATTR02_ANALYZER: stub (default) | clip
+    # ATTR03_ANALYZER: stub (default) | geoclip
+    # ATTR04_ANALYZER: stub (default) | places365
+    # ===================================
+    attr02_analyzer: str = Field(default="stub", alias="ATTR02_ANALYZER")
+    attr03_analyzer: str = Field(default="stub", alias="ATTR03_ANALYZER")
+    attr04_analyzer: str = Field(default="stub", alias="ATTR04_ANALYZER")
     
     # ===================================
     # API

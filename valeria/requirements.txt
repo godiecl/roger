@@ -33,13 +33,6 @@ langchain-openai>=0.0.5
 # langchain-anthropic>=0.0.1   # Si usas Claude
 
 # ===================================
-# EMBEDDINGS
-# ===================================
-sentence-transformers>=3.0.0
-transformers>=4.40.0
-torch>=2.6.0                   # Para sentence-transformers
-
-# ===================================
 # VECTOR DATABASE
 # ===================================
 # chromadb==0.4.22             # Requires C++ compilation - skip for Python 3.13

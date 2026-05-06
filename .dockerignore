@@ -1,0 +1,40 @@
+# Documentación (PDFs, imágenes, planillas — no van en la imagen)
+docs/
+
+# Git
+.git/
+.gitignore
+
+# Secretos
+.env
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/.mypy_cache
+valeria/venv
+valeria/.venv
+valeria/env
+
+# Base de datos y datos locales
+valeria/*.db
+valeria/*.db-journal
+data/
+storage/
+uploads/
+logs/
+valeria/chroma_db/
+valeria/.cache/
+
+# Node
+leila/node_modules/
+leila/build/
+leila/.svelte-kit/
+leila/.playwright/
+leila/test-results/
+
+# Editor
+.vscode/
+.idea/
