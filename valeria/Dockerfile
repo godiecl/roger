@@ -34,6 +34,7 @@ RUN set -ex; \
 
 # ---- runner image ------------------------------------------------------------
 FROM python:${PYTHON_VERSION}-slim AS runner
+ARG PYTHON_VERSION
 
 WORKDIR /app
 
