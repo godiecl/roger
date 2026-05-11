@@ -55,7 +55,9 @@ RUN set -ex; \
     mkdir -p /app/data /app/storage/images /app/uploads /app/logs
 
 COPY --from=builder /install /install
+
 COPY . .
+
 COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
 EXPOSE 8000
