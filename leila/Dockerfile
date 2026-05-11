@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 # build with:
 #   time eatmydata docker buildx build --progress=plain --tag roger/leila:prod --file Dockerfile .
+# run with:
+#   docker run --rm -it -p 30000 --name leila-prod roger/leila:prod
 #
 ARG NODE_VERSION=24
 ARG NPM_VERSION=11.14.1
