@@ -23,8 +23,4 @@ export default {
       },
     },
   },
-  plugins: [require('daisyui')],
-  daisyui: {
-    themes: ['lofi', 'dark', 'nord', 'cupcake', 'luxury', 'corporate', 'retro'],
-  },
 }
