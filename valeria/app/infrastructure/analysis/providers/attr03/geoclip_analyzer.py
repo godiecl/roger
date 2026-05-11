@@ -11,7 +11,32 @@ First run downloads GeoCLIP model weights (~1 GB) to the torch cache.
 """
 
 import os
+import torch
 from app.infrastructure.analysis.base_analyzer import IAttributeAnalyzer
+
+
+def _patch_geoclip_image_encoder() -> None:
+    """
+    Fix de compatibilidad con transformers >= 5.x.
+    get_image_features() ahora devuelve BaseModelOutputWithPooling en vez de un Tensor,
+    lo que rompe el MLP interno de GeoCLIP. Extraemos el tensor manualmente.
+    """
+    try:
+        from geoclip.model.image_encoder import ImageEncoder
+
+        original_forward = ImageEncoder.forward
+
+        def patched_forward(self, x):
+            x = self.CLIP.get_image_features(pixel_values=x)
+            if not isinstance(x, torch.Tensor):
+                x = x.pooler_output
+            x = self.mlp(x)
+            return x
+
+        if ImageEncoder.forward is not patched_forward:
+            ImageEncoder.forward = patched_forward
+    except Exception:
+        pass
 
 PROVIDER_NAME = "geoclip"
 PROVIDER_VERSION = "1"
@@ -30,6 +55,7 @@ class GeoCLIPAnalyzer(IAttributeAnalyzer):
                 "Or set ATTR03_ANALYZER=stub to disable geographic analysis."
             ) from exc
 
+        _patch_geoclip_image_encoder()
         from geoclip import GeoCLIP as _GeoCLIP
         self._model = _GeoCLIP()
 
