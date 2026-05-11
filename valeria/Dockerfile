@@ -25,11 +25,11 @@ RUN set -ex; \
     apt-get upgrade && \
     apt-get install -y --no-install-recommends \
         build-essential \
-        libpq-dev; \
+        libpq-dev \
     && \
     pip install --upgrade pip && \
-    pip install --prefix=/install -r requirements.txt && \
-    rm -rf /var/lib/apt/lists/* \
+    pip install --prefix=/install -r requirements.txt --root-user-action && \
+    rm -rf /var/lib/apt/lists/*
 
 # ---- runner image ------------------------------------------------------------
 FROM python:${PYTHON_VERSION}-slim AS runner
@@ -41,6 +41,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
 ENV PATH="/install/bin:${PATH}"
+ENV PYTHONPATH="/install/lib/python${PYTHON_VERSION}/site-packages"
 
 # Install dependencies, including build tools for any packages that require
 # compilation, and then clean up to reduce image size
@@ -49,13 +50,15 @@ RUN set -ex; \
     apt-get upgrade && \
     apt-get install -y --no-install-recommends \
         libimage-exiftool-perl \
-        libpq5; \
+        libpq5 \
     && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /app/data /app/storage/images /app/uploads /app/logs
 
 COPY --from=builder /install /install
+
 COPY . .
+
 COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
 EXPOSE 8000
