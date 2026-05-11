@@ -18,19 +18,34 @@ PROVIDER_VERSION = "llama-4-scout"
 
 _SYSTEM = (
     "Eres un experto en análisis geográfico de fotografía histórica latinoamericana. "
+    "Conoces en detalle las banderas y símbolos nacionales de todos los países de América Latina. "
     "Respondes ÚNICAMENTE con JSON válido, sin texto adicional ni markdown."
 )
 
 _USER = """Analiza esta fotografía histórica para determinar dónde fue tomada.
 
-Busca estas pistas:
-- Banderas nacionales o emblemas (bandera chilena, boliviana, peruana, etc.)
+IDENTIFICACIÓN DE BANDERAS — prioridad máxima:
+La bandera chilena tiene: cuadrado azul con estrella blanca en el cantón superior izquierdo,
+franja blanca horizontal y franja roja horizontal. Es distinta a la española (no tiene escudo central).
+Si ves esa bandera → país = Chile.
+
+Otras banderas latinoamericanas:
+- Bolivia: franja horizontal roja, amarilla, verde (sin escudo = estado; con escudo = gobierno)
+- Perú: franjas verticales rojo-blanco-rojo
+- Argentina: franjas horizontales celeste-blanco-celeste con sol
+- Uruguay: franjas horizontales blancas y azules con sol
+- Colombia/Ecuador/Venezuela: amarillo-azul-rojo horizontal
+
+OTRAS PISTAS A BUSCAR:
 - Texto visible, letreros o inscripciones (idioma, topónimos)
-- Tipo de paisaje y vegetación (Andes, desierto Atacama, valle central, altiplano, costa)
+- Paisaje y vegetación: Andes con nieve, desierto Atacama, valle central chileno, altiplano, costa Pacífico
 - Estilos arquitectónicos típicos de cada región
-- Marcadores culturales (ropa tradicional, costumbres)
-- Características geográficas (montañas nevadas, cordillera, mar, lago, río)
-- Fauna y flora característica
+- Marcadores culturales (ropa, costumbres, eventos)
+- Características geográficas (cordillera, mar, lago, río)
+- Fauna característica (cóndor, llama, guanaco)
+
+IMPORTANTE: Esta colección fotográfica es latinoamericana. Si ves la bandera chilena, la respuesta
+es Chile aunque el paisaje o las personas puedan parecer de otro lugar.
 
 Responde SOLO con este JSON exacto:
 {
