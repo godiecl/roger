@@ -1,0 +1,26 @@
+---
+# docker compose up -d
+name: roger
+
+services:
+  # the frontend
+  leila:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: roger/leila:prod
+    container_name: leila
+    hostname: leila
+    expose:
+      - 3000
+    restart: unless-stopped
+    networks:
+      - npm
+      - leila
+
+networks:
+  npm:
+    name: npm
+    external: true
+  leila:
+    name: leila
