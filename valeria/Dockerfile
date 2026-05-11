@@ -29,7 +29,7 @@ RUN set -ex; \
     && \
     pip install --upgrade pip && \
     pip install --prefix=/install -r requirements.txt && \
-    rm -rf /var/lib/apt/lists/* \
+    rm -rf /var/lib/apt/lists/*
 
 # ---- runner image ------------------------------------------------------------
 FROM python:${PYTHON_VERSION}-slim AS runner
