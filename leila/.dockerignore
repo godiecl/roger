@@ -1,16 +1,23 @@
-# Secretos
+# secrets
 .env
 
-# Dependencias (se instalan en el build)
+# dependencies
 node_modules/
 
-# Output del build anterior
+# output folders
 build/
 .svelte-kit/
 
-# Tests
+# tests
 .playwright/
 test-results/
 
-# Editor
+# editor
 .vscode/
+
+# misc
+.git
+.gitignore
+Dockerfile
+npm-debug.log
+coverage
