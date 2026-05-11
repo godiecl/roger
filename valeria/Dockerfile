@@ -23,13 +23,13 @@ COPY requirements.txt .
 
 RUN set -ex; \
     apt-get update && \
-    apt-get upgrade && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         build-essential \
         libpq-dev \
     && \
-    pip install --upgrade pip && \
-    pip install --prefix=/opt/valeria -r requirements.txt && \
+    pip install --upgrade pip uv && \
+    uv pip install --system --prefix=/opt/valeria -r requirements.txt && \
     rm -rf /var/lib/apt/lists/*
 
 # ---- runner image ------------------------------------------------------------
@@ -49,7 +49,7 @@ ENV PYTHONPATH="/opt/valeria/lib/python${PYTHON_VERSION}/site-packages"
 # compilation, and then clean up to reduce image size
 RUN set -ex; \
     apt-get update && \
-    apt-get upgrade && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         libimage-exiftool-perl \
         libpq5 \
