@@ -16,6 +16,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
+ENV PIP_ROOT_USER_ACTION=ignore
 
 # The requirements library
 COPY requirements.txt .
@@ -28,7 +29,7 @@ RUN set -ex; \
         libpq-dev \
     && \
     pip install --upgrade pip && \
-    pip install --prefix=/install -r requirements.txt --root-user-action && \
+    pip install --prefix=/opt/valeria -r requirements.txt && \
     rm -rf /var/lib/apt/lists/*
 
 # ---- runner image ------------------------------------------------------------
@@ -40,8 +41,9 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
-ENV PATH="/install/bin:${PATH}"
-ENV PYTHONPATH="/install/lib/python${PYTHON_VERSION}/site-packages"
+ENV PIP_ROOT_USER_ACTION=ignore
+ENV PATH="/opt/valeria/bin:${PATH}"
+ENV PYTHONPATH="/opt/valeria/lib/python${PYTHON_VERSION}/site-packages"
 
 # Install dependencies, including build tools for any packages that require
 # compilation, and then clean up to reduce image size
@@ -55,7 +57,7 @@ RUN set -ex; \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /app/data /app/storage/images /app/uploads /app/logs
 
-COPY --from=builder /install /install
+COPY --from=builder /opt/valeria /opt/valeria
 
 COPY . .
 
