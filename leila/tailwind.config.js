@@ -1,3 +1,5 @@
+import daisyui from 'daisyui';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
@@ -22,5 +24,9 @@ export default {
         urbanist: ['Urbanist', 'sans-serif'],
       },
     },
+  },
+  plugins: [daisyui],
+  daisyui: {
+    themes: ['lofi', 'dark', 'nord', 'cupcake', 'luxury', 'corporate', 'retro'],
   },
 }
