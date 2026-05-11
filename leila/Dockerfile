@@ -3,9 +3,11 @@
 #   time eatmydata docker buildx build --progress=plain --tag roger/leila:prod --file Dockerfile .
 #
 ARG NODE_VERSION=24
+ARG NPM_VERSION=11.14.1
 #
 # ---- builder image -----------------------------------------------------------
 FROM node:${NODE_VERSION}-alpine AS builder
+ARG NPM_VERSION
 
 # Set environment variable for build
 ENV VITE_API_URL=/api/v1
@@ -38,7 +40,9 @@ RUN set -ex; \
 
 # Install the dependencies and build the app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN set -ex; \
+    npm install -g npm@${NPM_VERSION} && \
+    npm ci
 
 # Copy the rest of the source code and build the app
 COPY . .
@@ -49,6 +53,7 @@ RUN npm run build
 
 # ---- runner image ------------------------------------------------------------
 FROM node:${NODE_VERSION}-alpine AS runner
+ARG NPM_VERSION
 
 # Set environment variable for runtime
 ENV NODE_ENV=production
@@ -64,6 +69,7 @@ COPY --from=builder /app/package.json /app/package-lock.json ./
 
 # Install only production dependencies
 RUN set -ex; \
+    npm install -g npm@${NPM_VERSION} && \
     npm ci --omit=dev && \
     npm cache clean --force
 
