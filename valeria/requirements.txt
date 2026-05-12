@@ -50,6 +50,7 @@ torch>=2.6.0                   # Para sentence-transformers
 # ===================================
 pillow>=10.4.0
 opencv-python>=4.10.0
+ultralytics
 # ultralytics==8.1.0           # YOLOv8 (opcional)
 
 # ===================================
@@ -59,6 +60,10 @@ scikit-learn>=1.4.0
 numpy>=2.0.0  # Python 3.13 compatible
 pandas>=2.1.0
 umap-learn>=0.5.5
+open-clip-torch
+faiss-cpu
+easyocr
+
 
 # ===================================
 # RETRIEVAL & SEARCH

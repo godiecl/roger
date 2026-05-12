@@ -157,6 +157,16 @@
             Acerca del Proyecto
           </a>
         </li>
+
+        <li>
+          <a
+            href="/roger"
+            class="rounded-none hover:bg-primary-focus"
+            class:bg-primary-focus={$page.url.pathname === '/roger'}
+          >
+            ROGER IA
+          </a>
+        </li>
       </ul>
     </div>
   </div>
@@ -170,6 +180,7 @@
         <li><a href="/map" on:click={toggleMenu}>Mapa</a></li>
         <li><a href="/research" on:click={toggleMenu}>Investigación</a></li>
         <li><a href="/about" on:click={toggleMenu}>Acerca del Proyecto</a></li>
+        <li><a href="/roger" on:click={toggleMenu}>ROGER IA</a></li>
         {#if !$isAuthenticated}
           <li><a href="/login" on:click={toggleMenu}>Iniciar sesión</a></li>
         {/if}
