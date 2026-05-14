@@ -10,9 +10,12 @@ Activate with: ATTR03_ANALYZER=geoclip  in .env
 First run downloads GeoCLIP model weights (~1 GB) to the torch cache.
 """
 
+import logging
 import os
 import torch
 from app.infrastructure.analysis.base_analyzer import IAttributeAnalyzer
+
+logger = logging.getLogger(__name__)
 
 
 def _patch_geoclip_image_encoder() -> None:
@@ -35,8 +38,8 @@ def _patch_geoclip_image_encoder() -> None:
 
         if ImageEncoder.forward is not patched_forward:
             ImageEncoder.forward = patched_forward
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("GeoCLIP image encoder patch failed: %s", exc)
 
 PROVIDER_NAME = "geoclip"
 PROVIDER_VERSION = "1"

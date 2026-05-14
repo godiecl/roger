@@ -53,6 +53,8 @@ Responde SOLO con este JSON exacto:
   "geographic_location": "descripción del lugar o null",
   "country": "nombre del país o null",
   "region": "región o ciudad o null",
+  "signage_found": "texto visible en letreros o inscripciones, o null si no hay",
+  "architectural_landmarks": "edificios o hitos arquitectónicos identificables, o null si no hay",
   "confidence": 0.0,
   "visual_evidence": ["lista", "de", "pistas", "encontradas"]
 }"""
@@ -84,8 +86,8 @@ class GroqGeographicAnalyzer(IAttributeAnalyzer):
                 "latitude": None,
                 "longitude": None,
                 "location_radius_km": None,
-                "signage_found": None,
-                "architectural_landmarks": None,
+                "signage_found": data.get("signage_found"),
+                "architectural_landmarks": data.get("architectural_landmarks"),
                 "landscape_features": ", ".join(data.get("visual_evidence", [])),
                 "confidence": float(data.get("confidence", 0.0)),
                 "raw_output": data,

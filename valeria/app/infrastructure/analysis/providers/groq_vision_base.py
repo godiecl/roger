@@ -11,6 +11,7 @@ import re
 
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+_MAX_IMAGE_BYTES = 20 * 1024 * 1024  # 20 MB — CR3 masters pueden superar esto
 
 
 def _image_to_base64(file_path: str) -> tuple[str, str]:
@@ -19,6 +20,12 @@ def _image_to_base64(file_path: str) -> tuple[str, str]:
         ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
         ".png": "image/png", ".tif": "image/tiff", ".tiff": "image/tiff",
     }.get(ext, "image/jpeg")
+    size = os.path.getsize(file_path)
+    if size > _MAX_IMAGE_BYTES:
+        raise ValueError(
+            f"Imagen demasiado grande para Groq Vision ({size / 1024 / 1024:.1f} MB > "
+            f"{_MAX_IMAGE_BYTES // 1024 // 1024} MB). Usar derivado JPG/TIFF en vez del master CR3."
+        )
     with open(file_path, "rb") as f:
         data = base64.b64encode(f.read()).decode("utf-8")
     return data, mime

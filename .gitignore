@@ -4,6 +4,7 @@
 .claude/
 .claude-context/
 *.claude.md
+CLAUDE.md
 
 
 # ===================================

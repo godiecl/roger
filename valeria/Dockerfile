@@ -22,13 +22,13 @@ COPY requirements.txt .
 
 RUN set -ex; \
     apt-get update && \
-    apt-get upgrade && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         build-essential \
         libpq-dev \
     && \
     pip install --upgrade pip && \
-    pip install --prefix=/install -r requirements.txt --root-user-action && \
+    pip install --prefix=/install -r requirements.txt --root-user-action=ignore && \
     rm -rf /var/lib/apt/lists/*
 
 # ---- runner image ------------------------------------------------------------
@@ -47,7 +47,7 @@ ENV PYTHONPATH="/install/lib/python${PYTHON_VERSION}/site-packages"
 # compilation, and then clean up to reduce image size
 RUN set -ex; \
     apt-get update && \
-    apt-get upgrade && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         libimage-exiftool-perl \
         libpq5 \
