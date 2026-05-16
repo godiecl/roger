@@ -43,6 +43,17 @@ from app.features.contributions.infrastructure.persistence.contribution_model im
 # ── New analysis models ───────────────────────────────────────────────────────
 from app.features.analysis.infrastructure.persistence.analysis_model import AnalysisJobModel, ExperimentModel
 
+# ── New feature models (detect_objects, cluster_images, generate_timeline) ────
+from app.features.detect_objects.infrastructure.persistence.detection_model import (
+    ObjectDetectionModel, DetectedObjectModel,
+)
+from app.features.cluster_images.infrastructure.persistence.cluster_model import (
+    ClusteringJobModel, ClusterModel,
+)
+from app.features.generate_timeline.infrastructure.persistence.timeline_model import (
+    TimelineModel, TimelineEventModel,
+)
+
 # this is the Alembic Config object
 config = context.config
 

@@ -1,0 +1,51 @@
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Enum as SQLEnum
+
+from app.infrastructure.database.base import BaseModel
+from app.features.detect_objects.domain.detection import DetectionStatus, ObjectCategory
+
+
+def _enum_values(x):
+    return [e.value for e in x]
+
+
+class ObjectDetectionModel(BaseModel):
+    """Resultado de un análisis de detección de objetos sobre una fotografía."""
+
+    __tablename__ = "object_detections"
+
+    photograph_id = Column(
+        Integer, ForeignKey("photographs.id", ondelete="CASCADE"),
+        nullable=False, index=True,
+    )
+    provider = Column(String(150), nullable=False)
+    scene_description = Column(Text, nullable=True)
+    detection_time_ms = Column(Integer, nullable=True)
+    status = Column(
+        SQLEnum(DetectionStatus, values_callable=_enum_values),
+        nullable=False,
+        default=DetectionStatus.COMPLETED,
+    )
+
+    def __repr__(self) -> str:
+        return f"<ObjectDetectionModel(id={self.id}, photograph_id={self.photograph_id}, status={self.status})>"
+
+
+class DetectedObjectModel(BaseModel):
+    """Objeto individual detectado dentro de un análisis."""
+
+    __tablename__ = "detected_objects"
+
+    detection_id = Column(
+        Integer, ForeignKey("object_detections.id", ondelete="CASCADE"),
+        nullable=False, index=True,
+    )
+    label = Column(String(255), nullable=False)
+    category = Column(
+        SQLEnum(ObjectCategory, values_callable=_enum_values),
+        nullable=False,
+    )
+    confidence = Column(Float, nullable=False, default=1.0)
+    description = Column(Text, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<DetectedObjectModel(id={self.id}, label={self.label}, category={self.category})>"

@@ -67,6 +67,9 @@ async def init_db() -> None:
     import app.features.tagging.infrastructure.persistence.tag_model  # noqa
     import app.features.contributions.infrastructure.persistence.contribution_model  # noqa
     import app.features.analysis.infrastructure.persistence.analysis_model  # noqa
+    import app.features.detect_objects.infrastructure.persistence.detection_model  # noqa
+    import app.features.cluster_images.infrastructure.persistence.cluster_model  # noqa
+    import app.features.generate_timeline.infrastructure.persistence.timeline_model  # noqa
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
