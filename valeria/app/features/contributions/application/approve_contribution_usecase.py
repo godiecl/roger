@@ -35,7 +35,7 @@ from app.features.taxonomy.infrastructure.persistence.taxonomy_model import (
     ConservationState,
 )
 from app.features.tagging.infrastructure.persistence.tag_model import (
-    TagModel, PhotographTagModel,
+    TagModel, PhotographTagModel, TagSource, TagStatus,
 )
 from app.shared.domain.exceptions import EntityNotFoundError, BusinessRuleViolationError, ValidationError
 
@@ -97,7 +97,7 @@ class ApproveContributionUseCase:
         elif attr_type == ContributionAttributeType.CHRONOLOGY:
             await self._apply_chronology(contribution, parsed_value)
         elif attr_type == ContributionAttributeType.TAG:
-            await self._apply_tag(contribution, parsed_value)
+            await self._apply_tag(contribution, parsed_value, reviewer_id)
 
         # 6. Mark contribution approved
         return await self.repository.update_status(
@@ -164,10 +164,11 @@ class ApproveContributionUseCase:
         ))
         await self.session.flush()
 
-    async def _apply_tag(self, contribution: Contribution, value) -> None:
+    async def _apply_tag(self, contribution: Contribution, value, reviewer_id: int) -> None:
         """
         TAG contributions: field_name='tag_name' creates/reuses a Tag and links it
         to the photograph with source=USER_CONTRIBUTED, status=APPROVED.
+        The curator who approved the contribution is recorded as approved_by.
         """
         if contribution.field_name != "tag_name":
             return  # tag_category handled as part of tag_name flow; skip standalone
@@ -194,9 +195,10 @@ class ApproveContributionUseCase:
             self.session.add(PhotographTagModel(
                 photograph_id=contribution.photograph_id,
                 tag_id=tag.id,
-                source="user_contributed",
-                status="approved",
-                approved_by=None,
+                source=TagSource.USER_CONTRIBUTED,
+                status=TagStatus.APPROVED,
+                approved_by=reviewer_id,
+                approved_at=datetime.utcnow(),
             ))
             await self.session.flush()
 
