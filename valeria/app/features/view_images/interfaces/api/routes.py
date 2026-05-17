@@ -19,10 +19,41 @@ from app.features.view_images.infrastructure.adapters.image_repository import (
     ImageRepository
 )
 from app.features.view_images.domain.image import Image
+from app.features.authenticate.domain.role import Role
+from app.features.authenticate.infrastructure.adapters.user_repository import UserRepository
+from app.features.authenticate.interfaces.api.dependencies import get_current_user_id
 from app.infrastructure.database.session import get_db
 
 
 router = APIRouter(prefix="/images", tags=["Images"])
+
+
+async def _require_curator_or_admin(
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> int:
+    user_repo = UserRepository(db)
+    user = await user_repo.get_by_id(user_id)
+    if not user or user.role not in (Role.CURADOR, Role.ADMINISTRADOR):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo curadores y administradores pueden modificar imágenes.",
+        )
+    return user_id
+
+
+async def _require_admin(
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> int:
+    user_repo = UserRepository(db)
+    user = await user_repo.get_by_id(user_id)
+    if not user or user.role != Role.ADMINISTRADOR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo administradores pueden eliminar imágenes.",
+        )
+    return user_id
 
 
 @router.get("", response_model=ImageListResponse)
@@ -94,16 +125,12 @@ async def get_image(
 @router.post("", response_model=ImageResponse, status_code=status.HTTP_201_CREATED)
 async def create_image(
     request: ImageCreateRequest,
+    _: int = Depends(_require_curator_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Create a new image.
-    
-    Requires authentication and curator/admin role.
+    Create a new image. Requires curator or admin role.
     """
-    # TODO: Add authentication dependency
-    # TODO: Check if user has curator or admin role
-    
     image_repository = ImageRepository(db)
     
     image = Image(
@@ -128,16 +155,12 @@ async def create_image(
 async def update_image(
     image_id: int,
     request: ImageUpdateRequest,
+    _: int = Depends(_require_curator_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Update an existing image.
-    
-    Requires authentication and curator/admin role.
+    Update an existing image. Requires curator or admin role.
     """
-    # TODO: Add authentication dependency
-    # TODO: Check if user has curator or admin role
-    
     image_repository = ImageRepository(db)
     image = await image_repository.get_by_id(image_id)
     
@@ -169,16 +192,12 @@ async def update_image(
 @router.delete("/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_image(
     image_id: int,
+    _: int = Depends(_require_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Delete an image.
-    
-    Requires authentication and admin role.
+    Delete an image. Requires admin role.
     """
-    # TODO: Add authentication dependency
-    # TODO: Check if user has admin role
-    
     image_repository = ImageRepository(db)
     success = await image_repository.delete(image_id)
     

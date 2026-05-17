@@ -98,12 +98,28 @@ async def create_collection(
 async def list_collections(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
-    public_only: bool = Query(False),
     db: AsyncSession = Depends(get_db),
 ):
     repo = ArchiveRepository(db)
     usecase = ListCollectionsUseCase(repo)
-    collections = await usecase.execute(skip=skip, limit=limit, public_only=public_only)
+    collections = await usecase.execute(skip=skip, limit=limit, public_only=True)
+    return CollectionListResponse(
+        total=len(collections), skip=skip, limit=limit,
+        collections=[CollectionResponse(**c.__dict__) for c in collections],
+    )
+
+
+@router.get("/collections/all", response_model=CollectionListResponse)
+async def list_all_collections(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    _: int = Depends(_require_write_access),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all collections including private ones. Requires curator or admin role."""
+    repo = ArchiveRepository(db)
+    usecase = ListCollectionsUseCase(repo)
+    collections = await usecase.execute(skip=skip, limit=limit, public_only=False)
     return CollectionListResponse(
         total=len(collections), skip=skip, limit=limit,
         collections=[CollectionResponse(**c.__dict__) for c in collections],
@@ -119,6 +135,11 @@ async def get_collection(
         repo = ArchiveRepository(db)
         usecase = GetCollectionUseCase(repo)
         collection = await usecase.execute(collection_id)
+        if not collection.is_public:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Colección no encontrada.",
+            )
         return CollectionResponse(**collection.__dict__)
     except EntityNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

@@ -5,6 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
+from app.features.authenticate.domain.role import Role
+from app.features.authenticate.infrastructure.adapters.user_repository import UserRepository
+from app.features.authenticate.interfaces.api.dependencies import get_current_user_id
 from app.features.generate_narrative.interfaces.api.schemas import (
     NarrativeResponse,
     NarrativeListResponse,
@@ -32,6 +35,20 @@ from app.config.settings import settings
 router = APIRouter(prefix="/narratives", tags=["Narratives"])
 
 
+async def _require_curator_or_admin(
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> int:
+    user_repo = UserRepository(db)
+    user = await user_repo.get_by_id(user_id)
+    if not user or user.role not in (Role.CURADOR, Role.ADMINISTRADOR):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo curadores y administradores pueden gestionar narrativas.",
+        )
+    return user_id
+
+
 def get_llm_client() -> OpenAIClient:
     """Get LLM client instance."""
     return OpenAIClient(
@@ -51,37 +68,24 @@ def get_chroma_store() -> ChromaVectorStore:
 @router.post("", response_model=NarrativeResponse, status_code=status.HTTP_201_CREATED)
 async def generate_narrative(
     request: GenerateNarrativeRequest,
+    user_id: int = Depends(_require_curator_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Generate a new narrative for an image using AI.
-
-    This endpoint uses RAG (Retrieval-Augmented Generation) to retrieve
-    historical context and an LLM to generate a contextual narrative.
-
-    - **image_id**: ID of the image to generate narrative for
-    - **prompt**: Optional custom prompt to guide generation
-    - **language**: Language for the narrative (es, en, de)
-
-    Requires OpenAI API key to be configured.
+    Generate a new narrative for an image using AI. Requires curator or admin role.
     """
-    # TODO: Add authentication dependency
-    # TODO: Check if user has permission to generate narratives
-
     try:
-        # Initialize services
         llm_client = get_llm_client()
         vector_store = get_chroma_store()
         generator = NarrativeGenerator(db, llm_client, vector_store)
         repository = NarrativeRepository(db)
         usecase = GenerateNarrativeUseCase(generator, repository)
 
-        # Generate narrative
         narrative = await usecase.execute(
             image_id=request.image_id,
             prompt=request.prompt,
             language=request.language,
-            user_id=None  # TODO: Get from authenticated user
+            user_id=user_id,
         )
 
         # Convert to response
@@ -122,17 +126,13 @@ async def get_narrative(
 @router.get("/image/{image_id}", response_model=NarrativeListResponse)
 async def get_narratives_for_image(
     image_id: int,
-    only_approved: bool = Query(False),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Get all narratives for a specific image.
-
-    - **image_id**: ID of the image
-    - **only_approved**: Only return approved narratives
+    Get approved narratives for a specific image (public endpoint).
     """
     repository = NarrativeRepository(db)
-    narratives = await repository.get_by_image_id(image_id, only_approved)
+    narratives = await repository.get_by_image_id(image_id, only_approved=True)
 
     return NarrativeListResponse(
         total=len(narratives),
@@ -171,19 +171,12 @@ async def list_narratives(
 async def regenerate_narrative(
     narrative_id: int,
     request: RegenerateNarrativeRequest,
+    _: int = Depends(_require_curator_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Regenerate an existing narrative with a new prompt.
-
-    - **narrative_id**: ID of the narrative to regenerate
-    - **prompt**: New prompt to use (optional)
-
-    Requires authentication and curator/admin role.
+    Regenerate an existing narrative with a new prompt. Requires curator or admin role.
     """
-    # TODO: Add authentication dependency
-    # TODO: Check if user has curator or admin role
-
     try:
         # Initialize services
         llm_client = get_llm_client()
@@ -215,18 +208,12 @@ async def regenerate_narrative(
 @router.post("/{narrative_id}/approve", response_model=NarrativeResponse)
 async def approve_narrative(
     narrative_id: int,
-    request: ApproveNarrativeRequest,
+    user_id: int = Depends(_require_curator_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Approve a narrative.
-
-    Requires authentication and curator/admin role.
+    Approve a narrative. Requires curator or admin role.
     """
-    # TODO: Add authentication dependency
-    # TODO: Check if user has curator or admin role
-    # TODO: Verify request.approved_by matches authenticated user
-
     try:
         repository = NarrativeRepository(db)
         generator = NarrativeGenerator(db, get_llm_client(), get_chroma_store())
@@ -234,7 +221,7 @@ async def approve_narrative(
 
         narrative = await usecase.approve_narrative(
             narrative_id=narrative_id,
-            approved_by=request.approved_by
+            approved_by=user_id,
         )
 
         return _narrative_to_response(narrative)
@@ -249,16 +236,12 @@ async def approve_narrative(
 @router.post("/{narrative_id}/unapprove", response_model=NarrativeResponse)
 async def unapprove_narrative(
     narrative_id: int,
+    _: int = Depends(_require_curator_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Unapprove a narrative.
-
-    Requires authentication and curator/admin role.
+    Unapprove a narrative. Requires curator or admin role.
     """
-    # TODO: Add authentication dependency
-    # TODO: Check if user has curator or admin role
-
     try:
         repository = NarrativeRepository(db)
         generator = NarrativeGenerator(db, get_llm_client(), get_chroma_store())
@@ -278,16 +261,12 @@ async def unapprove_narrative(
 @router.delete("/{narrative_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_narrative(
     narrative_id: int,
+    _: int = Depends(_require_curator_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Delete a narrative.
-
-    Requires authentication and admin role.
+    Delete a narrative. Requires curator or admin role.
     """
-    # TODO: Add authentication dependency
-    # TODO: Check if user has admin role
-
     repository = NarrativeRepository(db)
     success = await repository.delete(narrative_id)
 
