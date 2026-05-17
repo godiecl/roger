@@ -278,8 +278,9 @@
             </button>
             <h3 class="text-lg font-bold mb-4">Motivo del rechazo</h3>
             <div class="form-control">
-                <label class="label"><span class="label-text">Explicación para el colaborador</span></label>
+                <label class="label" for="reject-reason"><span class="label-text">Explicación para el colaborador</span></label>
                 <textarea
+                        id="reject-reason"
                         class="textarea textarea-bordered"
                         rows="4"
                         placeholder="Explica por qué se rechaza esta contribución..."

@@ -104,9 +104,10 @@
           <ThemeToggle />
           <div class="form-control">
             <div class="join">
-              <input type="text" placeholder={$t.search.placeholder} class="input input-bordered join-item w-64 focus:outline-primary" />
-              <button class="btn btn-primary join-item btn-search-animated">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <label for="header-search" class="sr-only">{$t.search.placeholder}</label>
+              <input id="header-search" type="text" placeholder={$t.search.placeholder} class="input input-bordered join-item w-64 focus:outline-primary" />
+              <button class="btn btn-primary join-item btn-search-animated" aria-label="Buscar">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
@@ -115,7 +116,7 @@
 
           {#if $isAuthenticated}
             <div class="dropdown dropdown-end">
-              <button class="btn btn-ghost gap-2 normal-case">
+              <button class="btn btn-ghost gap-2 normal-case" aria-label="Menú de usuario" aria-haspopup="menu">
                 <div class="avatar placeholder relative">
                   <div class="w-8 h-8 rounded-full bg-primary text-primary-content">
                     <span class="text-sm font-semibold">
@@ -136,7 +137,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <ul class="menu menu-sm dropdown-content mt-3 z-10 p-2 shadow-lg bg-base-100 rounded-box w-64 border border-base-300">
+              <ul role="menu" class="menu menu-sm dropdown-content mt-3 z-10 p-2 shadow-lg bg-base-100 rounded-box w-64 border border-base-300">
                 <li class="menu-title px-4 py-3 border-b border-base-300">
                   <div>
                     <div class="text-sm font-semibold text-base-content">{$authStore.user?.full_name}</div>
@@ -243,45 +244,48 @@
   <!-- Navigation Bar -->
   <div class="border-t border-base-content/10 hidden lg:block">
     <div class="container mx-auto px-4">
-      <ul class="menu menu-horizontal p-0 gap-1">
-        <li>
-          <a href="/" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/'} class:text-primary-content={$page.url.pathname === '/'}>
-            {$t.nav.home}
-          </a>
-        </li>
-        <li>
-          <a href="/colecciones" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/colecciones'} class:text-primary-content={$page.url.pathname === '/colecciones'}>
-            {$t.nav.collections}
-          </a>
-        </li>
-        <li>
-          <a href="/mapa" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/mapa'} class:text-primary-content={$page.url.pathname === '/mapa'}>
-            {$t.nav.map}
-          </a>
-        </li>
-        <li>
-          <a href="/investigacion" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/investigacion'} class:text-primary-content={$page.url.pathname === '/investigacion'}>
-            {$t.nav.research}
-          </a>
-        </li>
-        <li>
-          <a href="/sobre-roger" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/sobre-roger'} class:text-primary-content={$page.url.pathname === '/sobre-roger'}>
-            {$t.nav.about}
-          </a>
-        </li>
-      </ul>
+      <nav aria-label="Navegación principal">
+        <ul class="menu menu-horizontal p-0 gap-1">
+          <li>
+            <a href="/" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/'} class:text-primary-content={$page.url.pathname === '/'} aria-current={$page.url.pathname === '/' ? 'page' : undefined}>
+              {$t.nav.home}
+            </a>
+          </li>
+          <li>
+            <a href="/colecciones" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/colecciones'} class:text-primary-content={$page.url.pathname === '/colecciones'} aria-current={$page.url.pathname === '/colecciones' ? 'page' : undefined}>
+              {$t.nav.collections}
+            </a>
+          </li>
+          <li>
+            <a href="/mapa" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/mapa'} class:text-primary-content={$page.url.pathname === '/mapa'} aria-current={$page.url.pathname === '/mapa' ? 'page' : undefined}>
+              {$t.nav.map}
+            </a>
+          </li>
+          <li>
+            <a href="/investigacion" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/investigacion'} class:text-primary-content={$page.url.pathname === '/investigacion'} aria-current={$page.url.pathname === '/investigacion' ? 'page' : undefined}>
+              {$t.nav.research}
+            </a>
+          </li>
+          <li>
+            <a href="/sobre-roger" class="rounded-full font-semibold hover:bg-primary/10 hover:text-primary text-sm" class:bg-primary={$page.url.pathname === '/sobre-roger'} class:text-primary-content={$page.url.pathname === '/sobre-roger'} aria-current={$page.url.pathname === '/sobre-roger' ? 'page' : undefined}>
+              {$t.nav.about}
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
   </div>
 
   <!-- Mobile Menu Drawer -->
   {#if isMenuOpen}
     <div class="lg:hidden bg-base-100 border-b border-base-content/10 shadow-lg">
+      <nav aria-label="Menú de navegación">
       <ul class="menu p-4 gap-1 text-base font-semibold">
-        <li><a href="/" class="rounded-lg" on:click={toggleMenu}>{$t.nav.home}</a></li>
-        <li><a href="/colecciones" class="rounded-lg" on:click={toggleMenu}>{$t.nav.collections}</a></li>
-        <li><a href="/mapa" class="rounded-lg" on:click={toggleMenu}>{$t.nav.map}</a></li>
-        <li><a href="/investigacion" class="rounded-lg" on:click={toggleMenu}>{$t.nav.research}</a></li>
-        <li><a href="/sobre-roger" class="rounded-lg" on:click={toggleMenu}>{$t.nav.about}</a></li>
+        <li><a href="/" class="rounded-lg" on:click={toggleMenu} aria-current={$page.url.pathname === '/' ? 'page' : undefined}>{$t.nav.home}</a></li>
+        <li><a href="/colecciones" class="rounded-lg" on:click={toggleMenu} aria-current={$page.url.pathname === '/colecciones' ? 'page' : undefined}>{$t.nav.collections}</a></li>
+        <li><a href="/mapa" class="rounded-lg" on:click={toggleMenu} aria-current={$page.url.pathname === '/mapa' ? 'page' : undefined}>{$t.nav.map}</a></li>
+        <li><a href="/investigacion" class="rounded-lg" on:click={toggleMenu} aria-current={$page.url.pathname === '/investigacion' ? 'page' : undefined}>{$t.nav.research}</a></li>
+        <li><a href="/sobre-roger" class="rounded-lg" on:click={toggleMenu} aria-current={$page.url.pathname === '/sobre-roger' ? 'page' : undefined}>{$t.nav.about}</a></li>
         {#if $isAuthenticated}
           <div class="divider my-1"></div>
           <li><a href="/archivo" class="rounded-lg" on:click={toggleMenu}>Catalogación</a></li>
@@ -297,6 +301,7 @@
           <li><a href="/login" class="btn btn-primary rounded-lg" on:click={toggleMenu}>{$t.auth.login}</a></li>
         {/if}
       </ul>
+      </nav>
     </div>
   {/if}
 </header>

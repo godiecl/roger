@@ -257,7 +257,7 @@
               {:else}
                 <input id="password" type="password" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={password} required />
               {/if}
-              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showPassword = !showPassword} tabindex="-1">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showPassword = !showPassword} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                 {#if showPassword}
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                 {:else}
@@ -273,7 +273,7 @@
           </div>
 
           {#if loginInactive}
-            <div class="alert bg-warning/10 border border-warning/30 py-3 px-4 text-sm rounded-xl">
+            <div role="alert" class="alert bg-warning/10 border border-warning/30 py-3 px-4 text-sm rounded-xl">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
@@ -283,7 +283,7 @@
               </div>
             </div>
           {:else if loginError}
-            <div class="alert alert-error py-2 px-3 text-sm">
+            <div role="alert" class="alert alert-error py-2 px-3 text-sm">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
@@ -374,7 +374,7 @@
               {:else}
                 <input id="register-password" type="password" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={registerPassword} required />
               {/if}
-              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showRegisterPassword = !showRegisterPassword} tabindex="-1">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showRegisterPassword = !showRegisterPassword} aria-label={showRegisterPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                 {#if showRegisterPassword}
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                 {:else}
@@ -394,7 +394,7 @@
               {:else}
                 <input id="register-confirm-password" type="password" placeholder="••••••••" class="input input-bordered w-full pr-10" bind:value={registerConfirmPassword} required />
               {/if}
-              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showRegisterConfirm = !showRegisterConfirm} tabindex="-1">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content/70 transition-colors" on:click={() => showRegisterConfirm = !showRegisterConfirm} aria-label={showRegisterConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                 {#if showRegisterConfirm}
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                 {:else}
@@ -437,7 +437,9 @@
           </div>
 
           <div class="form-control">
+            <label for="captcha-answer" class="sr-only">Resultado de {captchaA} + {captchaB}</label>
             <input
+              id="captcha-answer"
               type="number"
               placeholder="Tu respuesta"
               class="input input-bordered text-center text-xl font-bold"

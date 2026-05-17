@@ -28,14 +28,19 @@
   }
 </script>
 
-<div class="fixed top-4 right-4 z-[999] flex flex-col gap-2.5 w-80 pointer-events-none">
+<div class="fixed top-4 right-4 z-[999] flex flex-col gap-2.5 w-80 pointer-events-none" aria-live="polite" aria-atomic="false">
   {#each notifications as n (n.id)}
     <div
       class="pointer-events-auto"
       in:fly={{ x: 48, duration: 220, opacity: 0 }}
       out:fly={{ x: 380, duration: 300, opacity: 0 }}
     >
-      <div class="relative overflow-hidden rounded-2xl bg-base-100 border {c(n.type).ring} shadow-2xl shadow-base-content/10">
+      <div
+        class="relative overflow-hidden rounded-2xl bg-base-100 border {c(n.type).ring} shadow-2xl shadow-base-content/10"
+        role={n.type === 'error' ? 'alert' : 'status'}
+        aria-live={n.type === 'error' ? 'assertive' : 'polite'}
+        aria-atomic="true"
+      >
 
         <!-- Colored left stripe -->
         <div class="absolute inset-y-0 left-0 w-1 {c(n.type).stripe}"></div>
@@ -43,7 +48,7 @@
         <div class="flex items-start gap-3 px-4 py-3.5 pl-5">
 
           <!-- Icon -->
-          <div class="flex-shrink-0 w-8 h-8 rounded-full {c(n.type).icon} flex items-center justify-center mt-0.5">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full {c(n.type).icon} flex items-center justify-center mt-0.5" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d={iconPaths[n.type] ?? iconPaths.info} />
             </svg>

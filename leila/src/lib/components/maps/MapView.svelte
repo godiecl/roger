@@ -144,7 +144,7 @@
   });
 </script>
 
-<div bind:this={mapEl} style="width:100%;height:100%" />
+<div bind:this={mapEl} style="width:100%;height:100%"></div>
 
 <style>
   :global(.roger-popup .leaflet-popup-content-wrapper) {

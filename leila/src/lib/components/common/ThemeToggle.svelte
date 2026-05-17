@@ -36,8 +36,10 @@
     </svg>
   </button>
 
+  <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
   <ul
     tabindex="0"
+    role="menu"
     class="dropdown-content menu p-2 shadow-xl bg-base-100 rounded-box w-40 border border-base-content/10 mt-2 z-[100]"
   >
     {#each themes as theme}

@@ -45,12 +45,13 @@ export interface User {
 
 export type UserRole =
   | 'usuario_estandar'
-  | 'curador'
-  | 'administrador'
-  | 'sistema_ia'
+  | 'colaborador'
   | 'investigador'
   | 'digitalizador'
-  | 'colaborador';
+  | 'mesa_evaluadora'
+  | 'curador'
+  | 'administrador'
+  | 'sistema_ia';
 
 export interface AuthTokens {
   access_token: string;
