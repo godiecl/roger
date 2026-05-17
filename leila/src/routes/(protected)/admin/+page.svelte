@@ -200,7 +200,7 @@
 
     <!-- Stats -->
     {#if !loading && !error}
-      <div class="grid grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="bg-base-100 rounded-2xl border border-base-300 p-4 text-center">
           <p class="text-2xl font-bold">{users.length}</p>
           <p class="text-xs text-base-content/50 mt-0.5">Total usuarios</p>

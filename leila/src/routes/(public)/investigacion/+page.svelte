@@ -54,7 +54,7 @@
             {/each}
           </ul>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {#each [
             { label: 'Fotografías', value: '+47.000', sub: 'en proceso de digitalización' },
             { label: 'Años de historia', value: '100+', sub: 'cubiertos por el archivo' },

@@ -285,10 +285,10 @@
   />
 </svelte:head>
 
-<div style="height: calc(100vh - 148px);" class="flex overflow-hidden">
+<div style="height: calc(100svh - 148px);" class="flex flex-col md:flex-row overflow-hidden">
   <!-- ===== SIDEBAR ===== -->
   <aside
-    class="w-[420px] flex-shrink-0 bg-base-100 border-r border-base-content/10 flex flex-col overflow-hidden shadow-lg z-20"
+    class="w-full md:w-[420px] md:flex-shrink-0 max-h-48 md:max-h-none bg-base-100 border-b md:border-b-0 md:border-r border-base-content/10 flex flex-col overflow-y-auto md:overflow-hidden shadow-lg z-20"
   >
     <!-- Header del sidebar -->
     <div class="px-4 pt-4 pb-3 border-b border-base-content/10 bg-base-100">

@@ -457,7 +457,7 @@
   <title>{selectedProject?.name || 'Proyectos'} - ROGER</title>
 </svelte:head>
 
-<div class="flex h-[calc(100vh-8rem)] overflow-hidden bg-base-200/30 relative">
+<div class="flex h-[calc(100svh-8rem)] overflow-hidden bg-base-200/30 relative">
 
   <!-- Mobile sidebar backdrop -->
   {#if mobileShowSidebar}
@@ -582,7 +582,7 @@
             <div class="flex items-center gap-1 flex-shrink-0">
               {#if project.owner_id === currentUserId}
                 <button
-                  class="hidden group-hover:flex w-5 h-5 items-center justify-center rounded text-error/50 hover:text-error hover:bg-error/10 transition-colors"
+                  class="flex sm:opacity-0 sm:group-hover:opacity-100 w-5 h-5 items-center justify-center rounded text-error/50 hover:text-error hover:bg-error/10 transition-opacity"
                   on:click={e => requestDelete(project, e)}
                   title="Eliminar">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -840,7 +840,7 @@
         <div class="flex-1 overflow-y-auto flex flex-col items-center justify-center px-6 py-8">
           <div class="w-full max-w-lg bg-base-100 rounded-2xl border border-base-300 shadow-sm p-6">
             <h2 class="text-base font-bold mb-4">Editar proyecto</h2>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="form-control col-span-2 sm:col-span-1">
                 <label class="label py-0.5" for="ep-name"><span class="label-text text-xs font-semibold">Nombre *</span></label>
                 <input id="ep-name" type="text" class="input input-bordered input-sm" bind:value={editName} />
@@ -857,7 +857,7 @@
                   </label>
                   <textarea
                     id="ep-ai"
-                    class="textarea textarea-bordered textarea-sm resize-none h-24 text-xs"
+                    class="textarea textarea-bordered textarea-sm resize-none h-24 text-sm"
                     placeholder="Ej: En este proyecto 'planta madre' se refiere a la instalación central…"
                     bind:value={editAiInstructions}
                   ></textarea>
@@ -1063,7 +1063,7 @@
         <div class="flex-shrink-0 border-t border-base-300 px-3 py-2.5">
           <div class="flex items-end gap-2">
             <textarea
-              class="textarea textarea-bordered textarea-sm flex-1 resize-none text-xs min-h-[36px] max-h-20"
+              class="textarea textarea-bordered textarea-sm flex-1 resize-none text-sm min-h-[36px] max-h-20"
               placeholder="Mensaje al equipo…"
               bind:value={chatInput}
               on:keydown={onChatKeydown}
@@ -1148,7 +1148,7 @@
                     </div>
                   {:else}
                     <button
-                      class="hidden group-hover:flex btn btn-ghost btn-xs btn-square text-error/50 hover:text-error"
+                      class="flex sm:opacity-0 sm:group-hover:opacity-100 btn btn-ghost btn-xs btn-square text-error/50 hover:text-error transition-opacity"
                       on:click={() => handleRemoveMember(member)}
                       title="Remover">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
