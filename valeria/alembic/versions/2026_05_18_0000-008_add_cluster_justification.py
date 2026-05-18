@@ -17,8 +17,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('clusters', sa.Column('justification', sa.Text(), nullable=True))
+    # La tabla clusters la crea Base.metadata.create_all al iniciar la app
+    # (no estaba migrada). Solo añadir la columna si la tabla ya existe.
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if 'clusters' not in inspector.get_table_names():
+        return
+    columns = {c['name'] for c in inspector.get_columns('clusters')}
+    if 'justification' not in columns:
+        op.add_column('clusters', sa.Column('justification', sa.Text(), nullable=True))
 
 
 def downgrade() -> None:
-    op.drop_column('clusters', 'justification')
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if 'clusters' not in inspector.get_table_names():
+        return
+    columns = {c['name'] for c in inspector.get_columns('clusters')}
+    if 'justification' in columns:
+        op.drop_column('clusters', 'justification')

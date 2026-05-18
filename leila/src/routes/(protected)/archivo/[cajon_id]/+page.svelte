@@ -99,8 +99,8 @@
 
 <div class="container mx-auto px-4 py-8 max-w-7xl pb-32">
   <header class="mb-6">
-    <a href="/archivo" class="text-sm text-base-content/60 hover:text-base-content inline-flex items-center gap-1 mb-3">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="/archivo" class="text-sm text-base-content/60 hover:text-base-content inline-flex items-center gap-1 mb-3 min-h-[44px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
       Volver al archivo
@@ -140,7 +140,7 @@
       {/each}
     </div>
   {:else if error}
-    <div class="alert alert-error">
+    <div class="alert alert-error" role="alert">
       <span>{error}</span>
     </div>
   {:else if photos.length === 0}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { tick } from 'svelte';
   import { fade } from 'svelte/transition';
   import { projectService } from '$lib/services/projectService';
   import type { Project } from '$lib/types';
@@ -16,7 +16,18 @@
   let notes = '';
   let attaching = false;
 
-  $: if (open) load();
+  let dialog: HTMLDivElement;
+  let previouslyFocused: HTMLElement | null = null;
+
+  $: if (open) handleOpen();
+  $: if (!open) previouslyFocused = null;
+
+  async function handleOpen() {
+    previouslyFocused = (document.activeElement as HTMLElement) ?? null;
+    await load();
+    await tick();
+    focusFirst();
+  }
 
   async function load() {
     if (projects.length > 0) return;
@@ -29,6 +40,42 @@
       error = e?.detail || 'No se pudo cargar la lista de proyectos';
     } finally {
       loading = false;
+    }
+  }
+
+  function focusFirst() {
+    if (!dialog) return;
+    const focusables = getFocusables();
+    if (focusables.length > 0) focusables[0].focus();
+  }
+
+  function getFocusables(): HTMLElement[] {
+    if (!dialog) return [];
+    return Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      close();
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const focusables = getFocusables();
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement as HTMLElement;
+    if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
     }
   }
 
@@ -57,6 +104,10 @@
     notes = '';
     error = null;
     onClose();
+    if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+      // Defer focus return until after Svelte unmounts the modal
+      setTimeout(() => previouslyFocused?.focus(), 0);
+    }
   }
 
   function handleBackdrop(e: MouseEvent) {
@@ -68,28 +119,32 @@
   <div
     class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
     on:click={handleBackdrop}
-    on:keydown={(e) => e.key === 'Escape' && close()}
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="project-picker-title"
-    tabindex="-1"
+    on:keydown={handleKeydown}
+    role="presentation"
     transition:fade={{ duration: 150 }}
   >
-    <div class="bg-base-100 rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col">
+    <div
+      bind:this={dialog}
+      class="bg-base-100 rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="project-picker-title"
+      aria-describedby="project-picker-desc"
+    >
       <header class="p-5 border-b border-base-200">
         <h2 id="project-picker-title" class="text-xl font-bold">Añadir a proyecto</h2>
-        <p class="text-sm text-base-content/60 mt-1">
+        <p id="project-picker-desc" class="text-sm text-base-content/60 mt-1">
           {photographIds.length} {photographIds.length === 1 ? 'fotografía' : 'fotografías'} seleccionadas
         </p>
       </header>
 
       <div class="p-5 overflow-y-auto flex-1">
         {#if loading}
-          <div class="flex justify-center py-8">
-            <span class="loading loading-spinner loading-md"></span>
+          <div class="flex justify-center py-8" aria-live="polite" aria-busy="true">
+            <span class="loading loading-spinner loading-md" aria-label="Cargando proyectos"></span>
           </div>
         {:else if error}
-          <div class="alert alert-error">
+          <div class="alert alert-error" role="alert">
             <span>{error}</span>
           </div>
         {:else if projects.length === 0}
@@ -97,10 +152,11 @@
             No tienes proyectos activos. Crea uno desde la sección de Proyectos.
           </p>
         {:else}
-          <div class="space-y-2">
+          <fieldset class="space-y-2">
+            <legend class="sr-only">Selecciona el proyecto destino</legend>
             {#each projects as project (project.id)}
               <label
-                class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-base-200"
+                class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-base-200 focus-within:ring-2 focus-within:ring-primary"
                 class:border-primary={selectedProjectId === project.id}
                 class:bg-primary={selectedProjectId === project.id}
                 class:bg-opacity-5={selectedProjectId === project.id}
@@ -112,15 +168,15 @@
                   value={project.id}
                   bind:group={selectedProjectId}
                 />
-                <div class="flex-1 min-w-0">
-                  <p class="font-medium truncate">{project.name}</p>
+                <span class="flex-1 min-w-0">
+                  <span class="block font-medium truncate">{project.name}</span>
                   {#if project.description}
-                    <p class="text-sm text-base-content/60 line-clamp-2 mt-0.5">{project.description}</p>
+                    <span class="block text-sm text-base-content/60 line-clamp-2 mt-0.5">{project.description}</span>
                   {/if}
-                </div>
+                </span>
               </label>
             {/each}
-          </div>
+          </fieldset>
 
           <div class="form-control mt-4">
             <label class="label" for="attach-notes">
@@ -139,16 +195,17 @@
       </div>
 
       <footer class="p-4 border-t border-base-200 flex justify-end gap-2">
-        <button class="btn btn-ghost" on:click={close} disabled={attaching}>
+        <button class="btn btn-ghost min-h-[44px]" on:click={close} disabled={attaching}>
           Cancelar
         </button>
         <button
-          class="btn btn-primary"
+          class="btn btn-primary min-h-[44px]"
           on:click={attach}
           disabled={!selectedProjectId || attaching || projects.length === 0}
         >
           {#if attaching}
-            <span class="loading loading-spinner loading-sm"></span>
+            <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+            <span class="sr-only">Asociando…</span>
           {/if}
           Añadir
         </button>

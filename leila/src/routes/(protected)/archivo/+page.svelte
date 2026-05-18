@@ -67,20 +67,25 @@
 
   <div class="flex flex-col md:flex-row gap-3 mb-6">
     <div class="form-control flex-1">
+      <label for="archive-search" class="sr-only">Buscar cajón</label>
       <input
-        type="text"
+        id="archive-search"
+        type="search"
         placeholder="Buscar cajón por número, nombre o colección…"
         class="input input-bordered w-full"
         bind:value={search}
       />
     </div>
     {#if collections.length > 1}
-      <select class="select select-bordered" bind:value={selectedCollectionId}>
-        <option value="all">Todas las colecciones</option>
-        {#each collections as col}
-          <option value={col.id}>{col.name}</option>
-        {/each}
-      </select>
+      <div class="form-control">
+        <label for="archive-collection" class="sr-only">Filtrar por colección</label>
+        <select id="archive-collection" class="select select-bordered" bind:value={selectedCollectionId}>
+          <option value="all">Todas las colecciones</option>
+          {#each collections as col}
+            <option value={col.id}>{col.name}</option>
+          {/each}
+        </select>
+      </div>
     {/if}
   </div>
 
@@ -97,15 +102,15 @@
       {/each}
     </div>
   {:else if error}
-    <div class="alert alert-error">
-      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+    <div class="alert alert-error" role="alert">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span>{error}</span>
     </div>
   {:else if filteredBoxes.length === 0}
     <div class="text-center py-16 text-base-content/60">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
               d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
       </svg>

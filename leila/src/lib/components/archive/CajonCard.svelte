@@ -8,25 +8,17 @@
   function handleClick() {
     if (onClick) onClick(box);
   }
-
-  function handleKeyPress(event: KeyboardEvent) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      handleClick();
-    }
-  }
 </script>
 
-<div
-  class="card bg-base-100 shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
+<button
+  type="button"
+  class="card bg-base-100 shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group text-left p-0 w-full focus-visible:ring-4 focus-visible:ring-primary focus-visible:outline-none"
   on:click={handleClick}
-  on:keypress={handleKeyPress}
-  role="button"
-  tabindex="0"
+  aria-label="Abrir cajón {box.box_number}{box.name ? `: ${box.name}` : ''}"
 >
   <div class="card-body p-5">
     <div class="flex items-start justify-between gap-3">
-      <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+      <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors" aria-hidden="true">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -45,7 +37,7 @@
 
     {#if box.location_in_archive}
       <p class="text-xs text-base-content/50 mt-1 flex items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
@@ -53,7 +45,7 @@
       </p>
     {/if}
   </div>
-</div>
+</button>
 
 <style>
   .line-clamp-2 {

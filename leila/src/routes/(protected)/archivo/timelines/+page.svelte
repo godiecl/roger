@@ -62,8 +62,8 @@
 
 <div class="container mx-auto px-4 py-8 max-w-5xl">
   <header class="mb-6">
-    <a href="/archivo" class="text-sm text-base-content/60 hover:text-base-content inline-flex items-center gap-1 mb-3">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <a href="/archivo" class="text-sm text-base-content/60 hover:text-base-content inline-flex items-center gap-1 mb-3 min-h-[44px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
       Volver al archivo
@@ -79,13 +79,18 @@
       <span>No se especificaron fotografías. Vuelve al archivo y selecciona al menos dos.</span>
     </div>
   {:else if loading}
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 shadow" role="status" aria-live="polite">
       <div class="card-body items-center text-center">
-        <span class="loading loading-spinner loading-lg text-primary"></span>
+        <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
         <p class="text-sm text-base-content/60">
-          Generando {progress + 1} de {photographIds.length}…
+          Generando {Math.min(progress + 1, photographIds.length)} de {photographIds.length}…
         </p>
-        <progress class="progress progress-primary w-full max-w-xs" value={progress} max={photographIds.length}></progress>
+        <progress
+          class="progress progress-primary w-full max-w-xs"
+          value={progress}
+          max={photographIds.length}
+          aria-label="Progreso de generación de líneas de tiempo"
+        ></progress>
       </div>
     </div>
   {:else}
