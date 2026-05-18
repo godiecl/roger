@@ -1,14 +1,9 @@
 """
 TimelineGenerator — genera la línea de tiempo contextual de una fotografía.
 
-Usa el LLM configurado (agnóstico al proveedor) para generar eventos en tres ejes:
-  - biographical: dónde estaba Gerstmann y qué hacía en esa época
-  - historical:   qué ocurría en el mundo / Latinoamérica en esa época
-  - expedition:   contexto específico de la expedición o proyecto fotografiado
-
-Cuando el RAG esté poblado (KBs históricas y biográficas), el retriever
-se conecta aquí para enriquecer con fuentes verificadas (VERAZ).
-Mientras tanto opera solo con el LLM (eventos marcados como VEROSIMIL).
+El eje historical lo cubre WikipediaEnricher con datos reales (VERAZ).
+El LLM solo genera los ejes biographical y expedition (VEROSIMIL).
+Cuando el RAG esté poblado, biographical y expedition también se enriquecerán.
 """
 
 import json
@@ -36,36 +31,33 @@ situándola en su contexto histórico de manera rigurosa y educativa.
 
 Responde ÚNICAMENTE con JSON válido, sin texto adicional."""
 
-_USER_PROMPT_TEMPLATE = """Genera la línea de tiempo contextual para esta fotografía de Robert Gerstmann:
+_USER_PROMPT_TEMPLATE = """Genera el contexto biográfico y de expedición para esta fotografía de Robert Gerstmann:
 
 Fecha aproximada: {date}
 Ubicación: {location}
 Descripción: {description}
 Objetos detectados: {objects}
-
-Crea entre 5 y 8 eventos distribuidos en tres ejes temporales:
-1. biographical: momentos clave de la vida/viajes de Gerstmann relacionados con esta fotografía
-2. historical: eventos del mundo o Latinoamérica que contextualizan la época
-3. expedition: detalles del viaje o proyecto específico fotografiado (si aplica)
+{historical_note}
+Crea entre 3 y 5 eventos en los ejes biographical y expedition solamente.
+NO incluyas eventos del eje historical — esos se obtienen de fuentes verificadas externas.
 
 Responde con este JSON exacto:
 {{
-  "context_summary": "Párrafo introductorio (3-4 oraciones) que contextualiza históricamente esta fotografía",
+  "context_summary": "Párrafo introductorio (3-4 oraciones) que contextualiza esta fotografía en relación a la vida y obra de Gerstmann",
   "events": [
     {{
       "date_label": "Marzo 1928",
       "year": 1928,
       "title": "Título del evento",
       "description": "Descripción del evento (1-2 oraciones)",
-      "axis": "biographical|historical|expedition",
-      "event_type": "travel|historical|personal|political|cultural|natural|other",
-      "source_type": "veraz|verosimil"
+      "axis": "biographical|expedition",
+      "event_type": "travel|personal|cultural|other",
+      "source_type": "verosimil"
     }}
   ]
 }}
 
-Usa source_type="veraz" solo para hechos históricos bien documentados.
-Usa source_type="verosimil" para inferencias razonadas basadas en el contexto."""
+Todos los eventos deben usar source_type="verosimil"."""
 
 
 class TimelineGenerator(ITimelineGenerator):
@@ -84,14 +76,23 @@ class TimelineGenerator(ITimelineGenerator):
         photograph_location: Optional[str],
         photograph_description: Optional[str],
         detected_objects: Optional[List[str]],
+        wikipedia_events: Optional[List[TimelineEvent]] = None,
     ) -> Timeline:
         start = time.time()
+        wikipedia_events = wikipedia_events or []
+
+        historical_note = (
+            f"Contexto histórico verificado disponible: {len(wikipedia_events)} eventos del período "
+            f"({wikipedia_events[0].year}–{wikipedia_events[-1].year}).\n"
+            if wikipedia_events else ""
+        )
 
         user_prompt = _USER_PROMPT_TEMPLATE.format(
             date=photograph_date or "Desconocida (estimada entre 1920-1964)",
             location=photograph_location or "Sudamérica (ubicación exacta no determinada)",
             description=photograph_description or "Sin descripción disponible",
             objects=", ".join(detected_objects) if detected_objects else "No detectados",
+            historical_note=historical_note,
         )
 
         try:
@@ -99,12 +100,12 @@ class TimelineGenerator(ITimelineGenerator):
                 {"role": "system", "content": _SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
             ])
-            events, context_summary = self._parse_response(raw)
+            llm_events, context_summary = self._parse_response(raw)
         except Exception as e:
             logger.error("Generación de timeline fallida", error=str(e), photograph_id=photograph_id)
-            events = self._fallback_events(photograph_date, photograph_location)
+            llm_events = self._fallback_events(photograph_date, photograph_location)
             context_summary = (
-                "No fue posible generar el contexto histórico completo. "
+                "No fue posible generar el contexto biográfico completo. "
                 "Se muestran eventos de referencia generales sobre la obra de Robert Gerstmann."
             )
 
@@ -112,7 +113,7 @@ class TimelineGenerator(ITimelineGenerator):
 
         return Timeline(
             photograph_id=photograph_id,
-            events=events,
+            events=wikipedia_events + llm_events,
             provider=self.provider_name,
             context_summary=context_summary,
             generation_time_ms=generation_time_ms,

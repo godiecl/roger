@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from app.features.generate_timeline.domain.timeline import Timeline
+from app.features.generate_timeline.domain.timeline import Timeline, TimelineEvent
 
 
 class ITimelineRepository(ABC):
@@ -35,6 +35,7 @@ class ITimelineGenerator(ABC):
         photograph_location: Optional[str],
         photograph_description: Optional[str],
         detected_objects: Optional[List[str]],
+        wikipedia_events: Optional[List[TimelineEvent]] = None,
     ) -> Timeline: ...
 
     @property

@@ -3,8 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.generate_timeline.application.generate_timeline_usecase import GenerateTimelineUseCase
 from app.features.generate_timeline.domain.timeline import Timeline
+from app.features.generate_timeline.infrastructure.adapters.date_resolver import DateResolver
 from app.features.generate_timeline.infrastructure.adapters.timeline_generator import TimelineGenerator
 from app.features.generate_timeline.infrastructure.adapters.timeline_repository import TimelineRepository
+from app.features.generate_timeline.infrastructure.adapters.wikipedia_enricher import WikipediaEnricher
 from app.features.generate_timeline.interfaces.api.schemas import (
     ApproveTimelineRequest, GenerateTimelineRequest,
     TimelineEventResponse, TimelineListResponse, TimelineResponse,
@@ -19,6 +21,8 @@ def _build_usecase(db: AsyncSession) -> GenerateTimelineUseCase:
     return GenerateTimelineUseCase(
         generator=TimelineGenerator(),
         repository=TimelineRepository(db),
+        date_resolver=DateResolver(db),
+        wikipedia_enricher=WikipediaEnricher(),
     )
 
 
