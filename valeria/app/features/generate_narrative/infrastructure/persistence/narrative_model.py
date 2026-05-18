@@ -33,6 +33,11 @@ class NarrativeModel(Base):
     approved_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     approved_at = Column(DateTime, nullable=True)
 
+    # Community engagement
+    like_count = Column(Integer, default=0, nullable=False)
+    report_count = Column(Integer, default=0, nullable=False)
+    is_manual = Column(Boolean, default=False, nullable=False)  # True = Veraz (curator-written)
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

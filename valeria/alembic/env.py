@@ -54,6 +54,11 @@ from app.features.generate_timeline.infrastructure.persistence.timeline_model im
     TimelineModel, TimelineEventModel,
 )
 
+# ── Community engagement models (generate_context) ────────────────────────────
+from app.features.generate_context.infrastructure.persistence.context_model import ImageContextModel
+from app.features.generate_context.infrastructure.persistence.like_model import ContentLikeModel
+from app.features.generate_context.infrastructure.persistence.report_model import ContentReportModel
+
 # this is the Alembic Config object
 config = context.config
 

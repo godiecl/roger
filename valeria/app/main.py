@@ -27,6 +27,7 @@ from app.features.tagging.interfaces.api.routes import router as tags_router
 from app.features.detect_objects.interfaces.api.routes import router as detections_router
 from app.features.cluster_images.interfaces.api.routes import router as clusters_router
 from app.features.generate_timeline.interfaces.api.routes import router as timelines_router
+from app.features.generate_context.interfaces.api.routes import router as context_router
 
 # Setup logging
 logger = structlog.get_logger()
@@ -126,6 +127,7 @@ app.include_router(tags_router, prefix=settings.api_prefix)
 app.include_router(detections_router, prefix=settings.api_prefix)
 app.include_router(clusters_router, prefix=settings.api_prefix)
 app.include_router(timelines_router, prefix=settings.api_prefix)
+app.include_router(context_router, prefix=settings.api_prefix)
 
 # Serve static files (images, uploads)
 # app.mount("/storage", StaticFiles(directory="storage"), name="storage")
