@@ -68,6 +68,34 @@ class ProjectService {
   async listProjectInvitations(projectId: number): Promise<SentInvitationListResponse> {
     return apiClient.get<SentInvitationListResponse>(`/projects/${projectId}/invitations`);
   }
+
+  async attachPhotographs(
+    projectId: number,
+    photograph_ids: number[],
+    notes?: string,
+  ): Promise<{ added: number; skipped: number; project_id: number }> {
+    return apiClient.post(`/projects/${projectId}/photographs`, { photograph_ids, notes });
+  }
+
+  async listProjectPhotographs(
+    projectId: number,
+    params?: { skip?: number; limit?: number },
+  ): Promise<{ total: number; items: ProjectPhotographLink[] }> {
+    return apiClient.get(`/projects/${projectId}/photographs`, params);
+  }
+
+  async detachPhotograph(projectId: number, photographId: number): Promise<void> {
+    return apiClient.delete(`/projects/${projectId}/photographs/${photographId}`);
+  }
+}
+
+export interface ProjectPhotographLink {
+  id: number;
+  project_id: number;
+  photograph_id: number;
+  added_by: number | null;
+  added_at: string;
+  notes: string | null;
 }
 
 export const projectService = new ProjectService();

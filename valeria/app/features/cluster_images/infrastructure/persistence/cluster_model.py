@@ -55,6 +55,7 @@ class ClusterModel(BaseModel):
         nullable=False,
         default=ClusterStatus.COMPLETED,
     )
+    justification = Column(Text, nullable=True)  # razón LLM de por qué se agrupan estas fotos
 
     def __repr__(self) -> str:
         return f"<ClusterModel(id={self.id}, label={self.label}, members={self.member_count})>"

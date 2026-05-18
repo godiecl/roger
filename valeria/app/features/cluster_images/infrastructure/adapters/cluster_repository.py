@@ -73,6 +73,15 @@ class ClusterRepository(IClusterRepository):
         )
         return [await self._to_domain(m) for m in result.scalars().all()]
 
+    async def update_cluster_justification(self, cluster_id: int, justification: str) -> None:
+        result = await self.session.execute(
+            select(ClusterModel).where(ClusterModel.id == cluster_id)
+        )
+        model = result.scalar_one_or_none()
+        if model:
+            model.justification = justification
+            await self.session.flush()
+
     async def delete(self, job_id: int) -> bool:
         result = await self.session.execute(
             select(ClusteringJobModel).where(ClusteringJobModel.id == job_id)
@@ -98,6 +107,7 @@ class ClusterRepository(IClusterRepository):
                 member_count=c.member_count,
                 centroid_photograph_id=c.centroid_photograph_id,
                 status=ClusterStatus(c.status),
+                justification=c.justification,
             )
             for c in clusters_result.scalars().all()
         ]

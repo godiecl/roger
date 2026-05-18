@@ -184,3 +184,35 @@ class PdfContextResponse(BaseModel):
     pages: int
     text: str
     char_count: int
+
+
+# --- Project photographs ---
+
+class AttachPhotographsRequest(BaseModel):
+    """Request to associate one or more photographs with a project."""
+    photograph_ids: List[int] = Field(..., min_length=1, description="IDs de fotografías a asociar")
+    notes: Optional[str] = Field(default=None, max_length=500)
+
+
+class AttachPhotographsResponse(BaseModel):
+    """Response after attaching photographs."""
+    added: int
+    skipped: int
+    project_id: int
+
+
+class ProjectPhotographResponse(BaseModel):
+    id: int
+    project_id: int
+    photograph_id: int
+    added_by: Optional[int]
+    added_at: datetime
+    notes: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class ProjectPhotographListResponse(BaseModel):
+    total: int
+    items: List[ProjectPhotographResponse]

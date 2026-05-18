@@ -1,8 +1,16 @@
 <script lang="ts">
-  import type { Image } from '$lib/types';
+  import type { Image, Photograph } from '$lib/types';
+  import { selection, isSelected } from '$lib/stores/selection';
 
   export let image: Image;
   export let onClick: ((image: Image) => void) | undefined = undefined;
+
+  /** Habilita el modo selección: muestra checkbox en hover/selected */
+  export let selectable: boolean = false;
+  /** Objeto Photograph asociado, requerido cuando selectable=true */
+  export let photograph: Photograph | undefined = undefined;
+
+  $: selected = selectable && photograph ? $isSelected(photograph.id) : false;
 
   function handleClick() {
     if (onClick) {
@@ -15,22 +23,66 @@
       handleClick();
     }
   }
+
+  function handleToggleSelect(event: Event) {
+    event.stopPropagation();
+    if (!photograph) return;
+    selection.toggle(photograph);
+  }
+
+  function handleCheckboxKey(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      event.stopPropagation();
+      handleToggleSelect(event);
+    }
+  }
 </script>
 
 <div
-  class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-200 cursor-pointer group"
+  class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-200 cursor-pointer group relative"
+  class:ring-4={selected}
+  class:ring-primary={selected}
   on:click={handleClick}
   on:keypress={handleKeyPress}
   role="button"
   tabindex="0"
 >
+  {#if selectable && photograph}
+    <button
+      type="button"
+      class="absolute top-2 left-2 z-10 w-8 h-8 rounded-md border-2 flex items-center justify-center transition-all
+             {selected
+               ? 'bg-primary border-primary text-primary-content opacity-100'
+               : 'bg-base-100/80 border-base-content/30 opacity-0 group-hover:opacity-100 focus:opacity-100'}"
+      aria-label={selected ? 'Quitar de la selección' : 'Añadir a la selección'}
+      aria-pressed={selected}
+      on:click={handleToggleSelect}
+      on:keydown={handleCheckboxKey}
+    >
+      {#if selected}
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      {/if}
+    </button>
+  {/if}
+
   <figure class="relative overflow-hidden aspect-[4/3]">
-    <img
-      src={image.file_path}
-      alt={image.title}
-      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-      loading="lazy"
-    />
+    {#if image.file_path}
+      <img
+        src={image.file_path}
+        alt={image.title}
+        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+        loading="lazy"
+      />
+    {:else}
+      <div class="w-full h-full flex items-center justify-center bg-base-300 text-base-content/40">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+    {/if}
     {#if !image.is_public}
       <div class="badge badge-warning absolute top-2 right-2">Privada</div>
     {/if}

@@ -33,6 +33,7 @@ class Cluster:
     centroid_photograph_id: Optional[int]  # fotografía más representativa del cluster
     status: ClusterStatus = ClusterStatus.COMPLETED
     id: Optional[int] = None
+    justification: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

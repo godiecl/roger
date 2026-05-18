@@ -26,6 +26,7 @@ class ClusterResponse(BaseModel):
     centroid_photograph_id: Optional[int]
     photograph_ids: List[int]
     status: str
+    justification: Optional[str] = None
 
 
 class ClusteringJobResponse(BaseModel):

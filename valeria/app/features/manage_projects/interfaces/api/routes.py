@@ -640,3 +640,143 @@ async def upload_pdf_context(
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Error al procesar el PDF: {str(e)}")
+
+
+# ============================================================
+# PROJECT PHOTOGRAPHS ENDPOINTS
+# ============================================================
+
+from app.features.manage_projects.interfaces.api.schemas import (
+    AttachPhotographsRequest,
+    AttachPhotographsResponse,
+    ProjectPhotographResponse,
+    ProjectPhotographListResponse,
+)
+from app.features.manage_projects.infrastructure.persistence.project_model import (
+    ProjectPhotographModel,
+)
+from app.features.archive.infrastructure.persistence.archive_model import PhotographModel
+from sqlalchemy.future import select as _pp_select
+
+
+async def _ensure_project_access(project_id: int, user_id: int, db: AsyncSession) -> None:
+    repo = ProjectRepository(db)
+    project = await repo.get_by_id(project_id)
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proyecto no encontrado")
+    member = await repo.get_member(project_id, user_id)
+    if not project.is_owner(user_id) and not member:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No eres miembro de este proyecto")
+
+
+@router.post(
+    "/{project_id}/photographs",
+    response_model=AttachPhotographsResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def attach_photographs(
+    project_id: int,
+    request: AttachPhotographsRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Associate one or more photographs with a project. Skips duplicates silently."""
+    await _ensure_project_access(project_id, user_id, db)
+
+    # Validate that photographs exist
+    photo_result = await db.execute(
+        _pp_select(PhotographModel.id).where(PhotographModel.id.in_(request.photograph_ids))
+    )
+    existing_ids = {row[0] for row in photo_result.all()}
+    missing = [pid for pid in request.photograph_ids if pid not in existing_ids]
+    if missing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Fotografías no encontradas: {missing}",
+        )
+
+    # Find already-attached to skip
+    existing_link = await db.execute(
+        _pp_select(ProjectPhotographModel.photograph_id).where(
+            ProjectPhotographModel.project_id == project_id,
+            ProjectPhotographModel.photograph_id.in_(request.photograph_ids),
+        )
+    )
+    already = {row[0] for row in existing_link.all()}
+
+    added = 0
+    for pid in request.photograph_ids:
+        if pid in already:
+            continue
+        db.add(ProjectPhotographModel(
+            project_id=project_id,
+            photograph_id=pid,
+            added_by=user_id,
+            notes=request.notes,
+        ))
+        added += 1
+
+    await db.commit()
+    return AttachPhotographsResponse(
+        added=added,
+        skipped=len(already),
+        project_id=project_id,
+    )
+
+
+@router.get(
+    "/{project_id}/photographs",
+    response_model=ProjectPhotographListResponse,
+)
+async def list_project_photographs(
+    project_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """List photographs attached to a project."""
+    await _ensure_project_access(project_id, user_id, db)
+
+    result = await db.execute(
+        _pp_select(ProjectPhotographModel)
+        .where(ProjectPhotographModel.project_id == project_id)
+        .order_by(ProjectPhotographModel.added_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    items = result.scalars().all()
+    return ProjectPhotographListResponse(
+        total=len(items),
+        items=[ProjectPhotographResponse.model_validate(i) for i in items],
+    )
+
+
+@router.delete(
+    "/{project_id}/photographs/{photograph_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def detach_photograph(
+    project_id: int,
+    photograph_id: int,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Remove a photograph association from a project."""
+    await _ensure_project_access(project_id, user_id, db)
+
+    result = await db.execute(
+        _pp_select(ProjectPhotographModel).where(
+            ProjectPhotographModel.project_id == project_id,
+            ProjectPhotographModel.photograph_id == photograph_id,
+        )
+    )
+    link = result.scalar_one_or_none()
+    if not link:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="La fotografía no está asociada al proyecto",
+        )
+    await db.delete(link)
+    await db.commit()
+    return None
