@@ -62,6 +62,9 @@ COPY --from=builder /opt/valeria /opt/valeria
 
 COPY . .
 
+# Copy the production environment variables file into the container
+COPY --chmod=755 .env.release /app/.env
+
 COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
 EXPOSE 8000
