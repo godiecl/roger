@@ -11,16 +11,18 @@
   let error: string | null = null;
   let justifying = false;
   let justified = false;
+  /** True después de intentar generar justificaciones (con éxito o no) */
+  let justifyAttempted = false;
 
   onMount(async () => {
     try {
       job = await clusterService.get(jobId);
-      // Si los clusters aún no tienen justificación, generarla automáticamente
       const hasAnyJustification = job.clusters.some((c) => c.justification);
       if (!hasAnyJustification && job.clusters.length > 0) {
         await regenerateJustifications(false);
       } else {
         justified = hasAnyJustification;
+        justifyAttempted = hasAnyJustification;
       }
     } catch (e: any) {
       error = e?.detail || e?.message || 'No se pudo cargar la agrupación';
@@ -34,10 +36,18 @@
     justifying = true;
     try {
       job = await clusterService.justify(jobId);
-      justified = true;
-      if (showToast) notificationsStore.success('Justificaciones regeneradas');
+      justifyAttempted = true;
+      justified = job.clusters.some((c) => c.justification);
+      if (showToast) {
+        if (justified) {
+          notificationsStore.success('Justificaciones regeneradas');
+        } else {
+          notificationsStore.warning('No se pudo generar la justificación. Intenta más tarde.');
+        }
+      }
     } catch (e: any) {
-      notificationsStore.error(e?.detail || 'No se pudieron generar las justificaciones');
+      justifyAttempted = true;
+      notificationsStore.error('No se pudo conectar con el servicio de justificación');
     } finally {
       justifying = false;
     }
@@ -89,6 +99,8 @@
           Generando justificaciones con el LLM…
         {:else if justified}
           Justificaciones generadas automáticamente
+        {:else if justifyAttempted}
+          No se pudieron generar las justificaciones. Intenta de nuevo más tarde.
         {:else}
           Sin justificación aún
         {/if}
@@ -126,8 +138,16 @@
               </div>
             {:else if justifying}
               <div class="mt-3 flex items-center gap-2 text-sm text-base-content/60">
-                <span class="loading loading-dots loading-sm"></span>
+                <span class="loading loading-dots loading-sm" aria-hidden="true"></span>
                 Generando justificación…
+              </div>
+            {:else if justifyAttempted}
+              <div class="mt-3 p-4 bg-warning/10 rounded-lg border-l-4 border-warning text-sm">
+                <p class="font-medium text-base-content/80">Justificación no disponible</p>
+                <p class="text-base-content/60 mt-1">
+                  No se pudo generar la justificación en este momento. Pulsa
+                  <em>Regenerar</em> para reintentar.
+                </p>
               </div>
             {/if}
 

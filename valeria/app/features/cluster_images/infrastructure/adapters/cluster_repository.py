@@ -73,7 +73,7 @@ class ClusterRepository(IClusterRepository):
         )
         return [await self._to_domain(m) for m in result.scalars().all()]
 
-    async def update_cluster_justification(self, cluster_id: int, justification: str) -> None:
+    async def update_cluster_justification(self, cluster_id: int, justification: Optional[str]) -> None:
         result = await self.session.execute(
             select(ClusterModel).where(ClusterModel.id == cluster_id)
         )

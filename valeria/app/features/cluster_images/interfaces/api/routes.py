@@ -198,7 +198,17 @@ async def justify_clustering_job(
             if cluster.id is not None:
                 await repository.update_cluster_justification(cluster.id, cluster.justification)
         except Exception as e:
-            cluster.justification = f"[Error al generar justificación: {e}]"
+            # No exponer el error real al usuario — solo loggear y guardar mensaje genérico
+            import structlog
+            structlog.get_logger().warning(
+                "LLM justify failed",
+                cluster_id=cluster.id,
+                job_id=job_id,
+                error=str(e),
+            )
+            cluster.justification = None
+            if cluster.id is not None:
+                await repository.update_cluster_justification(cluster.id, None)
 
     await db.commit()
     return _to_response(job)
