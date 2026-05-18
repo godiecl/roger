@@ -39,6 +39,9 @@ class NarrativeResponse(BaseModel):
     approved_at: Optional[datetime]
     is_verified: bool
     confidence_level: str  # "high", "medium", "low"
+    like_count: int = 0
+    report_count: int = 0
+    is_manual: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -59,6 +62,7 @@ class GenerateNarrativeRequest(BaseModel):
     image_id: int = Field(..., description="ID of the image")
     prompt: Optional[str] = Field(None, max_length=1000, description="Custom prompt for generation")
     language: str = Field("es", pattern="^(es|en|de)$", description="Language code (es, en, de)")
+    is_manual: bool = Field(False, description="True if curator wrote this narrative manually (Veraz badge)")
 
 
 class RegenerateNarrativeRequest(BaseModel):

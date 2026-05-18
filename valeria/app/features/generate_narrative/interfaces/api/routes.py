@@ -1,7 +1,8 @@
 """
 FastAPI routes for narratives
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+import hashlib
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
@@ -277,6 +278,80 @@ async def delete_narrative(
         )
 
     return None
+
+
+@router.post("/{narrative_id}/like")
+async def toggle_narrative_like(
+    narrative_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Toggle like en una narrativa. Limitado a 1 por IP."""
+    from sqlalchemy import select
+    from sqlalchemy.exc import IntegrityError
+    from app.features.generate_context.infrastructure.persistence.like_model import ContentLikeModel
+    from app.features.generate_narrative.infrastructure.persistence.narrative_model import NarrativeModel
+
+    ip = request.client.host if request.client else "unknown"
+    ip_hash = hashlib.sha256(ip.encode()).hexdigest()
+
+    nm_result = await db.execute(select(NarrativeModel).where(NarrativeModel.id == narrative_id))
+    nm = nm_result.scalar_one_or_none()
+    if not nm:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Narrative not found")
+
+    like_result = await db.execute(
+        select(ContentLikeModel).where(
+            ContentLikeModel.content_type == "narrative",
+            ContentLikeModel.content_id == narrative_id,
+            ContentLikeModel.ip_hash == ip_hash,
+        )
+    )
+    existing = like_result.scalar_one_or_none()
+
+    if existing:
+        await db.delete(existing)
+        nm.like_count = max(0, nm.like_count - 1)
+        await db.flush()
+        return {"liked": False, "like_count": nm.like_count}
+
+    db.add(ContentLikeModel(content_type="narrative", content_id=narrative_id, ip_hash=ip_hash))
+    nm.like_count += 1
+    try:
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+    return {"liked": True, "like_count": nm.like_count}
+
+
+@router.post("/{narrative_id}/report", status_code=status.HTTP_204_NO_CONTENT)
+async def report_narrative(
+    narrative_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Reporta una narrativa. One-way: 409 si ya fue reportado desde esta IP."""
+    from sqlalchemy import select
+    from sqlalchemy.exc import IntegrityError
+    from app.features.generate_context.infrastructure.persistence.report_model import ContentReportModel
+    from app.features.generate_narrative.infrastructure.persistence.narrative_model import NarrativeModel
+
+    ip = request.client.host if request.client else "unknown"
+    ip_hash = hashlib.sha256(ip.encode()).hexdigest()
+
+    nm_result = await db.execute(select(NarrativeModel).where(NarrativeModel.id == narrative_id))
+    nm = nm_result.scalar_one_or_none()
+    if not nm:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Narrative not found")
+
+    db.add(ContentReportModel(content_type="narrative", content_id=narrative_id, ip_hash=ip_hash))
+    try:
+        await db.flush()
+        nm.report_count += 1
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ya reportaste esta narrativa.")
 
 
 def _narrative_to_response(narrative) -> NarrativeResponse:
