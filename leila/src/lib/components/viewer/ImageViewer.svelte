@@ -2,16 +2,35 @@
   import type { Image, Narrative } from '$lib/types';
   import { createEventDispatcher } from 'svelte';
   import { apiClient } from '$lib/services/apiClient';
+  import LikeReportBar from '$lib/components/viewer/LikeReportBar.svelte';
 
   export let image: Image;
   export let narratives: Narrative[] = [];
-  export let loading: boolean = false;
 
   const dispatch = createEventDispatcher();
 
   type Tab = 'visualization' | 'narrative' | 'timeline';
   let activeTab: Tab = 'visualization';
 
+  // --- Context state ---
+  interface ContextResponse {
+    id: number;
+    image_id: number;
+    text: string;
+    provider: string;
+    is_anchored: boolean;
+    like_count: number;
+    report_count: number;
+    created_at?: string;
+  }
+
+  let freshContext: ContextResponse | null = null;
+  let freshContextLoading = false;
+  let anchoredContexts: ContextResponse[] = [];
+  let anchoredLoading = false;
+  let narrativeTabChecked = false;
+
+  // --- Timeline state ---
   interface TimelineEvent {
     id?: number;
     date_label: string;
@@ -61,9 +80,34 @@
 
   function selectTab(tab: Tab) {
     activeTab = tab;
+    if (tab === 'narrative' && !narrativeTabChecked) {
+      loadNarrativeTab();
+    }
     if (tab === 'timeline' && !timelineChecked) {
       loadTimeline();
     }
+  }
+
+  async function loadNarrativeTab() {
+    narrativeTabChecked = true;
+    freshContextLoading = true;
+    anchoredLoading = true;
+
+    // Fire both in parallel
+    const [contextResult, anchoredResult] = await Promise.allSettled([
+      apiClient.post<ContextResponse>(`/context/generate/${image.id}`, {}),
+      apiClient.get<ContextResponse[]>(`/context/image/${image.id}/anchored`),
+    ]);
+
+    if (contextResult.status === 'fulfilled') {
+      freshContext = contextResult.value;
+    }
+    freshContextLoading = false;
+
+    if (anchoredResult.status === 'fulfilled') {
+      anchoredContexts = anchoredResult.value;
+    }
+    anchoredLoading = false;
   }
 
   async function loadTimeline() {
@@ -220,48 +264,139 @@
 
           {:else if activeTab === 'narrative'}
             <!-- Narrativa IA -->
-            {#if loading}
-              <div class="flex flex-col items-center justify-center py-16 gap-3">
-                <span class="loading loading-spinner loading-lg"></span>
-                <p class="text-sm text-base-content/55">Cargando narrativas...</p>
-              </div>
-            {:else if narratives.length === 0}
-              <div class="flex flex-col items-center justify-center py-12 gap-3 text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-base-content/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p class="text-sm text-base-content/55">No hay narrativas aprobadas para esta imagen.</p>
-              </div>
-            {:else}
-              <div class="space-y-4">
-                {#each narratives as narrative (narrative.id)}
+            <div class="space-y-6">
+
+              <!-- Contexto generado por IA -->
+              <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-3">
+                  Contexto Histórico
+                </h3>
+                {#if freshContextLoading}
+                  <!-- Skeleton 4 líneas -->
+                  <div class="card bg-base-200 p-5 animate-pulse">
+                    <div class="flex items-center gap-2 mb-3">
+                      <div class="h-4 bg-base-300 rounded w-16"></div>
+                      <div class="h-4 bg-base-300 rounded w-24 ml-auto"></div>
+                    </div>
+                    <div class="space-y-2">
+                      <div class="h-3 bg-base-300 rounded w-full"></div>
+                      <div class="h-3 bg-base-300 rounded w-11/12"></div>
+                      <div class="h-3 bg-base-300 rounded w-4/5"></div>
+                      <div class="h-3 bg-base-300 rounded w-3/4"></div>
+                    </div>
+                  </div>
+                {:else if freshContext}
                   <div class="card bg-base-200 p-5">
                     <div class="flex flex-wrap items-center gap-2 mb-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-warning flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
-                      <span class="font-semibold text-sm">Narrativa Generada por IA</span>
-                      <div class="flex gap-1.5 ml-auto">
-                        <span class="badge badge-sm {narrative.is_verified ? 'badge-success' : 'badge-warning'}">
-                          {narrative.is_verified ? 'Veraz' : 'Verosímil'}
-                        </span>
-                        {#if narrative.trazabilidad?.confidence_score != null}
-                          <span class="badge badge-sm badge-outline">
-                            {Math.round(narrative.trazabilidad.confidence_score * 100)}% confianza
-                          </span>
-                        {/if}
-                      </div>
+                      <span class="text-xs font-medium text-base-content/55">Generado por IA</span>
+                      <span class="badge badge-sm badge-warning ml-auto">Verosímil</span>
                     </div>
-                    <p class="text-sm leading-relaxed text-base-content/85">{narrative.text}</p>
-                    <p class="text-xs text-base-content/40 mt-3">
-                      {new Date(narrative.created_at).toLocaleDateString('es-CL', {
-                        year: 'numeric', month: 'long', day: 'numeric'
-                      })}
-                    </p>
+                    <p class="text-sm leading-relaxed text-base-content/85">{freshContext.text}</p>
+                    <div class="mt-4 pt-3 border-t border-base-300">
+                      <LikeReportBar
+                        contentType="context"
+                        contentId={freshContext.id}
+                        likeCount={freshContext.like_count}
+                      />
+                    </div>
                   </div>
-                {/each}
+                {:else}
+                  <p class="text-sm text-base-content/40 text-center py-6">
+                    No se pudo generar el contexto para esta imagen.
+                  </p>
+                {/if}
               </div>
-            {/if}
+
+              <!-- Contextos anclados por curadores -->
+              <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-3">
+                  Contextos Verificados
+                </h3>
+                {#if anchoredLoading}
+                  <!-- Skeleton tarjeta -->
+                  <div class="card bg-base-200 p-5 animate-pulse">
+                    <div class="flex items-center gap-2 mb-3">
+                      <div class="h-4 bg-base-300 rounded w-20"></div>
+                      <div class="h-4 bg-base-300 rounded w-16 ml-auto"></div>
+                    </div>
+                    <div class="space-y-2">
+                      <div class="h-3 bg-base-300 rounded w-full"></div>
+                      <div class="h-3 bg-base-300 rounded w-5/6"></div>
+                      <div class="h-3 bg-base-300 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                {:else if anchoredContexts.length > 0}
+                  <div class="space-y-4">
+                    {#each anchoredContexts as ctx (ctx.id)}
+                      <div class="card bg-base-200 p-5">
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-success flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                          </svg>
+                          <span class="text-xs font-medium text-base-content/55">Anclado por curador</span>
+                          <span class="badge badge-sm badge-warning ml-auto">Verosímil</span>
+                        </div>
+                        <p class="text-sm leading-relaxed text-base-content/85">{ctx.text}</p>
+                        <div class="mt-4 pt-3 border-t border-base-300">
+                          <LikeReportBar
+                            contentType="context"
+                            contentId={ctx.id}
+                            likeCount={ctx.like_count}
+                          />
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                {:else}
+                  <p class="text-sm text-base-content/40 text-center py-4">
+                    Ningún curador ha anclado un contexto para esta imagen aún.
+                  </p>
+                {/if}
+              </div>
+
+              <!-- Narrativas aprobadas (contenido de curadores) -->
+              {#if narratives.length > 0}
+                <div>
+                  <h3 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-3">
+                    Narrativas del Curador
+                  </h3>
+                  <div class="space-y-4">
+                    {#each narratives as narrative (narrative.id)}
+                      <div class="card bg-base-200 p-5">
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-warning flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          <span class="font-semibold text-sm">Narrativa</span>
+                          <div class="flex gap-1.5 ml-auto">
+                            <span class="badge badge-sm {narrative.is_manual ? 'badge-success' : 'badge-warning'}">
+                              {narrative.is_manual ? 'Veraz' : 'Verosímil'}
+                            </span>
+                            {#if narrative.trazabilidad?.confidence_score != null}
+                              <span class="badge badge-sm badge-outline">
+                                {Math.round(narrative.trazabilidad.confidence_score * 100)}% confianza
+                              </span>
+                            {/if}
+                          </div>
+                        </div>
+                        <p class="text-sm leading-relaxed text-base-content/85">{narrative.text}</p>
+                        <div class="mt-4 pt-3 border-t border-base-300">
+                          <LikeReportBar
+                            contentType="narrative"
+                            contentId={narrative.id}
+                            likeCount={narrative.like_count}
+                          />
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+
+            </div>
 
           {:else if activeTab === 'timeline'}
             <!-- Línea de Tiempo -->

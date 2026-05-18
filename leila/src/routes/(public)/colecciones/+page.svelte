@@ -15,7 +15,6 @@
   let showViewer = false;
   let currentImage: Image | null = null;
   let narratives: any[] = [];
-  let generatingNarrative = false;
 
   // Search/filter state
   let searchQuery = '';
@@ -105,30 +104,6 @@
     } catch (e: any) {
       console.error('Error loading narratives:', e);
       narratives = [];
-    }
-  }
-
-  async function handleGenerateNarrative(event: CustomEvent) {
-    const { imageId } = event.detail;
-
-    try {
-      generatingNarrative = true;
-      notificationsStore.info('Generando narrativa...', 'Esto puede tomar unos segundos');
-
-      const narrative = await narrativeService.generateNarrative({
-        image_id: imageId,
-        language: 'es'
-      });
-
-      narratives = [narrative, ...narratives];
-      notificationsStore.success('Narrativa generada exitosamente');
-    } catch (e: any) {
-      notificationsStore.error(
-        e.detail || 'Error al generar narrativa',
-        'Asegúrate de que la API de OpenAI esté configurada'
-      );
-    } finally {
-      generatingNarrative = false;
     }
   }
 
@@ -318,8 +293,6 @@
   <ImageViewer
     image={currentImage}
     {narratives}
-    loading={generatingNarrative}
     on:close={handleCloseViewer}
-    on:generateNarrative={handleGenerateNarrative}
   />
 {/if}

@@ -126,6 +126,8 @@
     u.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  let pendingReportsCount = 0;
+
   async function loadUsers() {
     loading = true;
     error = '';
@@ -136,6 +138,15 @@
       error = e.detail || 'Error al cargar usuarios';
     } finally {
       loading = false;
+    }
+  }
+
+  async function loadPendingReports() {
+    try {
+      const resp = await apiClient.get<{ count: number }>('/context/pending-reports-count');
+      pendingReportsCount = resp.count;
+    } catch {
+      // Badge stays at 0 — non-critical
     }
   }
 
@@ -166,7 +177,10 @@
     }
   }
 
-  onMount(loadUsers);
+  onMount(() => {
+    loadUsers();
+    loadPendingReports();
+  });
 </script>
 
 <svelte:head>
@@ -182,7 +196,22 @@
         <h1 class="text-2xl font-bold">Administración</h1>
         <p class="text-sm text-base-content/50 mt-0.5">Control de usuarios del sistema</p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex items-center gap-2">
+        {#if pendingReportsCount > 0}
+          <div class="indicator">
+            <span class="indicator-item badge badge-error badge-sm">{pendingReportsCount}</span>
+            <a
+              href="/admin/reportes"
+              class="btn btn-ghost btn-sm gap-1.5"
+              aria-label="{pendingReportsCount} reportes pendientes de revisión"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+              </svg>
+              Reportes
+            </a>
+          </div>
+        {/if}
         <button class="btn btn-primary btn-sm" on:click={openCreateModal}>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />

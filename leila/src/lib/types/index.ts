@@ -101,6 +101,9 @@ export interface Narrative {
   approved_at?: string;
   is_verified: boolean;
   confidence_level: 'high' | 'medium' | 'low';
+  like_count: number;
+  report_count: number;
+  is_manual: boolean;
   created_at: string;
   updated_at: string;
 }
