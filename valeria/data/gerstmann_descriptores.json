@@ -1,0 +1,268 @@
+{
+  "descripcion": "Descriptores visuales para correlacionar outputs de CLIP con períodos y ubicaciones del archivo Gerstmann. También incluye discrepancias documentadas entre fuentes.",
+
+  "descriptores_clip": [
+    {
+      "descriptor": "mina de estaño, ingenio minero, trabajadores con herramientas manuales, mulas en galería, polvorín, bocamina",
+      "paises_probables": ["Bolivia"],
+      "periodos_probables": ["T03", "T09"],
+      "años_probables": "1925-1928 o 1936",
+      "ids_ucn_relevantes": [25, 41, 42, 43, 44, 45, 219, 223, 224, 229]
+    },
+    {
+      "descriptor": "altiplano boliviano, pueblo andino, indígenas, llamas, mercado, bofedal, nevado al fondo",
+      "paises_probables": ["Bolivia"],
+      "periodos_probables": ["T03"],
+      "años_probables": "1925-1928",
+      "ids_ucn_relevantes": [217, 220, 225, 230, 232, 236, 237, 238]
+    },
+    {
+      "descriptor": "Tiahuanacu, ruinas precolombinas altiplano, puerta del sol, monolitos",
+      "paises_probables": ["Bolivia"],
+      "lugares": ["Tiahuanacu"],
+      "periodos_probables": ["T03"],
+      "años_probables": "1925-1928",
+      "ids_ucn_relevantes": [129, 231]
+    },
+    {
+      "descriptor": "Copacabana Bolivia, lago Titicaca, península, iglesia colonial, barcas",
+      "paises_probables": ["Bolivia"],
+      "lugares": ["Copacabana"],
+      "periodos_probables": ["T03"],
+      "años_probables": "1925-1928",
+      "ids_ucn_relevantes": [34, 234]
+    },
+    {
+      "descriptor": "expedición búsqueda tesoro, excavación, tiendas de campaña, monte boscoso Bolivia",
+      "paises_probables": ["Bolivia"],
+      "lugares": ["Sacambaya, Cochabamba"],
+      "periodos_probables": ["T03"],
+      "años_probables": "junio-octubre 1928",
+      "ids_ucn_relevantes": [25, 41, 42, 43, 44, 45, 227, 235]
+    },
+    {
+      "descriptor": "arquitectura moderna asimétrica, fachada curva, casa racionalista, jardín, Santiago años 30",
+      "paises_probables": ["Chile"],
+      "lugares": ["Santiago", "Ñuñoa"],
+      "periodos_probables": ["T08", "T10"],
+      "años_probables": "1936-1937",
+      "ids_ucn_relevantes": [23]
+    },
+    {
+      "descriptor": "club de golf, piscina olímpica en construcción, edificio club social, cordillera nevada al fondo, cactus primer plano",
+      "paises_probables": ["Chile"],
+      "lugares": ["Las Condes, Santiago"],
+      "periodos_probables": ["T08"],
+      "años_probables": "c.1936",
+      "notas": "Club de Golf Los Leones, arqs. Browne y Valenzuela"
+    },
+    {
+      "descriptor": "hotel blanco moderno, lago patagónico, volcán nevado al fondo, arquitectura funcionalista",
+      "paises_probables": ["Chile"],
+      "lugares": ["Puerto Varas"],
+      "periodos_probables": ["T12"],
+      "años_probables": "c.1940",
+      "ids_ucn_relevantes": [69]
+    },
+    {
+      "descriptor": "plaza de armas, edificio institucional art déco, banderas chilenas, multitud, sur de Chile",
+      "paises_probables": ["Chile"],
+      "lugares": ["Osorno"],
+      "periodos_probables": ["T12"],
+      "años_probables": "c.1940"
+    },
+    {
+      "descriptor": "buque naval, rompehielos, aguas antárticas, hielo marino, flota chilena",
+      "paises_probables": ["Antártida", "Chile"],
+      "periodos_probables": ["T14", "T15"],
+      "años_probables": "1947-1949",
+      "ids_ucn_relevantes": [62, 141, 155, 156, 162]
+    },
+    {
+      "descriptor": "base antártica, construcción cabaña madera, marines chilenos, península antártica",
+      "paises_probables": ["Antártida"],
+      "lugares": ["Base O'Higgins"],
+      "periodos_probables": ["T14"],
+      "años_probables": "1947-1948",
+      "ids_ucn_relevantes": [141]
+    },
+    {
+      "descriptor": "pingüinos, glaciar costero, iceberg, fauna antártica, cielo austral despejado",
+      "paises_probables": ["Antártida"],
+      "periodos_probables": ["T14", "T15"],
+      "años_probables": "1947-1949"
+    },
+    {
+      "descriptor": "fotografía aérea, ciudad, industria ferroviaria, trama urbana vista desde avión, Santiago",
+      "paises_probables": ["Chile"],
+      "lugares": ["Santiago"],
+      "periodos_probables": ["T05"],
+      "años_probables": "c.1932",
+      "ids_ucn_relevantes": [51, 52]
+    },
+    {
+      "descriptor": "campos de hielo, glaciar visto desde avión anfibio, Patagonia aérea, ala de avión",
+      "paises_probables": ["Chile"],
+      "lugares": ["Campos de Hielo Norte/Sur"],
+      "periodos_probables": ["T06"],
+      "años_probables": "diciembre 1934 - febrero 1935",
+      "ids_ucn_relevantes": [128, 206]
+    },
+    {
+      "descriptor": "rascacielos art déco, Manhattan, New York, vista desde edificio, años 30",
+      "paises_probables": ["Estados Unidos"],
+      "lugares": ["Nueva York"],
+      "periodos_probables": ["T11"],
+      "años_probables": "1938"
+    },
+    {
+      "descriptor": "La Habana, Capitolio cubano, malecón, arquitectura neoclásica caribeña",
+      "paises_probables": ["Cuba"],
+      "lugares": ["La Habana"],
+      "periodos_probables": ["T11"],
+      "años_probables": "1938",
+      "ids_ucn_relevantes": [285]
+    },
+    {
+      "descriptor": "Canal de Panamá, esclusas, barco en tránsito, zona tropical",
+      "paises_probables": ["Panamá"],
+      "periodos_probables": ["T11"],
+      "años_probables": "1938",
+      "ids_ucn_relevantes": [285]
+    },
+    {
+      "descriptor": "torres del paine, patagonia, cuernos, lago, paisaje prístino",
+      "paises_probables": ["Chile"],
+      "lugares": ["Torres del Paine"],
+      "periodos_probables": ["T12"],
+      "años_probables": "c.1940-1959",
+      "ids_ucn_relevantes": [200]
+    },
+    {
+      "descriptor": "moai, Rapa Nui, Isla de Pascua, estatuas, plataformas ahu, océano pacífico",
+      "paises_probables": ["Chile"],
+      "lugares": ["Isla de Pascua / Rapa Nui"],
+      "periodos_probables": ["T19"],
+      "años_probables": "desconocido",
+      "ids_ucn_relevantes": [152, 303]
+    },
+    {
+      "descriptor": "Machu Picchu, ruinas incas, montañas andinas, niebla, Perú",
+      "paises_probables": ["Perú"],
+      "lugares": ["Machu Picchu"],
+      "periodos_probables": ["T21"],
+      "años_probables": "desconocido",
+      "ids_ucn_relevantes": [178]
+    },
+    {
+      "descriptor": "salitre, oficina salitrera, pampa nortina, instalaciones industriales desierto",
+      "paises_probables": ["Chile"],
+      "lugares": ["Norte Grande Chile"],
+      "periodos_probables": ["T05"],
+      "años_probables": "1929-1932",
+      "ids_ucn_relevantes": [78, 133]
+    },
+    {
+      "descriptor": "Chuquicamata, mina a rajo abierto, cobre, camiones, escala industrial",
+      "paises_probables": ["Chile"],
+      "lugares": ["Chuquicamata, Antofagasta"],
+      "periodos_probables": ["T05"],
+      "años_probables": "1929-1932",
+      "ids_ucn_relevantes": [193]
+    },
+    {
+      "descriptor": "fotografía en color, cristal, positivo color, paisaje satinado, tonos cálidos",
+      "paises_probables": ["Bolivia", "Chile"],
+      "periodos_probables": ["T03", "T09", "T12"],
+      "años_probables": "1936-1950",
+      "notas": "Solo 9 ítems en color en todo el archivo. Todos sobre soporte vidrio (GLASS). Muy útil para discriminar período.",
+      "ids_ucn_relevantes": [21, 49, 50, 57, 72, 73, 74, 75, 294]
+    },
+    {
+      "descriptor": "jungle yungas Bolivia, selva tropical, vegetación densa, ríos, zona cálida andina",
+      "paises_probables": ["Bolivia"],
+      "lugares": ["Challana (Loayza, La Paz)", "Río Beni"],
+      "periodos_probables": ["T03"],
+      "años_probables": "1925-1928",
+      "ids_ucn_relevantes": [130, 221, 222]
+    },
+    {
+      "descriptor": "chipaya, pueblo indígena altiplano, viviendas circulares, vestimenta tradicional, salar",
+      "paises_probables": ["Bolivia"],
+      "lugares": ["Chipaya, Oruro"],
+      "periodos_probables": ["T03"],
+      "años_probables": "1925-1928",
+      "ids_ucn_relevantes": [232]
+    },
+    {
+      "descriptor": "plataforma petrolera, pozo petróleo, Tierra del Fuego, instalaciones ENAP, paisaje austral",
+      "paises_probables": ["Chile"],
+      "lugares": ["Tierra del Fuego", "Magallanes"],
+      "periodos_probables": ["T12", "T18"],
+      "años_probables": "1940-1955",
+      "ids_ucn_relevantes": [282, 287],
+      "ids_memoria_chilena": ["MC0014212", "MC0014213", "MC0014214"]
+    },
+    {
+      "descriptor": "Araucanía, rostros mapuche, retratos etnográficos, ruca, campo sur de Chile",
+      "paises_probables": ["Chile"],
+      "lugares": ["Araucanía"],
+      "periodos_probables": ["T05"],
+      "años_probables": "1929-1940",
+      "ids_ucn_relevantes": [209]
+    }
+  ],
+
+  "discrepancias_entre_fuentes": [
+    {
+      "id": "D01",
+      "dato": "Lugar de nacimiento de Gerstmann",
+      "valor_principal": "San Petersburgo, Rusia",
+      "valores_alternativos": ["Viena, Austria (Dan Buck 2006 citado en SMB2021)", "Estonia o Lituania (Téllez2025)"],
+      "recomendacion_rag": "Usar San Petersburgo como valor principal. Indicar discrepancia."
+    },
+    {
+      "id": "D02",
+      "dato": "Gerstmann visitó el Chaco boliviano",
+      "fuente_que_niega": "Absi/Pavez2016: Chaco como región NO visitada",
+      "evidencia_contraria": "UCN_Excel: ítem ID:218, cajón 27, título 'PILCOMAYO' (100 positivos). El Pilcomayo atraviesa el Chaco boliviano.",
+      "recomendacion_rag": "Marcar como dato en revisión. El Excel es fuente primaria más directa.",
+      "confianza": "media"
+    },
+    {
+      "id": "D03",
+      "dato": "Expedición Fanck — participación de Gerstmann",
+      "evidencia_favor": ["Caja 'EXPEDICION FANCK' en inventario UCN (ID:203, 71 negativos)", "Arnold Fanck viajó a Chile en 1934 (confirmado)", "IAI Berlín tiene caja de 85 fotos de esa expedición"],
+      "evidencia_contra": "No hay documento que confirme directamente que Gerstmann participó",
+      "recomendacion_rag": "Inferencia plausible, NO hecho confirmado. Indicar nivel de confianza MEDIA.",
+      "confianza": "media"
+    },
+    {
+      "id": "D04",
+      "dato": "Ecuador en el archivo",
+      "fuente_que_no_menciona": "Ninguna fuente bibliográfica menciona Ecuador",
+      "evidencia_nueva": "UCN_Excel: ítem ID:211, cajón 26, título 'COLOMBIA - ECUADOR' (200 positivos)",
+      "recomendacion_rag": "Ecuador confirmado en el inventario UCN. Sin fecha.",
+      "confianza": "alta (existencia) / baja (fecha)"
+    },
+    {
+      "id": "D05",
+      "dato": "Chile en 110 cuadros es la tercera edición",
+      "fuente": "Catálogo Berlín: '3. Auflage, ca. 1960'",
+      "implicacion": "Existen al menos dos ediciones anteriores no identificadas.",
+      "recomendacion_rag": "Indicar que es 3a edición. Ediciones 1a y 2a son desconocidas.",
+      "confianza": "alta"
+    },
+    {
+      "id": "D06",
+      "dato": "Total de imágenes del archivo",
+      "valores": {
+        "UCN2025_oficial": "más de 47.000",
+        "Matus2021": "más de 35.000",
+        "UCN_Excel_suma": "57.954 (suma NEG+POS del inventario)",
+        "UCN_Matus_estimacion": "más de 30.000"
+      },
+      "recomendacion_rag": "Usar '47.000+' como cifra oficial más reciente. Las diferencias se deben a distintos criterios de conteo."
+    }
+  ]
+}

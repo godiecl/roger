@@ -29,11 +29,10 @@ class ChromaVectorStore(BaseVectorStore):
 
         self.collection_name = collection_name
 
-        # Initialize ChromaDB client
-        self.client = chromadb.Client(Settings(
-            chroma_db_impl="duckdb+parquet",
-            persist_directory=settings.chroma_persist_directory
-        ))
+        # Initialize ChromaDB client (1.x API)
+        self.client = chromadb.PersistentClient(
+            path=settings.chroma_persist_directory
+        )
         
         # Get or create collection
         self.collection = self.client.get_or_create_collection(

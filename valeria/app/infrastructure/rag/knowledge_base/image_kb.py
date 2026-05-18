@@ -8,7 +8,7 @@ import uuid
 
 from app.infrastructure.rag.knowledge_base.base_kb import BaseKnowledgeBase
 from app.infrastructure.rag.vector_stores.chroma_store import ChromaVectorStore
-from app.infrastructure.ai.embeddings.openai_embeddings import openai_embeddings
+from app.infrastructure.ai.embeddings.sentence_transformer_embeddings import sentence_transformer_embeddings
 
 
 class ImageKnowledgeBase(BaseKnowledgeBase):
@@ -16,7 +16,7 @@ class ImageKnowledgeBase(BaseKnowledgeBase):
     
     def __init__(self):
         self.vector_store = ChromaVectorStore("images")
-        self.embeddings = openai_embeddings
+        self.embeddings = sentence_transformer_embeddings
     
     async def add_document(self, document: Dict[str, Any]) -> str:
         """

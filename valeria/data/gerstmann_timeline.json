@@ -1,0 +1,394 @@
+[
+  {
+    "id": "T01",
+    "tipo": "biografia",
+    "titulo": "Nacimiento y formación",
+    "fecha_inicio": 1896,
+    "fecha_fin": 1923,
+    "paises": ["Rusia", "Alemania"],
+    "lugares": ["San Petersburgo", "Berlín"],
+    "actividad": "Nacimiento y formación académica. Estudia ingeniería electromecánica en la Universidad de Berlín.",
+    "fotografia": false,
+    "notas": "Lugar de nacimiento en disputa: San Petersburgo (fuente principal), Viena (fuente alternativa IAI), Estonia/Lituania (otra fuente). Usar San Petersburgo como principal.",
+    "confianza": "alta",
+    "fuentes": ["Matus2021", "SMB2021", "Téllez2025"]
+  },
+  {
+    "id": "T02",
+    "tipo": "viaje_instalacion",
+    "titulo": "Llegada a Sudamérica — Valdivia, Chile",
+    "fecha_inicio": 1924,
+    "fecha_fin": 1924,
+    "paises": ["Alemania", "Brasil", "Chile"],
+    "lugares": ["Hamburgo", "Santos (no desembarca)", "Valdivia", "Corral"],
+    "actividad": "Zarpa de Hamburgo en buque 'La Coruña'. Primer destino Santos, Brasil — no desembarca por inestabilidad política. Llega a Valdivia como ingeniero electromecánico de la Compañía Electro-Siderúrgica e Industrial de Valdivia.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Altos Hornos de Corral", "lugar": "Corral, Valdivia", "tipo": "álbum industrial", "notas": "Primera fotografía industrial conocida de Gerstmann en Chile"}
+    ],
+    "confianza": "alta",
+    "fuentes": ["SMB2021", "Matus2021", "AbsiPavez2016"]
+  },
+  {
+    "id": "T03",
+    "tipo": "residencia",
+    "titulo": "Residencia en Bolivia — Primera estancia",
+    "fecha_inicio": 1925,
+    "fecha_fin": 1928,
+    "fecha_inicio_exacta": "mayo 1925",
+    "paises": ["Bolivia"],
+    "lugares": ["La Paz", "Potosí", "Oruro", "Copacabana", "Tiahuanacu", "Challana", "Río Beni", "San Juan", "Sacambaya"],
+    "regiones_NO_visitadas": ["Tarija", "Chaco (dato en revisión, ver discrepancias)"],
+    "actividad": "Reside en Bolivia. Fotógrafo industrial contratado por Louis Soux y Mauricio Hochschild. Recorre el país documentando minería, paisajes, culturas.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Compañía Minera de Potosí", "fecha": "octubre 1925", "cajon_ucn": 27, "ids_ucn": [223, 224], "archivo_absi": "Caja 8"},
+      {"titulo": "Compañía Minera de Oruro", "fecha": "diciembre 1925", "cajon_ucn": 27, "ids_ucn": [219, 229], "archivo_absi": "Caja 11"},
+      {"titulo": "Mina Atoroma, Loayza", "fecha": "1927", "archivo_absi": "Caja 30"},
+      {"titulo": "Sacambaya", "fecha": "junio-octubre 1928", "cajon_ucn": 6, "ids_ucn": [25, 41, 42, 43, 44, 45], "notas": "Expedición Sacambaya Exploration Company"},
+      {"titulo": "Bolivia general", "cajon_ucn": 27, "notas": "Positivos: La Paz, Pilcomayo, Río Beni, Challana, Chipaya, Tiahuanacu, Copacabana, Potosí, Oruro"},
+      {"titulo": "Bolivia - Perú", "cajon_ucn": 21, "id_ucn": 134}
+    ],
+    "publicaciones": [
+      {"titulo": "Bolivia: 150 grabados en cobre", "año": 1928, "editorial": "Braun, París", "paginas": "22 S., 150 Taf., 1 Portr., 1 Kt.", "signatura_berlin": "Bol cd 136 [4]°"},
+      {"titulo": "National Geographic Magazine", "año": "febrero 1927", "notas": "5 fotografías en artículo de Stewart McMillan 'The Heart of Aymara Land'"}
+    ],
+    "confianza": "alta",
+    "fuentes": ["AbsiPavez2016", "SMB2021", "UCN_Excel"]
+  },
+  {
+    "id": "T04",
+    "tipo": "instalacion",
+    "titulo": "Instalación definitiva en Santiago",
+    "fecha_inicio": 1929,
+    "fecha_fin": 1929,
+    "paises": ["Chile"],
+    "lugares": ["Santiago"],
+    "actividad": "Regresa de Bolivia. Se instala en casa en Las Condes. Abre estudio fotográfico en Pasaje Matte, centro de Santiago (aprox. 1929-1950).",
+    "fotografia": true,
+    "confianza": "alta",
+    "fuentes": ["Téllez2025", "SMB2021"]
+  },
+  {
+    "id": "T05",
+    "tipo": "documentacion",
+    "titulo": "Documentación de Chile — Primer libro",
+    "fecha_inicio": 1929,
+    "fecha_fin": 1932,
+    "paises": ["Chile"],
+    "lugares": ["Santiago", "Valparaíso", "Norte Grande", "Antofagasta", "Chuquicamata", "Araucanía", "Sur de Chile", "Magallanes"],
+    "actividad": "Recorre Chile de norte a sur. Fotografía paisajes, ciudades, minería del norte, culturas. Fotografías aéreas de Santiago (~1932).",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Chile Aéreas — Santiago", "cajon_ucn": 8, "ids_ucn": [51, 52], "imgs": 83, "notas": "Vista aérea sector San Eugenio, Club Hípico, Colectivos, Yarur. Caja 10 foto 1.325 en catálogo Téllez."},
+      {"titulo": "Salitre norte Chile", "cajon_ucn": 21, "id_ucn": 133, "imgs": 206},
+      {"titulo": "Chile - Chuquicamata", "cajon_ucn": 19, "id_ucn": 193, "imgs": 100},
+      {"titulo": "Antofagasta", "cajon_ucn": 15, "id_ucn": 101, "imgs": 100},
+      {"titulo": "Araucanía Rostros", "cajon_ucn": 26, "id_ucn": 209, "imgs": 94}
+    ],
+    "publicaciones": [
+      {"titulo": "Chile: 280 grabados en cobre", "año": 1932, "editorial": "Braun, París", "idiomas": ["español", "alemán", "francés", "inglés"], "paginas": "66 S., 280 Ill.", "clasificacion_loc": "F3063", "signatura_berlin": "Chil cd 127 [4]°"}
+    ],
+    "confianza": "alta",
+    "fuentes": ["Téllez2025", "Rossetti2023", "SMB2021", "MemoriaChilena", "UCN_Excel"]
+  },
+  {
+    "id": "T06",
+    "tipo": "expedicion",
+    "titulo": "Expedición aérea Patagonia y Campos de Hielo",
+    "fecha_inicio": "diciembre 1934",
+    "fecha_fin": "febrero 1935",
+    "paises": ["Chile"],
+    "lugares": ["Puerto Montt", "Puerto Aysén", "Campos de Hielo Norte", "Campos de Hielo Sur", "Punta Arenas"],
+    "actividad": "Integra tripulación de expedición aérea de la Fuerza Aérea de Chile para explorar rutas comerciales en aviones anfibios.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Vuelo Patagonia", "cajon_ucn": 22, "id_ucn": 128, "imgs": 6},
+      {"titulo": "Vuelo Cordillera", "cajon_ucn": 26, "id_ucn": 206, "imgs": 19},
+      {"titulo": "Cerro Aconcagua y Laguna del Inca", "año": 1935, "id_memoria_chilena": "MC0014206"}
+    ],
+    "confianza": "alta",
+    "fuentes": ["Rossetti2023", "UCN_Excel"]
+  },
+  {
+    "id": "T07",
+    "tipo": "expedicion",
+    "titulo": "Expedición Fanck — Chile",
+    "fecha_inicio": 1934,
+    "fecha_fin": 1934,
+    "paises": ["Chile"],
+    "actividad": "Fotografías vinculadas a la expedición cinematográfica de Arnold Fanck a Chile para filmar 'Ein Robinson' (1940).",
+    "fotografia": true,
+    "series": [
+      {"titulo": "EXPEDICION FANCK", "cajon_ucn": 26, "id_ucn": 203, "imgs": 71, "color": "BW", "tipo": "CAJA"}
+    ],
+    "confianza": "media",
+    "notas_confianza": "La caja 'EXPEDICION FANCK' existe en el inventario UCN (ID:203, cajón 26, 71 negativos). Arnold Fanck (1889-1974) efectivamente viajó a Chile en 1934. El IAI Berlín tiene una caja separada de 85 fotos de esa expedición. Sin embargo, la participación directa de Gerstmann NO está confirmada documentalmente — es inferencia plausible por fechas y redes compartidas.",
+    "fuentes": ["UCN_Excel", "SMB2021", "IAI_Berlin_Fanck"]
+  },
+  {
+    "id": "T08",
+    "tipo": "encargo",
+    "titulo": "Club de Golf Los Leones — Santiago",
+    "fecha_inicio": 1936,
+    "fecha_fin": 1936,
+    "paises": ["Chile"],
+    "lugares": ["Las Condes, Santiago"],
+    "actividad": "Fotografía del Club de Golf Los Leones. Arquitectos Luis Browne y Manuel Valenzuela.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Club de Golf Los Leones", "archivo_tellez": "Cajas nº10 y 111, fotos 1.378, 1.379, 1.382, 1.384", "notas": "Exteriores con cordillera nevada, cactus en primer plano, piscina en construcción"}
+    ],
+    "confianza": "alta",
+    "fuentes": ["Téllez2025"]
+  },
+  {
+    "id": "T09",
+    "tipo": "viaje",
+    "titulo": "Segundo viaje a Bolivia — Fotografía industrial Hochschild",
+    "fecha_inicio": 1936,
+    "fecha_fin": 1936,
+    "paises": ["Bolivia"],
+    "lugares": ["Potosí", "Pulacayo", "Oruro", "Catavi", "Llallagua", "Atocha", "Tasna", "Telamayu", "Tupiza", "Araca (La Paz)"],
+    "actividad": "Fotografía industrial por encargo de Hochschild. Lleva además cámara de 16mm. Visita también campamentos Patiño e ingenios Aramayo.",
+    "fotografia": true,
+    "datacion_confirmada": "Calendario en oficina ingenieros Potosí + presencia presidente Tejada Sorzano con Toro y Peñaranda en Álbum 1, 1936.",
+    "series": [
+      {"titulo": "Compañía Minera Unificada Potosí", "archivo_absi": "Álbum 4"},
+      {"titulo": "Patiño Mines — Catavi y Llallagua", "archivo_absi": "Álbum 4"},
+      {"titulo": "Compañía Minera Huanchaca — Pulacayo", "archivo_absi": "Álbum 4"},
+      {"titulo": "Compañía Minera de Oruro — San José y Machacamarca", "archivo_absi": "Álbum 2"},
+      {"titulo": "Compañía Aramayo — Telamayu, Atocha, Tasna, Tupiza", "archivo_absi": "Álbums 4 y 7"},
+      {"titulo": "Cordillera Quimsacruz — Araca", "archivo_absi": "Álbum 7"}
+    ],
+    "confianza": "alta",
+    "fuentes": ["AbsiPavez2016", "UCN_Excel"]
+  },
+  {
+    "id": "T10",
+    "tipo": "encargo",
+    "titulo": "Casas Hasbún — Arquitectura moderna Santiago",
+    "fecha_inicio": 1937,
+    "fecha_fin": 1937,
+    "paises": ["Chile"],
+    "lugares": ["Ñuñoa, Santiago"],
+    "actividad": "Encargo de los arquitectos Fedorov y Jayme. Fotografías publicadas en revista Urbanismo y Arquitectura nº9.",
+    "fotografia": true,
+    "series": [
+      {
+        "titulo": "Casas Salvador y Salomón Hasbún",
+        "publicacion": "Urbanismo y Arquitectura, nº9, 1937, pp.10-13",
+        "ubicacion": "Av. José Domingo Cañas, Ñuñoa",
+        "formato_original": "ampliaciones 6,5×9 cm",
+        "copias": ["Cenfoto-UDP FC-000386", "Colección particular"]
+      }
+    ],
+    "confianza": "alta",
+    "fuentes": ["Téllez2025"]
+  },
+  {
+    "id": "T11",
+    "tipo": "viaje",
+    "titulo": "Viaje a Europa y Norteamérica",
+    "fecha_inicio": 1938,
+    "fecha_fin": 1938,
+    "paises": ["Chile", "Panamá", "Cuba", "Estados Unidos", "Europa"],
+    "lugares": ["Canal de Panamá", "La Habana", "Nueva York", "ciudades europeas"],
+    "actividad": "Primer viaje a Europa desde su llegada a Sudamérica.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Habana - Panamá", "cajon_ucn": 23, "id_ucn": 285, "imgs": 103},
+      {"titulo": "Europa", "cajon_ucn": 11, "id_ucn": 65, "imgs": 121, "tipo": "SOBRES", "notas": "Positivos 9x12"},
+      {"titulo": "Europa", "cajon_ucn": 12, "ids_ucn": [67, 68], "imgs": 413},
+      {"titulo": "Rockefeller Center Nueva York", "archivo_tellez": "Álbum Europa Reise 1938, hoja 3"}
+    ],
+    "confianza": "alta",
+    "fuentes": ["Téllez2025", "UCN_Excel"]
+  },
+  {
+    "id": "T12",
+    "tipo": "documentacion",
+    "titulo": "Documentación sur de Chile — Hotel Puerto Varas y Osorno",
+    "fecha_inicio": 1940,
+    "fecha_fin": 1940,
+    "paises": ["Chile"],
+    "lugares": ["Puerto Varas", "Osorno", "Lago Puyehue", "Laguna San Rafael", "Canal de Ofqui", "Magallanes"],
+    "actividad": "Varios viajes al sur. Fotografía arquitectura moderna regional, obras de infraestructura estatal, recursos naturales.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Hotel Puerto Varas", "cajon_ucn": 12, "id_ucn": 69, "imgs": 42, "archivo_tellez": "Álbum Chile nº5, fotos 26, 52, 56, 68"},
+      {"titulo": "Plaza de Armas Osorno", "archivo_tellez": "Álbum Chile nº5, hojas 68 y 69"},
+      {"titulo": "Lago Puyehue", "cajon_ucn": 23, "id_ucn": 280, "imgs": 19},
+      {"titulo": "Magallanes", "cajon_ucn": 23, "id_ucn": 291, "imgs": 3},
+      {"titulo": "Torres del Paine", "cajon_ucn": 26, "id_ucn": 200, "imgs": 46},
+      {"titulo": "Tierra del Fuego — Petróleo", "ids_memoria_chilena": ["MC0014212", "MC0014213", "MC0014214", "MC0014215", "MC0014216", "MC0014217", "MC0014218"]},
+      {"titulo": "Magallanes ganadería", "ids_memoria_chilena": ["MC0018210", "MC0018212"]}
+    ],
+    "confianza": "media-alta",
+    "fuentes": ["Téllez2025", "Rossetti2023", "MemoriaChilena", "UCN_Excel"]
+  },
+  {
+    "id": "T13",
+    "tipo": "encargo",
+    "titulo": "Club Deportivo Alemán — Santiago",
+    "fecha_inicio": 1940,
+    "fecha_fin": 1940,
+    "paises": ["Chile"],
+    "lugares": ["Providencia, Santiago"],
+    "actividad": "Fotografía del Gimnasio del Club Deportivo Alemán (Deutscher Sportverein Santiago). ~10 tomas.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Gimnasio Club Deportivo Alemán", "archivo_tellez": "Álbum Chile nº2, foto 308", "ubicacion": "Av. Holanda y Suecia, Las Lilas (hoy Eliodoro Yáñez), Providencia"}
+    ],
+    "confianza": "media",
+    "fuentes": ["Téllez2025"]
+  },
+  {
+    "id": "T14",
+    "tipo": "expedicion",
+    "titulo": "Segunda Campaña Antártica Chilena",
+    "fecha_inicio": "temporada 1947/48",
+    "fecha_fin": "temporada 1947/48",
+    "paises": ["Chile", "Antártida"],
+    "lugares": ["Península Antártica", "Islas Shetland del Sur", "Isla Rey Jorge", "Isla Decepción", "Base O'Higgins"],
+    "actividad": "Fotógrafo oficial. Documenta construcción de Base O'Higgins, bases rivales argentinas y británicas, actividades sociales, fauna antártica.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Chile - Antártida", "cajon_ucn": 17, "ids_ucn": [141, 155, 156, 162], "imgs_aprox": 402},
+      {"titulo": "Mapa Antártida", "cajon_ucn": 8, "id_ucn": 62, "imgs": 26}
+    ],
+    "publicaciones": [
+      {"titulo": "La antártica chilena: estudio de nuestros derechos", "autor": "Pinochet de la Barra, Oscar", "año": 1948, "editorial": "Ed. del Pacífico", "notas": "Fotografías de Gerstmann. Signatura Berlín: Chil sd 105 [8]°"}
+    ],
+    "exposicion": "Galería Dédalo, Santiago, 1948",
+    "confianza": "alta",
+    "fuentes": ["Rossetti2023", "Matus2021", "SMB2021", "UCN_Excel"]
+  },
+  {
+    "id": "T15",
+    "tipo": "expedicion",
+    "titulo": "Tercera Campaña Antártica Chilena",
+    "fecha_inicio": "temporada 1948/49",
+    "fecha_fin": "temporada 1948/49",
+    "paises": ["Chile", "Antártida"],
+    "actividad": "Fotógrafo oficial. Último viaje documentado a la Antártida.",
+    "fotografia": true,
+    "confianza": "alta",
+    "fuentes": ["Rossetti2023", "Matus2021"]
+  },
+  {
+    "id": "T16",
+    "tipo": "viaje",
+    "titulo": "Viaje a Colombia y Ecuador",
+    "fecha_inicio": 1949,
+    "fecha_fin": 1949,
+    "paises": ["Colombia", "Ecuador"],
+    "actividad": "Viaje fotográfico a Colombia y Ecuador.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Colombia", "cajon_ucn": 1, "ids_ucn": [1, 8, 10], "imgs_aprox": 4228, "notas": "Gran volumen de positivos"},
+      {"titulo": "Colombia - Ecuador", "cajon_ucn": 26, "id_ucn": 211, "imgs": 200},
+      {"titulo": "Colombia álbumes negativos", "cajon_ucn": 15, "ids_ucn": [79, 81, 85, 87, 97, 98, 100]},
+      {"titulo": "Colombia álbumes negativos cajón 17", "cajon_ucn": 17, "ids_ucn": [135, 143, 146, 149]}
+    ],
+    "publicaciones": [
+      {"titulo": "Colombia: 200 grabados en cobre", "año": 1951, "editorial": "Braun, París", "paginas": "33 S., [100] Bl., Ill., Kt.", "clasificacion_loc": "F2263", "signatura_berlin": "Col cd 103 [4]°"}
+    ],
+    "confianza": "alta",
+    "fuentes": ["SMB2021", "Matus2021", "UCN_Excel"]
+  },
+  {
+    "id": "T17",
+    "tipo": "encargo",
+    "titulo": "Hotel Turismo Antofagasta",
+    "fecha_inicio": 1953,
+    "fecha_fin": 1953,
+    "paises": ["Chile"],
+    "lugares": ["Antofagasta"],
+    "actividad": "Fotografías exteriores del Hotel Turismo recién inaugurado.",
+    "fotografia": true,
+    "confianza": "alta",
+    "fuentes": ["Téllez2025"]
+  },
+  {
+    "id": "T18",
+    "tipo": "encargo",
+    "titulo": "Encargos industriales — ENAP, IANSA, Hirmas",
+    "fecha_inicio": 1950,
+    "fecha_fin": 1960,
+    "paises": ["Chile"],
+    "lugares": ["Magallanes/Tierra del Fuego (ENAP)", "Linares (IANSA)", "Santiago (Hirmas)"],
+    "actividad": "Encargos fotográficos para empresas estatales e industriales chilenas.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "ENAP", "cajon_ucn": 23, "ids_ucn": [282, 287], "imgs": 114, "notas": "ENAP fundada 1950. Instalaciones petroleras Magallanes."},
+      {"titulo": "IANSA - Linares", "cajon_ucn": 23, "ids_ucn": [281, 286, 289], "imgs": 73, "notas": "Industria Azucarera Nacional S.A."},
+      {"titulo": "Algodones Hirmas", "cajon_ucn": 26, "id_ucn": 288, "imgs": 39, "notas": "Industria textil chilena."},
+      {"titulo": "Molino La Estampa", "cajon_ucn": 23, "id_ucn": 284, "imgs": 40}
+    ],
+    "confianza": "media",
+    "notas_confianza": "Fechas post-1950 inferidas por fundación de ENAP (1950). Sin fechas exactas en el inventario.",
+    "fuentes": ["UCN_Excel"]
+  },
+  {
+    "id": "T19",
+    "tipo": "viaje",
+    "titulo": "Visitas a Isla de Pascua / Rapa Nui",
+    "fecha_inicio": null,
+    "fecha_fin": null,
+    "paises": ["Chile"],
+    "lugares": ["Isla de Pascua / Rapa Nui"],
+    "actividad": "Dos o tres visitas documentadas.",
+    "fotografia": true,
+    "series": [
+      {"titulo": "Isla de Pascua", "cajon_ucn": 20, "id_ucn": 303, "imgs": 260, "tipo": "CAJA", "notas": "260 negativos"},
+      {"titulo": "Rapanui", "cajon_ucn": 17, "id_ucn": 152, "imgs": 100, "tipo": "ALBUM NEG"}
+    ],
+    "confianza": "alta (existencia) / baja (fechas)",
+    "notas_confianza": "El inventario UCN confirma material de Rapa Nui. UCN2025 menciona 2-3 visitas. Sin fechas en el inventario.",
+    "fuentes": ["UCN_Excel", "UCN2025"]
+  },
+  {
+    "id": "T20",
+    "tipo": "viaje",
+    "titulo": "Visita a Juan Fernández",
+    "fecha_inicio": null,
+    "fecha_fin": null,
+    "paises": ["Chile"],
+    "lugares": ["Archipiélago Juan Fernández"],
+    "fotografia": true,
+    "series": [
+      {"titulo": "Chile - JN Fernandez", "cajon_ucn": 19, "ids_ucn": [169, 179], "imgs": 199, "tipo": "ALBUM NEG"}
+    ],
+    "confianza": "alta (existencia) / baja (fecha)",
+    "fuentes": ["UCN_Excel"]
+  },
+  {
+    "id": "T21",
+    "tipo": "viaje",
+    "titulo": "Visita a Perú — Machu Picchu",
+    "fecha_inicio": null,
+    "fecha_fin": null,
+    "paises": ["Perú"],
+    "lugares": ["Machu Picchu"],
+    "fotografia": true,
+    "series": [
+      {"titulo": "Perú - Machupichu", "cajon_ucn": 19, "id_ucn": 178, "imgs": 100, "tipo": "ALBUM NEG"}
+    ],
+    "confianza": "alta (existencia) / baja (fecha)",
+    "fuentes": ["UCN_Excel"]
+  },
+  {
+    "id": "T22",
+    "tipo": "muerte_donacion",
+    "titulo": "Muerte y donación del archivo",
+    "fecha_inicio": "abril 1964",
+    "fecha_fin": "1964",
+    "paises": ["Chile"],
+    "lugares": ["Santiago", "Antofagasta"],
+    "actividad": "Fallece en Santiago. Sus amigos Luis Peña Guzmán y Hans Niemeyer Fernández empacan el archivo y lo envían a la UCN en Antofagasta.",
+    "fotografia": false,
+    "confianza": "alta",
+    "fuentes": ["Matus2021", "UCN2025"]
+  }
+]

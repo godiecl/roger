@@ -1,0 +1,312 @@
+================================================================================
+FUENTES DEL RAG — FONDO ROBERTO GERSTMANN
+Proyecto: Fechado y contextualización de fotografías mediante RAG + CLIP
+Archivo: Fondo Gerstmann, Biblioteca UCN, Antofagasta
+Versión: mayo 2025
+================================================================================
+
+Este documento lista todas las fuentes utilizadas para construir la línea de tiempo
+geoespacial, el inventario del archivo UCN y los descriptores visuales para CLIP.
+Está pensado para que investigadores puedan verificar, corregir o ampliar el RAG.
+
+Los JSONs del proyecto son:
+  gerstmann_01_timeline.json       — Línea de tiempo geoespacial (22 períodos)
+  gerstmann_02_inventario_ucn.json — Inventario físico UCN cajón por cajón
+  gerstmann_03_descriptores_clip.json — Descriptores visuales + discrepancias
+
+================================================================================
+FUENTES PRIMARIAS (máxima confianza)
+================================================================================
+
+[UCN_Excel]
+coleccion.xlsx
+Inventario oficial del Fondo Gerstmann, Biblioteca UCN, Antofagasta.
+Proporcionado directamente por personal de la institución (2024/2025).
+297 ítems catalogados. Fuente de mayor granularidad física disponible.
+Contacto archivo: https://bibliotecas.ucn.cl/
+NOTA: Fuente interna — no disponible en línea públicamente.
+
+---
+
+[FondoGerstmann_UCN]
+Fondo Gerstmann — Biblioteca Universidad Católica del Norte, Antofagasta.
+Acceso presencial. Contiene más de 47.000 imágenes, cámaras, biblioteca
+personal (~3.000 volúmenes en 6 idiomas) y laboratorio fotográfico.
+La colección de negativos 35mm (1.113 rollos, 1936-1963) fue catalogada
+por Mauricio Matus en su tesis doctoral (2021).
+https://bibliotecas.ucn.cl/
+
+================================================================================
+FUENTES ACADÉMICAS PEER-REVIEWED (alta confianza)
+================================================================================
+
+[Téllez2025]
+Téllez Tavera, Andrés.
+"Roberto M. Gerstmann. Fotografía de arquitectura moderna entre
+pictorialismo y objetividad."
+AISTHESIS, Nº77 (2025): 404-422.
+ISSN: 0718-7181
+DOI: https://doi.org/10.7764/Aisth.77.19
+Instituto Interdisciplinario de Estética, PUC Chile.
+Recibido: 18/10/2022 | Aceptado: 18/10/2024
+PDF LOCAL: 54529-Texto_del_artículo-293712-1-10-20250703.pdf
+APORTA: fechas exactas encargos arquitectónicos, números de caja/álbum/foto UCN,
+        identificadores Cenfoto-UDP, datos biográficos confirmados.
+
+---
+
+[Rossetti2023]
+Rossetti, Fulvio.
+"Imaginar un País Antártico. Robert Gerstmann, fotografía y paisajes
+de la Antártica chilena. 1932-1959."
+Revista Historia y Patrimonio, Nº3 (diciembre 2023): 1-26.
+FAU Universidad de Chile.
+DOI: https://doi.org/10.5354/2810-6245.2023.71948
+Financiamiento: Fondecyt Postdoctorado + INACH Folio Nº3190203
+Enviado: 10/09/2023 | Aceptado: 13/11/2023
+PDF LOCAL: _RHP03_ROSSETTI_CORR-2.pdf
+APORTA: expedición aérea 1934-35, campañas antárticas 1947/48 y 1948/49,
+        análisis comparativo Chile 280 grabados (1932) vs Chile 235 cuadros (1959).
+
+---
+
+[Miranda2009]
+Miranda, Pedro.
+"Roberto Gerstmann: El pasado en blanco y negro."
+[Reseña de: Alvarado, Matthews y Möller (eds.), Roberto Gerstmann.
+Fotografías, paisajes y territorios latinoamericanos. Pehuén, 2009]
+Chungará. Revista de Antropología Chilena, Vol.41, Nº2 (2009): 317-318.
+ISSN impreso: 0716-1182 | ISSN online: 0717-7356
+DOI: https://doi.org/10.4067/S0717-73562009000200013
+SciELO: https://www.scielo.cl/scielo.php?script=sci_arttext&pid=S0717-73562009000200013
+ResearchGate: https://www.researchgate.net/publication/262618446
+NOTA ACCESO: SciELO bloquea web crawlers. Texto completo proporcionado por usuario.
+PDF LOCAL: texto suministrado directamente por usuario UCN.
+APORTA: reseña del libro de 2009, referencia a fotografía Iglesia Los Dominicos 1924.
+
+================================================================================
+LIBROS ACADÉMICOS (alta confianza)
+================================================================================
+
+[AbsiPavez2016]
+Absi, Pascale y Pavez, Jorge (eds.).
+Imágenes de la revolución industrial: Robert Gerstmann en las minas
+de Bolivia (1925-1936).
+La Paz: Plural Editores, 2016. 383 p.
+HAL Open Science: https://ird.hal.science/ird-01467474v1
+PDF LOCAL: Introduction_Gerstmann.pdf (introducción e índice)
+APORTA: fechas exactas series mineras Bolivia, números de cajas y álbumes del
+        archivo boliviano (Cajas 8, 11, 30; Álbumes 2, 4, 7), expedición
+        Sacambaya 1928, retorno 1936, regiones visitadas/no visitadas en Bolivia.
+
+---
+
+[AlvaradoEtAl2009]
+Alvarado, Margarita; Matthews, Mariana; Möller, Carla (eds.).
+Roberto Gerstmann. Fotografías, paisajes y territorios latinoamericanos.
+Santiago: Pehuén Editores, 2009. 179 p. + il. 29 cm.
+ISBN: 978-956-16-0465-0
+Serie: Colección Relatos del ojo y la cámara nº4; Biblioteca bicentenario nº59.
+NOTA: No disponible en línea. Fuente primaria más citada sobre Gerstmann.
+      Contiene artículo biográfico de Carolina Odone (pp.15-22) y textos de
+      Margarita Alvarado, Carla Möller y Mariana Matthews.
+SIGNATURA BERLÍN: B 13/2519 (Staatsbibliothek zu Berlin)
+
+================================================================================
+TESIS ACADÉMICA (alta confianza)
+================================================================================
+
+[Matus2021]
+Matus Barraza, Mauricio.
+"La Última Fotografía de Roberto Gerstmann. Reflexión Documental."
+Tesis de Magíster en Cine Documental.
+Universidad de Chile, 11 de enero de 2021.
+PDF LOCAL: Tesis_-_la-ultima-foto-de-roberto-gerstmann.pdf
+Documental presentado UCN julio 2025:
+https://www.ucn.cl/comunicaciones-ucn/noticias/documental-sobre-legado-de-roberto-gerstmann-fue-presentado-en-la-ucn/
+APORTA: estructura completa 35mm (11 cajas, 1.113 rollos, 1936-1963), detalle
+        caja 11 (42 rollos, episodios 1072-1113), fecha muerte abril 1964,
+        clasificación física completa del archivo, estimación 35.000+ imágenes.
+
+================================================================================
+REGISTROS DE AUTORIDAD Y CATÁLOGOS (alta confianza)
+================================================================================
+
+[SMB2021]
+Staatliche Museen zu Berlin / museum-digital.
+"Robert Gerstmann (1896-1964)."
+Registro de autoridad. Actualizado: 12.08.2021 | GND registrado: 29.08.2019.
+URL: https://smb.museum-digital.de/people/56820
+GND: http://d-nb.info/gnd/127524711
+VIAF: https://viaf.org/viaf/35481033
+LOC (Library of Congress): http://id.loc.gov/authorities/names/nr97038757
+Wikidata: https://www.wikidata.org/entity/Q86738837
+APORTA: identificadores de autoridad internacionales, confirmación zarpe Hamburgo
+        buque 'La Coruña' 1924, publicaciones confirmadas con fechas y ediciones,
+        fotografías en National Geographic febrero 1927.
+
+---
+
+[Opac_Berlin]
+Staatsbibliothek zu Berlin — Preussischer Kulturbesitz.
+Catálogo en línea. Registro PPN 383525780.
+URL: https://opac.spk-berlin.de/DB=1/FKT=5025/FRM=PPN%2B%2B623453428%2B/IMPLAND=Y/LNG=DU/LRSET=1/SET=1/SID=7c9ca1a9-0/SRT=YOP/TTL=1/MAT=/NOMAT=T/REL?PPN=383525780
+Datos suministrados por usuario.
+APORTA: confirmación ediciones y datos bibliográficos exactos de todos los libros
+        de Gerstmann, signaturas de colección, clasificaciones LOC y Dewey.
+        IMPORTANTE: Chile en 110 cuadros es la 3a edición (implica 2 ediciones previas).
+        Bolivia 150 grabados: edición original 1928 (Braun, París) + reprint 1996.
+
+---
+
+[IAI_Berlin]
+Ibero-Amerikanisches Institut, Berlín.
+Nachlass Robert Gerstmann. Signatura N-0102.
+Teilnachlass (legado parcial). Ordenado por Gudrun Schumacher, 2010.
+NOTA: Legado INDEPENDIENTE del Fondo UCN Antofagasta.
+      Contiene ~25 fotos BN + 4 impresiones de Chile, c.1935.
+      Inscripciones manuscritas en ALEMÁN en el reverso.
+      Acceso solo en sala de lectura (Nachlass: Auskunft fragen).
+URL IAI: https://www.iai.spk-berlin.de/
+ENTRADA FANCK: https://www.iai.spk-berlin.de/en/collections/about-the-special-collections/image-archive/material/fanck-filmexpedition.html
+(85 fotos BN viaje Arnold Fanck a Chile, 1934. Misma institución que tiene el legado Gerstmann.)
+
+---
+
+[MemoriaChilena]
+Biblioteca Nacional de Chile. "Gerstmann, Robert M." Memoria Chilena.
+URL: https://www.memoriachilena.gob.cl/602/w3-propertyvalue-166946.html
+APORTA: fotografías digitalizadas con identificadores MC:
+  MC0014206 — Cerro Aconcagua y Laguna del Inca, 1935
+  MC0014212 — Sondajes petrolíferos Tres Puentes, Magallanes, c.1940
+  MC0014213 — Campamento petrolero Tierra del Fuego, 1940
+  MC0014214 a MC0014218 — Plataformas petroleras Tierra del Fuego, c.1940-45
+  MC0018210 — Ovejas estancia Laguna Azul, Magallanes, c.1940
+  MC0018212 — Secadero de carne Puerto Bories, Magallanes, 1940
+  MC0039784 — Vista de Santiago, c.1960
+  MC0053237 — Universidad de Concepción, 1940
+
+---
+
+[UCN2025]
+Universidad Católica del Norte.
+"Documental sobre legado de Roberto Gerstmann fue presentado en la UCN."
+Comunicado institucional, 11 de julio de 2025.
+URL: https://www.ucn.cl/comunicaciones-ucn/noticias/documental-sobre-legado-de-roberto-gerstmann-fue-presentado-en-la-ucn/
+APORTA: cifra oficial actualizada 47.000+ imágenes, confirmación donación 1964,
+        2-3 visitas a Isla de Pascua, visita a Juan Fernández, fotografías Perú y Bolivia.
+
+================================================================================
+FUENTE AUDIOVISUAL (confianza media-alta)
+================================================================================
+
+[AntropologiaVisual]
+"Robert Gerstmann: Chile visión en colores."
+Revista Antropología Visual, Edición Nº7.
+URL: https://www.antropologiavisual.cl/edicion/numero-7/videos/robert-gerstmann-chile-vision-en-colores
+Investigador: Claudio Mercado | Restauradora: Carmen Brito
+Proyecto: Fundación Andes + Chilefilms
+APORTA: 29 latas 16mm depositadas en Instituto Le Paige, San Pedro de Atacama
+        (SEPARADAS del fondo UCN). Solo 12 digitalizadas a DV-CAM.
+        Contenido confirmado: "Chile, visión en colores" + Bolivia + Colombia.
+        Fragmento público: fiesta de Andacollo.
+
+================================================================================
+FUENTE SOBRE EXPEDICIÓN FANCK (confianza media — inferencia)
+================================================================================
+
+[IAI_Fanck]
+IAI Berlín. "Fanck film expedition."
+URL: https://www.iai.spk-berlin.de/en/collections/about-the-special-collections/image-archive/material/fanck-filmexpedition.html
+Arnold Fanck (1889-1974) viajó a Chile en 1934 para filmar "Ein Robinson" (1940).
+El IAI tiene una caja de 85 fotos BN de esa expedición en la MISMA institución
+que custodia el Nachlass Gerstmann.
+El inventario UCN tiene ítem "EXPEDICION FANCK" (cajón 26, ID:203, 71 negativos).
+ESTADO: Conexión plausible, NO confirmada documentalmente.
+        La participación directa de Gerstmann en la expedición Fanck no está
+        probada con documentación primaria. Requiere investigación adicional.
+
+================================================================================
+DISCREPANCIAS DOCUMENTADAS (leer antes de usar el RAG)
+================================================================================
+
+D01 — Lugar de nacimiento
+  Principal: San Petersburgo, Rusia (Odone/Absi, fuente más citada)
+  Alternativa: Viena, Austria (Dan Buck 2006, vía SMB2021)
+  Alternativa: Estonia o Lituania (Téllez2025)
+
+D02 — Visita al Chaco boliviano
+  Absi/Pavez2016 lo marca como región NO visitada.
+  UCN_Excel tiene ítem "PILCOMAYO" (100 positivos), río que atraviesa el Chaco.
+  → El inventario primario contradice la fuente bibliográfica.
+
+D03 — Participación en Expedición Fanck (1934)
+  Plausible por coincidencia temporal y geográfica, pero NO confirmada.
+  → Marcar siempre con nivel de confianza MEDIA.
+
+D04 — Ecuador en el archivo
+  No mencionado en ninguna fuente bibliográfica.
+  UCN_Excel tiene "COLOMBIA - ECUADOR" (200 positivos).
+  → Ecuador confirmado en inventario, sin fecha conocida.
+
+D05 — Chile en 110 cuadros: edición
+  Es la TERCERA edición (catálogo Berlín). Implica ediciones 1a y 2a desconocidas.
+
+D06 — Total de imágenes
+  UCN2025 oficial: 47.000+
+  Matus2021: 35.000+
+  Excel UCN (suma NEG+POS): 57.954
+  → Usar 47.000+ como cifra oficial. Diferencias por criterio de conteo.
+
+================================================================================
+FUENTES PENDIENTES DE REVISAR (podrían mejorar el RAG)
+================================================================================
+
+[Odone2009]
+Odone, Carolina.
+"En sus ojos de vidrio pulido, primero la apertura, después la forma:
+El viaje de Roberto M. Gerstmann (1896-1964)."
+En: Alvarado et al. (eds.), Roberto Gerstmann. Fotografías, paisajes y
+territorios latinoamericanos. Santiago: Pehuén, 2009. pp. 15-22.
+→ Fuente biográfica primaria más citada. Acceso presencial o biblioteca.
+
+[Moller2009]
+Möller, Carla.
+"Roberto Gerstmann (1896-1964). Del tiempo, la distancia y otros espacios."
+En: Alvarado et al. (eds.), Roberto Gerstmann... Pehuén, 2009.
+→ Análisis del carácter documental del archivo.
+
+[PavezOjeda_en_AbsiPavez2016]
+Pavez Ojeda, Jorge.
+"De la técnica, la naturaleza y los pueblos en el archivo fotográfico
+de Robert Gerstmann: imaginarios de Chile y Bolivia (1920-1950)."
+En: Absi y Pavez (eds.), Imágenes de la revolución industrial. 2016. pp. 21-46.
+→ Análisis del imaginario completo Chile-Bolivia en el archivo.
+
+[Alvarado2009_Chungara]
+Alvarado, Margarita y Matthews, Mariana.
+"Roberto M. Gerstmann y Antonio Quintana Contreras: Estética y fotografía
+de los indígenas del Norte Grande."
+Referenciado en ResearchGate: https://www.researchgate.net/publication/238457203
+→ Análisis comparativo con otro fotógrafo del período.
+
+[Catalogo_UCN_detallado]
+Catálogos internos de álbumes y cajas UCN con número de foto individual.
+→ Para fechado granular de fotografías específicas: acceso presencial en
+  Biblioteca UCN, Antofagasta. Contacto: https://bibliotecas.ucn.cl/
+
+================================================================================
+CÓMO CONTRIBUIR A ESTE RAG
+================================================================================
+
+Si encuentras errores, tienes acceso a fuentes adicionales o puedes confirmar
+alguna de las discrepancias documentadas, las áreas de mayor prioridad son:
+
+1. Confirmar/desmentir participación de Gerstmann en Expedición Fanck (1934)
+2. Fechar los ítems sin fecha: Rapa Nui, Juan Fernández, Perú, Ecuador
+3. Identificar las ediciones 1a y 2a de "Chile en 110 cuadros"
+4. Revisar el Nachlass del IAI Berlín (N-0102) para cruzar con UCN
+5. Digitalizar las 17 latas de 16mm restantes en San Pedro de Atacama
+6. Acceder al artículo biográfico de Odone (2009) para datos de vida personal
+
+================================================================================
