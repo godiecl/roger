@@ -12,7 +12,7 @@ FROM node:${NODE_VERSION}-alpine AS builder
 ARG NPM_VERSION
 
 # Set environment variable for build
-ENV VITE_API_URL=/api/v1
+ENV VITE_API_URL=https://valeria.disc.cl/api/v1
 ENV VITE_APP_NAME=Roger
 ENV VITE_APP_DESCRIPTION="Roger: Robert Gerstmann's Repository"
 ENV VITE_ENABLE_SEMANTIC_SEARCH=true
