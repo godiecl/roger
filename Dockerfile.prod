@@ -1,0 +1,152 @@
+# =============================================================================
+# ROGER — Dockerfile de PRODUCCIÓN (backend + frontend)
+#
+# Basado en la estructura del Dockerfile de main (ya validada en producción),
+# con tres adiciones específicas de hardening para prod:
+#   - Usuario no-root en cada imagen.
+#   - HEALTHCHECK explícito para que docker compose pueda esperar a "healthy".
+#   - Pip y npm sin caché, sin progreso interactivo, sin permisos de root.
+#
+# Convive con el Dockerfile actual (dev). Para usarlo:
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod build
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+#
+# REQUISITOS ANTES DEL PRIMER BUILD:
+#
+#   1. Crear el .env.prod en la raíz copiando .env.prod.example y completar:
+#        SECRET_KEY        — openssl rand -hex 32
+#        GROQ_API_KEY      — clave del proveedor LLM
+#        SMTP_USER/PASSWORD — correo UCN
+#        FRONTEND_URL      — https://<dominio_real>
+#        REDIS_PASSWORD    — generar uno fuerte
+#        QDRANT_API_KEY    — opcional, recomendado si Qdrant queda expuesto
+#
+#   2. Que leila/package-lock.json esté commiteado al día (npm ci lo exige).
+#
+# CREAR USUARIO ADMINISTRADOR (una sola vez, contenedores corriendo):
+#   docker compose -f docker-compose.prod.yml exec valeria python scripts/create_admin.py
+#
+# Las migraciones Alembic se aplican automáticamente al arrancar valeria
+# (entrypoint.sh ya lo hace; no se necesita un servicio aparte).
+# =============================================================================
+
+
+# ─────────────────────────────────────────────────────────────
+# LEILA — Frontend SvelteKit (Node / adapter-node)
+# Dos stages: builder (npm ci + build) + runtime (solo build + prod deps).
+# Igual a la estructura de main, salvo el usuario no-root al final.
+# ─────────────────────────────────────────────────────────────
+
+FROM node:20-alpine AS leila-builder
+
+WORKDIR /app
+
+# Capa cacheable: solo lockfile primero. Si no cambian las deps, no se reinstalan.
+COPY leila/package*.json ./
+RUN npm ci --no-audit --no-fund
+
+# Resto del código (cambia más frecuentemente que las deps)
+COPY leila/ .
+
+# Variables que se hornean en el bundle Vite (build-time, NO runtime).
+# El default /api/v1 deja que nginx haga el proxy al backend interno.
+ARG VITE_API_URL=/api/v1
+ARG VITE_APP_NAME=ROGER
+ARG VITE_APP_DESCRIPTION=Archivo Robert Gerstmann
+ARG VITE_ENABLE_SEMANTIC_SEARCH=true
+ARG VITE_ENABLE_AI_NARRATIVES=true
+
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_APP_NAME=$VITE_APP_NAME \
+    VITE_APP_DESCRIPTION=$VITE_APP_DESCRIPTION \
+    VITE_ENABLE_SEMANTIC_SEARCH=$VITE_ENABLE_SEMANTIC_SEARCH \
+    VITE_ENABLE_AI_NARRATIVES=$VITE_ENABLE_AI_NARRATIVES
+
+RUN npm run build
+
+
+FROM node:20-alpine AS leila
+
+WORKDIR /app
+
+# Crear usuario no-root antes de copiar nada.
+# El UID 10001 evita choques con UIDs del host.
+RUN addgroup -S -g 10001 leila && adduser -S -u 10001 -G leila leila
+
+# Solo el output del build y el lockfile — sin código fuente ni dev deps.
+COPY --from=leila-builder --chown=leila:leila /app/build ./build
+COPY --from=leila-builder --chown=leila:leila /app/package*.json ./
+
+# Solo deps de runtime (sin --include=dev). --omit=dev es el flag canónico en npm v8+.
+RUN npm ci --omit=dev --no-audit --no-fund
+
+USER leila
+
+EXPOSE 3000
+ENV PORT=3000 HOST=0.0.0.0 NODE_ENV=production
+
+# Healthcheck simple: pega contra la raíz. SvelteKit responde 200 ahí.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget -qO- http://localhost:3000/ >/dev/null || exit 1
+
+CMD ["node", "build/index.js"]
+
+
+# ─────────────────────────────────────────────────────────────
+# VALERIA — Backend FastAPI (Python 3.13)
+# Single-stage como en main (validado en prod). El gcc no se necesita porque
+# las wheels de pypi cubren Python 3.13 para todas las deps del requirements.
+# Si en el futuro se agrega una lib que requiera compilación, separar en dos
+# stages (builder con gcc + runtime sin) como hace DLeon96 para no inflar la
+# imagen final.
+# ─────────────────────────────────────────────────────────────
+
+FROM python:3.13-slim AS valeria
+
+# Variables pip que evitan ruido y archivos inútiles en la imagen final.
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+WORKDIR /app
+
+# Deps de sistema mínimas:
+#   - libimage-exiftool-perl: usado por el extractor de metadatos técnicos.
+#   - curl: lo usa el HEALTHCHECK (más liviano que importar Python para esto).
+# Sin gcc — todas las wheels resuelven precompiladas en Python 3.13.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libimage-exiftool-perl \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar deps de Python primero (capa cacheable).
+COPY valeria/requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copiar el código DESPUÉS para que cambios al código no invaliden el cache de pip.
+COPY valeria/ .
+
+# Crear carpetas de runtime y usuario no-root.
+# /app/data → SQLite | /app/storage → imágenes | /app/uploads → temporales | /app/logs.
+RUN mkdir -p /app/data /app/storage/images /app/uploads /app/logs \
+    && chmod +x entrypoint.prod.sh \
+    && addgroup --system --gid 10001 valeria \
+    && adduser  --system --uid 10001 --ingroup valeria valeria \
+    && chown -R valeria:valeria /app
+
+USER valeria
+
+EXPOSE 8000
+
+# Healthcheck usa el endpoint /health del propio app. Si /health no existe en
+# tu deploy, cambiar por /api/v1/docs o un endpoint que responda 200.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -fsS http://localhost:8000/health >/dev/null || exit 1
+
+# entrypoint.prod.sh aplica `alembic upgrade head` y arranca uvicorn con workers,
+# --proxy-headers (para detectar HTTPS detrás de nginx) y sin --reload.
+# Configurable vía UVICORN_WORKERS / UVICORN_PORT (ver .env.prod.example).
+ENTRYPOINT ["./entrypoint.prod.sh"]

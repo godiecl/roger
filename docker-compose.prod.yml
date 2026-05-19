@@ -1,0 +1,245 @@
+# =============================================================================
+# ROGER — docker-compose de PRODUCCIÓN
+#
+# Basado en docker-compose.yml de la rama main (ya en prod) con estas adiciones:
+#   - Servicio redis con healthcheck y password obligatorio
+#   - Servicio qdrant con healthcheck y API key (nuevo — reemplaza ChromaDB embebido)
+#   - Recursos limitados (CPU/RAM) para evitar OOM del host
+#   - Logging rotativo (json-file con max-size) — sin esto los logs crecen sin tope
+#   - Networks separadas: edge (público) e internal (servicios)
+#
+# BD relacional: SQLite (decisión actual del proyecto). Si en el futuro se migra a
+# Postgres, agregar un servicio `postgres` aquí y cambiar DATABASE_URL en .env.prod.
+#
+# Vector store: Qdrant. ChromaDB embebido sigue funcionando (no se ha removido
+# del código), pero por default este compose levanta Qdrant. El toggle vive en
+# VECTOR_STORE_PROVIDER del .env.prod — ver README de vector_stores/.
+#
+# USO:
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod ps
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f valeria
+#
+# =============================================================================
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Redis — cache de narrativas, embeddings, rate limiting
+  # Sin acceso desde fuera del compose. Password obligatorio.
+  # ─────────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD requerido en .env.prod}
+      --save 60 1
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+    logging: *default-logging
+
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Qdrant — vector store para los KB del RAG
+  # Datos persistentes en volumen nombrado. API key obligatoria.
+  # Sin exponer puertos al host: solo accesible desde la red `internal`.
+  # ─────────────────────────────────────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    restart: unless-stopped
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?QDRANT_API_KEY requerido en .env.prod}
+      QDRANT__LOG_LEVEL: INFO
+      QDRANT__STORAGE__OPTIMIZERS__DEFAULT_SEGMENT_NUMBER: 2
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - internal
+    healthcheck:
+      # /readyz responde 200 cuando los segmentos están cargados.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    logging: *default-logging
+
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Valeria — backend FastAPI
+  # entrypoint.prod.sh aplica migraciones Alembic y arranca uvicorn con workers.
+  # ─────────────────────────────────────────────────────────────────────────
+  valeria:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: valeria
+    image: roger/valeria:prod
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    environment:
+      # Core
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY requerido en .env.prod}
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:////app/data/valeria.db}
+      DEBUG: "false"
+
+      # Uvicorn — leído por entrypoint.prod.sh
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-4}
+
+      # LLM provider
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+      # Redis
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      # Vector store — apunta al servicio qdrant de esta red interna
+      VECTOR_STORE_PROVIDER: ${VECTOR_STORE_PROVIDER:-qdrant}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_API_KEY: ${QDRANT_API_KEY}
+
+      # Analizadores de taxonomía (default stub para no requerir GPU)
+      ATTR02_ANALYZER: ${ATTR02_ANALYZER:-stub}
+      ATTR03_ANALYZER: ${ATTR03_ANALYZER:-stub}
+      ATTR04_ANALYZER: ${ATTR04_ANALYZER:-stub}
+
+      # Email
+      SMTP_HOST: ${SMTP_HOST:-smtp.office365.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+
+      # Frontend
+      FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL requerido en .env.prod}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+    volumes:
+      # Datos persistentes del host (NO en volumen nombrado: el operador necesita
+      # acceso directo para backups con scripts/backup.sh).
+      - ./data:/app/data
+      - ./storage:/app/storage
+      - ./logs:/app/logs
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 45s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1500M
+    logging: *default-logging
+
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Leila — frontend SvelteKit (adapter-node)
+  # No publica puertos: nginx hace el proxy hacia leila:3000.
+  # ─────────────────────────────────────────────────────────────────────────
+  leila:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: leila
+    image: roger/leila:prod
+    restart: unless-stopped
+    depends_on:
+      valeria:
+        condition: service_healthy
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    logging: *default-logging
+
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Nginx — reverse proxy y terminación TLS
+  # Único servicio expuesto al exterior (puertos 80/443).
+  # ─────────────────────────────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./storage:/app/storage:ro          # nginx sirve /storage directo
+      - ${TLS_CERT_DIR:-/etc/roger/certs}:/etc/nginx/certs:ro
+    depends_on:
+      valeria:
+        condition: service_healthy
+      leila:
+        condition: service_started
+    networks:
+      - edge
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging: *default-logging
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Volúmenes — datos persistentes que sobreviven a `docker compose down`
+# ─────────────────────────────────────────────────────────────────────────
+volumes:
+  redis_data:
+    name: roger_redis_data
+  qdrant_data:
+    name: roger_qdrant_data
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Networks — `edge` solo para nginx hacia fuera; `internal` aísla el resto.
+# Qdrant, redis y valeria nunca son accesibles desde el host directamente.
+# ─────────────────────────────────────────────────────────────────────────
+networks:
+  edge:
+    name: roger_edge
+  internal:
+    name: roger_internal
+    internal: false   # internal:true rompería el LLM provider (Groq/OpenAI)
