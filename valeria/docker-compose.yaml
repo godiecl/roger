@@ -13,7 +13,7 @@ services:
     expose:
       - 8000
     volumes:
-      - ./.env.release:ro:/app/.env
+      - ./.env.release:/app/.env:ro
     restart: unless-stopped
 
 networks:
