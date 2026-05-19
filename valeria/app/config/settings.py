@@ -137,6 +137,10 @@ class Settings(BaseSettings):
     # ===================================
     # VECTOR DATABASE
     # ===================================
+    vector_store_provider: str = Field(
+        default="chroma",
+        alias="VECTOR_STORE_PROVIDER",
+    )  # "chroma" (dev/MVP) | "qdrant" (prod)
     chroma_persist_directory: str = Field(
         default="./chroma_db",
         alias="CHROMA_PERSIST_DIRECTORY"

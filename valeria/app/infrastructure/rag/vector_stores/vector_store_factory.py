@@ -1,38 +1,51 @@
 """
-Vector store factory for ROGER - Valeria API
-"""
+Vector store factory for ROGER - Valeria API.
 
+El proveedor se decide en este orden:
+  1. Parámetro `store_type` si se pasa explícito (tests, scripts puntuales).
+  2. settings.vector_store_provider — leído del env VECTOR_STORE_PROVIDER.
+  3. "chroma" como default histórico para dev/MVP.
+
+Adapters disponibles:
+  - chroma  → ChromaVectorStore  (dev/MVP, embebido, persistencia en disco)
+  - qdrant  → QdrantVectorStore  (prod, server externo, ver docker-compose.prod.yml)
+"""
 from typing import Optional
+
+from app.config.settings import settings
 from app.infrastructure.rag.vector_stores.base_vector_store import BaseVectorStore
 from app.infrastructure.rag.vector_stores.chroma_store import ChromaVectorStore
+from app.infrastructure.rag.vector_stores.qdrant_store import QdrantVectorStore
 
 
 class VectorStoreFactory:
     """Factory for creating vector store instances."""
-    
+
     @staticmethod
     def create(
-        store_type: str = "chroma",
-        collection_name: str = "default"
+        store_type: Optional[str] = None,
+        collection_name: str = "default",
     ) -> BaseVectorStore:
         """
         Create a vector store instance.
-        
+
         Args:
-            store_type: Type of vector store ("chroma", "qdrant", etc.)
-            collection_name: Name of the collection
-            
+            store_type: Override explícito ("chroma" | "qdrant"). Si None, se
+                lee settings.vector_store_provider.
+            collection_name: Name of the collection.
+
         Returns:
-            Vector store instance
+            Vector store instance.
         """
-        if store_type == "chroma":
+        provider = (store_type or settings.vector_store_provider or "chroma").lower()
+
+        if provider == "qdrant":
+            return QdrantVectorStore(collection_name)
+        if provider == "chroma":
             return ChromaVectorStore(collection_name)
-        # Add more implementations here (Qdrant, Weaviate, etc.)
-        else:
-            raise ValueError(f"Unknown vector store type: {store_type}")
+        raise ValueError(f"Unknown vector store provider: {provider}")
 
 
-# Convenience function
 def get_vector_store(collection_name: str = "default") -> BaseVectorStore:
-    """Get a vector store instance for a collection."""
-    return VectorStoreFactory.create("chroma", collection_name)
+    """Get a vector store instance using the configured provider."""
+    return VectorStoreFactory.create(collection_name=collection_name)
