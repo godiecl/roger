@@ -1,0 +1,19 @@
+---
+#  docker run -it --name valeria --rm -p 8000:8000 -v ./.env.release:/app/.env roger/valeria:prod
+name: valeria
+
+services:
+  valeria:
+    image: liguana/valeria
+    container_name: valeria
+    hostname: valeria
+    expose:
+      - 8000
+    volumes:
+      - ./.env.release:ro:/app/.env
+    restart: unless-stopped
+
+networks:
+  default:
+    name: npm
+    external: true
