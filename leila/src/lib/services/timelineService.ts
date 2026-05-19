@@ -53,6 +53,10 @@ class TimelineService {
       photographIds.map((id) => this.generate({ photograph_id: id })),
     );
   }
+
+  async getWikipediaEvents(year: number): Promise<TimelineEvent[]> {
+    return apiClient.get(`/timelines/wikipedia/${year}`);
+  }
 }
 
 export const timelineService = new TimelineService();

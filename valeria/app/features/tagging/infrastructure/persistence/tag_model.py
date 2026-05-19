@@ -26,6 +26,7 @@ class TagSource(str, Enum):
     MANUAL = "manual"
     AI = "ai"
     USER_CONTRIBUTED = "user_contributed"
+    METADATA = "metadata"
 
 
 class TagStatus(str, Enum):

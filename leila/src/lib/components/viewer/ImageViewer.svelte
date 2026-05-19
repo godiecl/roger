@@ -3,6 +3,9 @@
   import { createEventDispatcher } from 'svelte';
   import { apiClient } from '$lib/services/apiClient';
   import LikeReportBar from '$lib/components/viewer/LikeReportBar.svelte';
+  import { isAuthenticated } from '$lib/stores/auth';
+  import { contributionService } from '$lib/services/contributionService';
+  import { notificationsStore } from '$lib/stores/notifications';
 
   export let image: Image;
   export let narratives: Narrative[] = [];
@@ -52,6 +55,101 @@
   let timelineLoading = false;
   let timelineError: string | null = null;
   let timelineChecked = false;
+
+  // --- Rich tags (with source info) ---
+  interface RichTag {
+    photograph_tag_id: number;
+    tag_name: string;
+    tag_category: string;
+    source: 'ai' | 'metadata' | 'manual' | 'user_contributed';
+    confidence: number | null;
+  }
+  let richTags: RichTag[] = [];
+  let richTagsLoaded = false;
+
+  async function loadRichTags() {
+    if (richTagsLoaded) return;
+    richTagsLoaded = true;
+    try {
+      const res = await apiClient.get<{ tags: RichTag[] }>(`/tag-images/photograph/${image.id}`);
+      richTags = res.tags;
+    } catch {
+      richTags = [];
+    }
+  }
+
+  function tagSourceBadge(source: string) {
+    if (source === 'metadata') return 'badge-info';
+    if (source === 'ai') return 'badge-warning';
+    if (source === 'manual') return 'badge-success';
+    return 'badge-ghost';
+  }
+
+  function tagSourceLabel(source: string) {
+    if (source === 'metadata') return 'Metadato';
+    if (source === 'ai') return 'IA';
+    if (source === 'manual') return 'Manual';
+    if (source === 'user_contributed') return 'Usuario';
+    return source;
+  }
+
+  // --- Contribution form ---
+  const CONTRIB_FIELDS: Record<string, { value: string; label: string }[]> = {
+    CHRONOLOGY: [
+      { value: 'precise_date', label: 'Fecha exacta' },
+      { value: 'date_from', label: 'Fecha desde' },
+      { value: 'date_to', label: 'Fecha hasta' },
+      { value: 'date_hypothesis', label: 'Hipótesis de datación' },
+      { value: 'verification_source', label: 'Fuente de verificación' },
+      { value: 'visual_evidence_notes', label: 'Evidencia visual' },
+    ],
+    GEOGRAPHIC: [
+      { value: 'geographic_location', label: 'Ubicación' },
+      { value: 'latitude', label: 'Latitud' },
+      { value: 'longitude', label: 'Longitud' },
+      { value: 'signage_found', label: 'Señalética encontrada' },
+      { value: 'architectural_landmarks', label: 'Hitos arquitectónicos' },
+      { value: 'landscape_features', label: 'Rasgos del paisaje' },
+    ],
+    ENVIRONMENTAL: [
+      { value: 'specific_typology', label: 'Tipología específica' },
+      { value: 'conservation_state', label: 'Estado de conservación' },
+      { value: 'human_env_relationship', label: 'Relación humano-ambiente' },
+      { value: 'setting_type', label: 'Tipo de entorno' },
+    ],
+  };
+
+  let contribOpen = false;
+  let contribType = 'CHRONOLOGY';
+  let contribField = CONTRIB_FIELDS['CHRONOLOGY'][0].value;
+  let contribValue = '';
+  let contribNotes = '';
+  let contribSubmitting = false;
+
+  $: contribFieldOptions = CONTRIB_FIELDS[contribType] ?? [];
+  $: { contribType; contribField = CONTRIB_FIELDS[contribType]?.[0]?.value ?? ''; }
+
+  async function submitContribution() {
+    if (!contribValue.trim()) { notificationsStore.error('Ingresa el valor propuesto.'); return; }
+    contribSubmitting = true;
+    try {
+      await contributionService.submit({
+        photograph_id: image.id,
+        attribute_type: contribType as any,
+        field_name: contribField,
+        proposed_value: contribValue.trim(),
+        evidence_notes: contribNotes.trim() || undefined,
+      });
+      notificationsStore.success('Contribución enviada. Quedará pendiente de revisión por un curador.');
+      contribValue = '';
+      contribNotes = '';
+      contribOpen = false;
+    } catch (e: any) {
+      notificationsStore.error(e?.detail ?? 'Error al enviar la contribución.');
+    } finally {
+      contribSubmitting = false;
+    }
+  }
 
   const axisLabel: Record<string, string> = {
     biographical: 'Biográfico',
@@ -521,17 +619,117 @@
         {/if}
 
         {#if image.tags?.length > 0}
-          <div>
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <div on:mouseenter={loadRichTags}>
             <h3 class="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2">
               Etiquetas
             </h3>
-            <div class="flex flex-wrap gap-1.5">
-              {#each image.tags as tag (tag)}
-                <span class="badge badge-sm badge-outline">{tag}</span>
-              {/each}
-            </div>
+            {#if richTags.length > 0}
+              <div class="flex flex-wrap gap-1.5">
+                {#each richTags as rt (rt.photograph_tag_id)}
+                  <div class="tooltip tooltip-bottom" data-tip="{tagSourceLabel(rt.source)}{rt.confidence ? ` · ${Math.round(rt.confidence * 100)}%` : ''}">
+                    <span class="badge badge-sm {tagSourceBadge(rt.source)}">{rt.tag_name}</span>
+                  </div>
+                {/each}
+              </div>
+              <div class="flex gap-3 mt-2 text-[10px] text-base-content/40">
+                <span class="flex items-center gap-1"><span class="badge badge-xs badge-info"></span>Metadato</span>
+                <span class="flex items-center gap-1"><span class="badge badge-xs badge-warning"></span>IA</span>
+                <span class="flex items-center gap-1"><span class="badge badge-xs badge-success"></span>Manual</span>
+              </div>
+            {:else}
+              <div class="flex flex-wrap gap-1.5">
+                {#each image.tags as tag (tag)}
+                  <span class="badge badge-sm badge-outline">{tag}</span>
+                {/each}
+              </div>
+            {/if}
           </div>
         {/if}
+
+        <!-- Contribuir -->
+        <div class="border-t border-base-300 pt-4">
+          {#if $isAuthenticated}
+            <button
+              class="w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-base-content/50 hover:text-base-content transition-colors"
+              on:click={() => (contribOpen = !contribOpen)}
+            >
+              <span>Proponer corrección</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform {contribOpen ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {#if contribOpen}
+              <div class="mt-3 space-y-2">
+                <div class="form-control">
+                  <label class="label py-0.5" for="contrib-type">
+                    <span class="label-text text-xs">Atributo</span>
+                  </label>
+                  <select id="contrib-type" class="select select-bordered select-xs" bind:value={contribType}>
+                    <option value="CHRONOLOGY">Cronología</option>
+                    <option value="GEOGRAPHIC">Geográfico</option>
+                    <option value="ENVIRONMENTAL">Ambiental</option>
+                  </select>
+                </div>
+
+                <div class="form-control">
+                  <label class="label py-0.5" for="contrib-field">
+                    <span class="label-text text-xs">Campo</span>
+                  </label>
+                  <select id="contrib-field" class="select select-bordered select-xs" bind:value={contribField}>
+                    {#each contribFieldOptions as opt (opt.value)}
+                      <option value={opt.value}>{opt.label}</option>
+                    {/each}
+                  </select>
+                </div>
+
+                <div class="form-control">
+                  <label class="label py-0.5" for="contrib-value">
+                    <span class="label-text text-xs">Valor propuesto</span>
+                  </label>
+                  <input
+                    id="contrib-value"
+                    type="text"
+                    class="input input-bordered input-xs"
+                    placeholder="Tu propuesta..."
+                    bind:value={contribValue}
+                  />
+                </div>
+
+                <div class="form-control">
+                  <label class="label py-0.5" for="contrib-notes">
+                    <span class="label-text text-xs">Evidencia (opcional)</span>
+                  </label>
+                  <textarea
+                    id="contrib-notes"
+                    class="textarea textarea-bordered textarea-xs text-xs"
+                    rows="2"
+                    placeholder="Fuente, referencia o razonamiento..."
+                    bind:value={contribNotes}
+                  ></textarea>
+                </div>
+
+                <button
+                  class="btn btn-primary btn-xs w-full"
+                  on:click={submitContribution}
+                  disabled={contribSubmitting}
+                >
+                  {#if contribSubmitting}<span class="loading loading-spinner loading-xs"></span>{/if}
+                  Enviar contribución
+                </button>
+                <p class="text-xs text-base-content/40 leading-relaxed">
+                  Será revisada por un curador antes de publicarse.
+                </p>
+              </div>
+            {/if}
+          {:else}
+            <p class="text-xs text-base-content/40 leading-relaxed">
+              <a href="/login" class="link link-primary">Inicia sesión</a> para proponer correcciones a los metadatos.
+            </p>
+          {/if}
+        </div>
+
       </aside>
     </div>
 

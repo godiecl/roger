@@ -2,16 +2,19 @@
  * Type definitions for ROGER - Leila
  */
 
-// Pin para el mapa — cuando el backend agregue lat/lng a Image, se podrá derivar directamente
 export interface PhotoPin {
   id: number;
   title: string;
-  year: number;
+  year: number | null;
   location: string;
-  region: string;
+  region?: string;
   lat: number;
   lng: number;
   tags: string[];
+  source?: 'ai' | 'curator' | 'metadata';
+  validated?: boolean;
+  confidence?: number | null;
+  attribute_id?: number;
 }
 
 export interface Image {

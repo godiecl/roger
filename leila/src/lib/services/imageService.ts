@@ -11,6 +11,7 @@ export interface ListImagesParams {
   year?: number;
   location?: string;
   tags?: string[];
+  collection_id?: number;
 }
 
 export interface ListImagesResponse {

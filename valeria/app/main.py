@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 import structlog
 
 from app.config.settings import settings
@@ -28,6 +29,10 @@ from app.features.detect_objects.interfaces.api.routes import router as detectio
 from app.features.cluster_images.interfaces.api.routes import router as clusters_router
 from app.features.generate_timeline.interfaces.api.routes import router as timelines_router
 from app.features.generate_context.interfaces.api.routes import router as context_router
+from app.features.manage_metadata.interfaces.api.routes import router as metadata_router
+from app.features.moderate_contributions.interfaces.api.routes import router as moderation_router
+from app.features.tag_images.interfaces.api.routes import router as tag_images_router
+from app.features.georeference.interfaces.api.routes import router as georeference_router
 
 # Setup logging
 logger = structlog.get_logger()
@@ -128,9 +133,15 @@ app.include_router(detections_router, prefix=settings.api_prefix)
 app.include_router(clusters_router, prefix=settings.api_prefix)
 app.include_router(timelines_router, prefix=settings.api_prefix)
 app.include_router(context_router, prefix=settings.api_prefix)
+app.include_router(metadata_router, prefix=settings.api_prefix)
+app.include_router(moderation_router, prefix=settings.api_prefix)
+app.include_router(tag_images_router, prefix=settings.api_prefix)
+app.include_router(georeference_router, prefix=settings.api_prefix)
 
 # Serve static files (images, uploads)
-# app.mount("/storage", StaticFiles(directory="storage"), name="storage")
+_storage_dir = Path("storage")
+_storage_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 # Global exception handler
 @app.exception_handler(Exception)

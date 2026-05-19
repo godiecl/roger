@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 
 from app.features.generate_timeline.application.generate_timeline_usecase import GenerateTimelineUseCase
+from app.features.generate_timeline.domain.date_resolution import DateResolution
 from app.features.generate_timeline.domain.timeline import Timeline
 from app.features.generate_timeline.infrastructure.adapters.date_resolver import DateResolver
 from app.features.generate_timeline.infrastructure.adapters.timeline_generator import TimelineGenerator
@@ -123,6 +125,34 @@ async def list_timelines(
         limit=limit,
         timelines=[_to_response(t) for t in timelines],
     )
+
+
+@router.get("/wikipedia/{year}", response_model=List[TimelineEventResponse])
+async def get_wikipedia_events(
+    year: int = Path(..., ge=1800, le=2100),
+):
+    """Retorna eventos históricos de Wikipedia para un año específico."""
+    enricher = WikipediaEnricher()
+    resolution = DateResolution(
+        year_min=year,
+        year_max=year,
+        source="metadata",
+        confidence=1.0,
+    )
+    events = await enricher.enrich(resolution)
+    return [
+        TimelineEventResponse(
+            id=None,
+            date_label=e.date_label,
+            year=e.year,
+            title=e.title,
+            description=e.description,
+            axis=e.axis.value,
+            event_type=e.event_type.value,
+            source_type=e.source_type.value,
+        )
+        for e in events
+    ]
 
 
 @router.delete("/{timeline_id}", status_code=status.HTTP_204_NO_CONTENT)

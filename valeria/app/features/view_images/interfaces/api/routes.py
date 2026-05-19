@@ -4,6 +4,7 @@ FastAPI routes for images
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select as sa_select
 from typing import Optional, List
 
 from app.features.view_images.interfaces.api.schemas import (
@@ -63,29 +64,32 @@ async def list_images(
     year: Optional[int] = Query(None, ge=1800, le=2100),
     location: Optional[str] = None,
     tags: Optional[List[str]] = Query(None),
+    collection_id: Optional[int] = Query(None, ge=1),
     db: AsyncSession = Depends(get_db)
 ):
     """
     List images with optional filters.
-    
+
     - **skip**: Number of images to skip (pagination)
     - **limit**: Maximum number of images to return
     - **year**: Filter by year
     - **location**: Filter by location (partial match)
     - **tags**: Filter by tags
+    - **collection_id**: Filter by collection
     """
     image_repository = ImageRepository(db)
     list_images_usecase = ListImagesUseCase(image_repository)
-    
+
     images = await list_images_usecase.execute(
         skip=skip,
         limit=limit,
         year=year,
         location=location,
         tags=tags,
+        collection_id=collection_id,
         only_public=True
     )
-    
+
     return ImageListResponse(
         total=len(images),
         skip=skip,
@@ -189,22 +193,43 @@ async def update_image(
     return ImageResponse.model_validate(updated_image)
 
 
+@router.delete("/by-collection/{collection_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_images_by_collection(
+    collection_id: int,
+    _: int = Depends(_require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete all images in a collection without deleting the collection itself. Admin only."""
+    from sqlalchemy import delete as sql_delete
+    from app.features.view_images.infrastructure.persistence.image_model import ImageModel as IM
+    from app.features.generate_context.infrastructure.persistence.context_model import ImageContextModel
+
+    # Collect image ids first to clean up context references (no FK cascade on that table)
+    result = await db.execute(sa_select(IM.id).where(IM.collection_id == collection_id))
+    ids = [r for (r,) in result.all()]
+    if ids:
+        await db.execute(sql_delete(ImageContextModel).where(ImageContextModel.image_id.in_(ids)))
+    await db.execute(sql_delete(IM).where(IM.collection_id == collection_id))
+    return None
+
+
 @router.delete("/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_image(
     image_id: int,
     _: int = Depends(_require_admin),
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Delete an image. Requires admin role.
-    """
+    """Delete an image. Requires admin role."""
+    from sqlalchemy import delete as sql_delete
+    from app.features.generate_context.infrastructure.persistence.context_model import ImageContextModel
+
+    await db.execute(sql_delete(ImageContextModel).where(ImageContextModel.image_id == image_id))
+
     image_repository = ImageRepository(db)
     success = await image_repository.delete(image_id)
-    
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Image with id {image_id} not found"
         )
-    
     return None

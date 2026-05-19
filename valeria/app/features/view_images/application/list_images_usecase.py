@@ -23,23 +23,9 @@ class ListImagesUseCase:
         year: Optional[int] = None,
         location: Optional[str] = None,
         tags: Optional[List[str]] = None,
+        collection_id: Optional[int] = None,
         only_public: bool = True
     ) -> List[Image]:
-        """
-        List images with optional filters.
-        
-        Args:
-            skip: Number of images to skip (pagination)
-            limit: Maximum number of images to return
-            year: Filter by year
-            location: Filter by location
-            tags: Filter by tags
-            only_public: Only return public images
-            
-        Returns:
-            List of images
-        """
-        # Apply filters
         if year:
             images = await self.image_repository.filter_by_year(year)
         elif location:
@@ -50,7 +36,8 @@ class ListImagesUseCase:
             images = await self.image_repository.list_all(
                 skip=skip,
                 limit=limit,
-                only_public=only_public
+                only_public=only_public,
+                collection_id=collection_id,
             )
-        
+
         return images

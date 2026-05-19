@@ -12,6 +12,8 @@ export { invitationService } from './invitationService';
 export { archiveService } from './archiveService';
 export { contributionService } from './contributionService';
 export type { SubmitContributionRequest } from './contributionService';
+export { georeferenceService } from './georeferenceService';
+export type { GeoPin, PinsResponse } from './georeferenceService';
 
 // Re-export types
 export type { RegisterRequest, RegisterResponse } from './authService';

@@ -52,14 +52,17 @@ class ImageRepository(IImageRepository):
         self,
         skip: int = 0,
         limit: int = 100,
-        only_public: bool = True
+        only_public: bool = True,
+        collection_id: int | None = None,
     ) -> List[Image]:
         """List all images with pagination."""
         query = select(ImageModel)
-        
+
         if only_public:
             query = query.where(ImageModel.is_public == True)
-        
+        if collection_id is not None:
+            query = query.where(ImageModel.collection_id == collection_id)
+
         query = query.offset(skip).limit(limit).order_by(ImageModel.created_at.desc())
         
         result = await self.session.execute(query)
