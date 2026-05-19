@@ -34,3 +34,7 @@ geoclip>=0.1.0
 # Atributo 04 — Contexto ambiental y espacial
 # Clasificación de escena con ResNet50 entrenado en Places365
 # (torchvision ya declarado arriba en Base)
+
+# Detección de objetos + Segmentación semántica (FONDEF Hito 3)
+# YOLOv8n-seg: detección de objetos y segmentación en un solo modelo ligero (~6.7 MB)
+ultralytics>=8.1.0

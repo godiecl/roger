@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -63,3 +63,30 @@ class TimelineListResponse(BaseModel):
     skip: int
     limit: int
     timelines: List[TimelineResponse]
+
+
+class CollectionClusterSummaryResponse(BaseModel):
+    cluster_id: int
+    label: str
+    photograph_count: int
+    centroid_photograph_id: Optional[int]
+    year_representative: Optional[int]
+    year_min: Optional[int]
+    year_max: Optional[int]
+    date_source: str
+
+
+class CollectionNarrativeResponse(BaseModel):
+    job_id: int
+    collection_narrative: str
+    temporal_arc: str
+    thematic_threads: List[str]
+    historical_significance: str
+    ordered_clusters: List[CollectionClusterSummaryResponse]
+    photograph_count: int
+    cluster_count: int
+    year_min: Optional[int]
+    year_max: Optional[int]
+    provider: str
+    generation_time_ms: int
+    created_at: Optional[datetime]

@@ -73,3 +73,32 @@ class RegenerateNarrativeRequest(BaseModel):
 class ApproveNarrativeRequest(BaseModel):
     """Request to approve a narrative."""
     approved_by: int = Field(..., description="ID of user approving")
+
+
+# ── Multi-LLM comparison ──────────────────────────────────────────────────────
+
+class LLMCompareRequest(BaseModel):
+    photograph_id: int = Field(..., description="ID de la fotografía a analizar")
+    system_prompt: Optional[str] = Field(
+        None, max_length=2000,
+        description="System prompt personalizado. Si se omite se usa el prompt estándar ROGER."
+    )
+    user_prompt: Optional[str] = Field(
+        None, max_length=2000,
+        description="Contexto/pregunta a enviar al LLM. Si se omite se construye desde la fotografía."
+    )
+
+
+class LLMProviderResult(BaseModel):
+    provider: str
+    response: str
+    time_ms: int
+    error: Optional[str] = None
+
+
+class LLMCompareResponse(BaseModel):
+    photograph_id: int
+    system_prompt: str
+    user_prompt: str
+    results: List[LLMProviderResult]
+    computed_at: str

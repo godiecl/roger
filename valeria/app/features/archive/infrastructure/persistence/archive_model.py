@@ -123,6 +123,16 @@ class PhotographModel(BaseModel):
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True,
     )
 
+    # ISAD(G) — International Standard Archival Description
+    reference_code          = Column(String(100), nullable=True, index=True)
+    level_of_description    = Column(String(20),  nullable=True)   # item|file|series|fonds
+    extent                  = Column(String(255), nullable=True)
+    archival_history        = Column(Text, nullable=True)
+    scope_content           = Column(Text, nullable=True)
+    access_conditions       = Column(String(255), nullable=True)
+    reproduction_conditions = Column(String(255), nullable=True)
+    language_material       = Column(String(50),  nullable=True)
+
     def __repr__(self) -> str:
         return f"<PhotographModel(id={self.id}, roll_id={self.roll_id}, frame={self.frame_number})>"
 

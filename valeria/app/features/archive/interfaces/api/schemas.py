@@ -138,7 +138,22 @@ class RollListResponse(BaseModel):
 
 # ── Photograph ────────────────────────────────────────────────────────────────
 
-class PhotographCreateRequest(BaseModel):
+class _PhotographISADGMixin(BaseModel):
+    """ISAD(G) fields shared by Create and Update requests."""
+    reference_code:          Optional[str] = Field(None, max_length=100,
+        description="Código de referencia archivística (ej. UCN/GER/001/001/0023)")
+    level_of_description:    Optional[str] = Field(None, max_length=20,
+        description="Nivel de descripción: item | file | series | fonds")
+    extent:                  Optional[str] = Field(None, max_length=255,
+        description="Extensión y soporte (ej. '1 fotografía; blanco y negro; 35mm')")
+    archival_history:        Optional[str] = None
+    scope_content:           Optional[str] = None
+    access_conditions:       Optional[str] = Field(None, max_length=255)
+    reproduction_conditions: Optional[str] = Field(None, max_length=255)
+    language_material:       Optional[str] = Field(None, max_length=50)
+
+
+class PhotographCreateRequest(_PhotographISADGMixin):
     roll_id: int
     frame_number: Optional[int] = None
     identifier: Optional[str] = None
@@ -152,6 +167,23 @@ class PhotographCreateRequest(BaseModel):
     license: Optional[str] = None
     copyright_notes: Optional[str] = None
     is_public: bool = True
+    digitalized_by: Optional[int] = None
+    responsible_by: Optional[int] = None
+
+
+class PhotographUpdateRequest(_PhotographISADGMixin):
+    frame_number: Optional[int] = None
+    identifier: Optional[str] = None
+    physical_location_ref: Optional[str] = None
+    digitalization_date: Optional[date] = None
+    width_px: Optional[int] = None
+    height_px: Optional[int] = None
+    color_depth: Optional[int] = None
+    resolution_dpi: Optional[float] = None
+    internal_cronology: Optional[str] = None
+    license: Optional[str] = None
+    copyright_notes: Optional[str] = None
+    is_public: Optional[bool] = None
     digitalized_by: Optional[int] = None
     responsible_by: Optional[int] = None
 
@@ -173,6 +205,15 @@ class PhotographResponse(BaseModel):
     is_public: bool
     digitalized_by: Optional[int]
     responsible_by: Optional[int]
+    # ISAD(G)
+    reference_code:          Optional[str]
+    level_of_description:    Optional[str]
+    extent:                  Optional[str]
+    archival_history:        Optional[str]
+    scope_content:           Optional[str]
+    access_conditions:       Optional[str]
+    reproduction_conditions: Optional[str]
+    language_material:       Optional[str]
     created_at: datetime
     updated_at: datetime
 

@@ -31,12 +31,18 @@ class DetectionRepository(IDetectionRepository):
 
         obj_models = []
         for obj in detection.objects:
+            bbox = obj.bbox or (None, None, None, None)
             obj_model = DetectedObjectModel(
                 detection_id=model.id,
                 label=obj.label,
                 category=ObjectCategory(obj.category),
                 confidence=obj.confidence,
                 description=obj.description,
+                bbox_x1=bbox[0],
+                bbox_y1=bbox[1],
+                bbox_x2=bbox[2],
+                bbox_y2=bbox[3],
+                mask_polygon=obj.mask_polygon,
             )
             self.session.add(obj_model)
             obj_models.append(obj_model)
@@ -93,16 +99,20 @@ class DetectionRepository(IDetectionRepository):
         objs_result = await self.session.execute(
             select(DetectedObjectModel).where(DetectedObjectModel.detection_id == model.id)
         )
-        objects = [
-            DetectedObject(
+        objects = []
+        for o in objs_result.scalars().all():
+            bbox = None
+            if o.bbox_x1 is not None:
+                bbox = (o.bbox_x1, o.bbox_y1, o.bbox_x2, o.bbox_y2)
+            objects.append(DetectedObject(
                 id=o.id,
                 label=o.label,
                 category=ObjectCategory(o.category),
                 confidence=o.confidence,
                 description=o.description,
-            )
-            for o in objs_result.scalars().all()
-        ]
+                bbox=bbox,
+                mask_polygon=o.mask_polygon,
+            ))
         return Detection(
             id=model.id,
             photograph_id=model.photograph_id,

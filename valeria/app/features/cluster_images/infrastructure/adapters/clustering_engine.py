@@ -1,16 +1,17 @@
 """
-ClusteringEngine — agrupa fotografías por similitud semántica visual.
+ClusteringEngine — agrupa fotografías por similitud visual (CLIP) o textual (fallback).
 
 Pipeline:
-  1. Genera embeddings de texto descriptivo por fotografía (sentence-transformers).
-  2. Aplica DBSCAN o KMeans (scikit-learn) sobre los embeddings.
-  3. Identifica la fotografía centroide de cada cluster.
+  1. Si hay image_paths válidos en disco → CLIP ViT-B/32 (CNN transfer learning visual).
+     Satisface FONDEF Hito 3: "clustering de imágenes basado en arquitecturas CNN / transfer learning".
+  2. Si open-clip-torch no está instalado o las imágenes no están en disco → sentence-transformers.
+  3. Aplica DBSCAN (eps adaptativo k-NN) o KMeans sobre los embeddings.
+  4. Identifica la fotografía centroide de cada cluster.
 
-No requiere las fotos en disco; trabaja con los metadatos textuales disponibles
-(título, descripción, ubicación, año) hasta que haya archivos reales.
-Si hay image_paths disponibles, usa CLIP embeddings visuales en su lugar.
+Dependencias CLIP: pip install open-clip-torch torch Pillow  (requirements-analyzers.txt)
 """
 
+import os
 import time
 from typing import List, Optional
 
@@ -24,34 +25,49 @@ from app.features.cluster_images.domain.cluster_port import IClusteringEngine
 
 logger = structlog.get_logger()
 
-_MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
+_TEXT_MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
+_CLIP_MODEL_NAME = "open_clip/ViT-B-32"
+_CLIP_VALID_THRESHOLD = 0.5
 
 
 class ClusteringEngine(IClusteringEngine):
     """
-    Motor de clustering usando sentence-transformers + scikit-learn.
-    Embeddings multilingüe (soporta español) sin dependencias pesadas.
+    Motor de clustering híbrido: CLIP visual (primario) + sentence-transformers (fallback texto).
+    CLIP se activa automáticamente cuando ≥50% de los image_paths existen en disco.
     """
 
     def __init__(self):
-        self._model = None
+        self._text_model = None
+        self._clip_model = None
+        self._clip_preprocess = None
+        self._using_clip = False
 
-    def _get_model(self):
-        if self._model is None:
+    def _get_text_model(self):
+        if self._text_model is None:
             try:
                 from sentence_transformers import SentenceTransformer
-                self._model = SentenceTransformer(_MODEL_NAME)
-                logger.info("SentenceTransformer cargado", model=_MODEL_NAME)
+                self._text_model = SentenceTransformer(_TEXT_MODEL_NAME)
+                logger.info("SentenceTransformer cargado", model=_TEXT_MODEL_NAME)
             except ImportError:
                 raise RuntimeError(
                     "sentence-transformers no está instalado. "
                     "Ejecuta: pip install sentence-transformers"
                 )
-        return self._model
+        return self._text_model
+
+    def _load_clip(self):
+        if self._clip_model is None:
+            import open_clip
+            self._clip_model, _, self._clip_preprocess = open_clip.create_model_and_transforms(
+                "ViT-B-32", pretrained="openai"
+            )
+            self._clip_model.eval()
+            logger.info("CLIP model cargado", model=_CLIP_MODEL_NAME)
+        return self._clip_model, self._clip_preprocess
 
     @property
     def embedding_model_name(self) -> str:
-        return _MODEL_NAME
+        return _CLIP_MODEL_NAME if self._using_clip else _TEXT_MODEL_NAME
 
     async def cluster(
         self,
@@ -92,17 +108,76 @@ class ClusteringEngine(IClusteringEngine):
         )
 
     def _generate_embeddings(self, texts, image_paths: List[Optional[str]]) -> np.ndarray:
-        model = self._get_model()
-        # Construir texto representativo por fotografía
+        clip_embeddings = self._try_clip_embeddings(image_paths)
+        if clip_embeddings is not None:
+            self._using_clip = True
+            return clip_embeddings
+
+        self._using_clip = False
+        model = self._get_text_model()
         text_inputs = []
         for i, t in enumerate(texts):
             if isinstance(t, int):
                 text_inputs.append(f"fotografía {t}")
             else:
                 text_inputs.append(str(t) if t else f"fotografía {i}")
+        return model.encode(text_inputs, convert_to_numpy=True, show_progress_bar=False)
 
-        embeddings = model.encode(text_inputs, convert_to_numpy=True, show_progress_bar=False)
-        return embeddings
+    def _try_clip_embeddings(self, image_paths: List[Optional[str]]) -> Optional[np.ndarray]:
+        """
+        Genera embeddings CLIP (512-dim, ViT-B/32) si ≥50% de los paths son accesibles.
+        Retorna None si open-clip-torch no está instalado o no hay suficientes imágenes.
+        """
+        try:
+            from PIL import Image
+            import torch
+
+            valid_indices = [
+                i for i, p in enumerate(image_paths)
+                if p and os.path.isfile(p)
+            ]
+
+            if len(valid_indices) < max(2, int(len(image_paths) * _CLIP_VALID_THRESHOLD)):
+                logger.info(
+                    "CLIP no activado: imágenes insuficientes en disco",
+                    valid=len(valid_indices),
+                    total=len(image_paths),
+                )
+                return None
+
+            model, preprocess = self._load_clip()
+            dim = 512
+            embeddings = np.zeros((len(image_paths), dim), dtype=np.float32)
+
+            for i in valid_indices:
+                img_tensor = preprocess(
+                    Image.open(image_paths[i]).convert("RGB")
+                ).unsqueeze(0)
+                with torch.no_grad():
+                    feat = model.encode_image(img_tensor)
+                    feat = feat / feat.norm(dim=-1, keepdim=True)
+                embeddings[i] = feat.cpu().numpy().astype(np.float32)
+
+            if len(valid_indices) < len(image_paths):
+                mean_emb = embeddings[valid_indices].mean(axis=0)
+                missing = [i for i in range(len(image_paths)) if i not in valid_indices]
+                for i in missing:
+                    embeddings[i] = mean_emb
+
+            logger.info(
+                "CLIP embeddings generados",
+                valid_images=len(valid_indices),
+                total=len(image_paths),
+                model=_CLIP_MODEL_NAME,
+            )
+            return embeddings
+
+        except ImportError:
+            logger.info("open-clip-torch no disponible, usando embeddings de texto")
+            return None
+        except Exception as e:
+            logger.warning("CLIP embedding falló, usando embeddings de texto", error=str(e))
+            return None
 
     def _run_algorithm(
         self,
@@ -113,12 +188,22 @@ class ClusteringEngine(IClusteringEngine):
     ) -> np.ndarray:
         if algorithm == ClusterAlgorithm.DBSCAN:
             from sklearn.cluster import DBSCAN
+            from sklearn.neighbors import NearestNeighbors
             from sklearn.preprocessing import normalize
+
             normed = normalize(embeddings)
-            eps = 0.3
-            min_samples = max(2, n_samples // 10)
+            k = max(2, min(n_samples // 10, n_samples - 1))
+
+            # Eps adaptativo: percentil 85 de las distancias al k-ésimo vecino
+            nbrs = NearestNeighbors(n_neighbors=k, metric="cosine").fit(normed)
+            distances, _ = nbrs.kneighbors(normed)
+            kth_dists = np.sort(distances[:, -1])
+            eps = float(np.clip(np.percentile(kth_dists, 85), 0.05, 0.8))
+            min_samples = max(2, n_samples // 15)
+
+            logger.info("DBSCAN params adaptativos", eps=round(eps, 3), min_samples=min_samples)
             labels = DBSCAN(eps=eps, min_samples=min_samples, metric="cosine").fit_predict(normed)
-        else:  # KMEANS
+        else:
             from sklearn.cluster import KMeans
             k = n_clusters or max(2, int(np.sqrt(n_samples / 2)))
             k = min(k, n_samples - 1)
@@ -143,8 +228,7 @@ class ClusteringEngine(IClusteringEngine):
 
             centroid = member_embeddings.mean(axis=0)
             distances = np.linalg.norm(member_embeddings - centroid, axis=1)
-            centroid_idx = int(np.argmin(distances))
-            centroid_photo_id = member_ids[centroid_idx]
+            centroid_photo_id = member_ids[int(np.argmin(distances))]
 
             clusters.append(Cluster(
                 photograph_ids=member_ids,

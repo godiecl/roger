@@ -28,6 +28,10 @@ class DetectedObject:
     category: ObjectCategory
     confidence: float
     description: Optional[str] = None
+    # Bounding box normalizada [0-1]: (x1, y1, x2, y2)
+    bbox: Optional[tuple] = None
+    # Polígono de segmentación como JSON: [[x1,y1],[x2,y2],...]
+    mask_polygon: Optional[str] = None
     id: Optional[int] = None
 
 

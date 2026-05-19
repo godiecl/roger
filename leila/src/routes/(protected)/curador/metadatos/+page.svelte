@@ -6,8 +6,24 @@
   import { notificationsStore } from '$lib/stores/notifications';
   import { metadataService, type PhotographMetadata, type AttributeRecord } from '$lib/services/metadataService';
   import { moderationService } from '$lib/services/moderationService';
+  import { apiClient } from '$lib/services/apiClient';
 
   const REVIEWER_ROLES = ['curador', 'administrador', 'mesa_evaluadora'];
+
+  // ── ISAD(G) ──────────────────────────────────────────────────────────────
+  interface ISADGForm {
+    reference_code:          string;
+    level_of_description:    string;
+    extent:                  string;
+    archival_history:        string;
+    scope_content:           string;
+    access_conditions:       string;
+    reproduction_conditions: string;
+    language_material:       string;
+  }
+  const ISADG_LEVELS = ['', 'item', 'file', 'series', 'fonds'];
+  let isadgForm: ISADGForm | null = null;
+  let savingISADG = false;
 
   let photographId = '';
   let metadata: PhotographMetadata | null = null;
@@ -52,12 +68,47 @@
     if (!id || id <= 0) { notificationsStore.error('Ingresa un ID válido.'); return; }
     loading = true;
     metadata = null;
+    isadgForm = null;
     try {
-      metadata = await metadataService.getPhotographMetadata(id, includeSuperseded);
+      const [meta, photo] = await Promise.all([
+        metadataService.getPhotographMetadata(id, includeSuperseded),
+        apiClient.get<Record<string, unknown>>(`/archive/photographs/${id}`).catch(() => null),
+      ]);
+      metadata = meta;
+      if (photo) {
+        isadgForm = {
+          reference_code:          (photo.reference_code          as string) ?? '',
+          level_of_description:    (photo.level_of_description    as string) ?? '',
+          extent:                  (photo.extent                  as string) ?? '',
+          archival_history:        (photo.archival_history         as string) ?? '',
+          scope_content:           (photo.scope_content           as string) ?? '',
+          access_conditions:       (photo.access_conditions       as string) ?? '',
+          reproduction_conditions: (photo.reproduction_conditions as string) ?? '',
+          language_material:       (photo.language_material       as string) ?? '',
+        };
+      }
     } catch (e: any) {
       notificationsStore.error(e?.detail ?? 'Error al cargar metadatos.');
     } finally {
       loading = false;
+    }
+  }
+
+  async function saveISADG() {
+    const id = parseInt(photographId);
+    if (!id || !isadgForm) return;
+    savingISADG = true;
+    try {
+      const payload: Record<string, string | null> = {};
+      (Object.keys(isadgForm) as (keyof ISADGForm)[]).forEach((k) => {
+        payload[k] = (isadgForm![k] ?? '').trim() || null;
+      });
+      await apiClient.patch(`/archive/photographs/${id}`, payload);
+      notificationsStore.success('Metadatos ISAD(G) guardados.');
+    } catch (e: any) {
+      notificationsStore.error(e?.detail ?? 'Error al guardar ISAD(G).');
+    } finally {
+      savingISADG = false;
     }
   }
 
@@ -216,6 +267,79 @@
             </div>
           </div>
         {/each}
+
+        <!-- ISAD(G) fields -->
+        {#if isadgForm}
+          <div class="card bg-base-100 border border-base-200">
+            <div class="card-body p-4">
+              <h2 class="font-semibold text-sm mb-3 flex items-center gap-2">
+                Descripción archivística ISAD(G)
+                <span class="badge badge-outline badge-xs">ISO 15489</span>
+              </h2>
+
+              <form on:submit|preventDefault={saveISADG} class="space-y-3" novalidate>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="form-control">
+                    <label class="label py-0.5" for="isadg-ref"><span class="label-text text-xs">Código de referencia</span></label>
+                    <input id="isadg-ref" type="text" class="input input-bordered input-xs"
+                      placeholder="UCN/GER/001/001/0023" bind:value={isadgForm.reference_code} />
+                  </div>
+                  <div class="form-control">
+                    <label class="label py-0.5" for="isadg-level"><span class="label-text text-xs">Nivel de descripción</span></label>
+                    <select id="isadg-level" class="select select-bordered select-xs" bind:value={isadgForm.level_of_description}>
+                      {#each ISADG_LEVELS as lvl}
+                        <option value={lvl}>{lvl || '— sin especificar —'}</option>
+                      {/each}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-control">
+                  <label class="label py-0.5" for="isadg-extent"><span class="label-text text-xs">Extensión y soporte</span></label>
+                  <input id="isadg-extent" type="text" class="input input-bordered input-xs"
+                    placeholder="1 fotografía; blanco y negro; 35mm" bind:value={isadgForm.extent} />
+                </div>
+
+                <div class="form-control">
+                  <label class="label py-0.5" for="isadg-scope"><span class="label-text text-xs">Alcance y contenido</span></label>
+                  <textarea id="isadg-scope" class="textarea textarea-bordered text-xs leading-relaxed" rows="2"
+                    bind:value={isadgForm.scope_content}></textarea>
+                </div>
+
+                <div class="form-control">
+                  <label class="label py-0.5" for="isadg-history"><span class="label-text text-xs">Historia archivística</span></label>
+                  <textarea id="isadg-history" class="textarea textarea-bordered text-xs leading-relaxed" rows="2"
+                    bind:value={isadgForm.archival_history}></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="form-control">
+                    <label class="label py-0.5" for="isadg-access"><span class="label-text text-xs">Condiciones de acceso</span></label>
+                    <input id="isadg-access" type="text" class="input input-bordered input-xs"
+                      placeholder="Acceso libre" bind:value={isadgForm.access_conditions} />
+                  </div>
+                  <div class="form-control">
+                    <label class="label py-0.5" for="isadg-repro"><span class="label-text text-xs">Condiciones de reproducción</span></label>
+                    <input id="isadg-repro" type="text" class="input input-bordered input-xs"
+                      placeholder="CC-BY / Reservados" bind:value={isadgForm.reproduction_conditions} />
+                  </div>
+                  <div class="form-control">
+                    <label class="label py-0.5" for="isadg-lang"><span class="label-text text-xs">Idioma del material</span></label>
+                    <input id="isadg-lang" type="text" class="input input-bordered input-xs"
+                      placeholder="spa / deu" bind:value={isadgForm.language_material} />
+                  </div>
+                </div>
+
+                <div class="flex justify-end pt-1">
+                  <button type="submit" class="btn btn-sm btn-outline min-h-[36px]" disabled={savingISADG}>
+                    {#if savingISADG}<span class="loading loading-spinner loading-xs" aria-hidden="true"></span>{/if}
+                    Guardar ISAD(G)
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        {/if}
 
       {:else}
         <div class="text-center py-16 text-base-content/30">

@@ -1,10 +1,14 @@
 """
 FastAPI routes for narratives
 """
+import asyncio
 import hashlib
+import time
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
+from sqlalchemy import select as sa_select
+from typing import Optional, List
 
 from app.features.authenticate.domain.role import Role
 from app.features.authenticate.infrastructure.adapters.user_repository import UserRepository
@@ -16,7 +20,10 @@ from app.features.generate_narrative.interfaces.api.schemas import (
     RegenerateNarrativeRequest,
     ApproveNarrativeRequest,
     TrazabilidadResponse,
-    SourceResponse
+    SourceResponse,
+    LLMCompareRequest,
+    LLMCompareResponse,
+    LLMProviderResult,
 )
 from app.features.generate_narrative.application.generate_narrative_usecase import (
     GenerateNarrativeUseCase
@@ -102,6 +109,150 @@ async def generate_narrative(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate narrative: {str(e)}"
         )
+
+
+_GROQ_BASE = "https://api.groq.com/openai/v1"
+_COMPARE_ROLES = (Role.CURADOR, Role.ADMINISTRADOR, Role.INVESTIGADOR)
+_DEFAULT_SYSTEM = (
+    "Eres un historiador especialista en fotografía patrimonial chilena del siglo XX. "
+    "Genera una narrativa descriptiva, precisa y contextualizada para la siguiente fotografía del archivo. "
+    "Distingue entre lo verificable (VERAZ) y lo interpretativo (VEROSÍMIL). "
+    "Responde en español con un párrafo de 3 a 5 oraciones."
+)
+
+
+def _build_available_providers() -> List[tuple]:
+    from app.infrastructure.ai.llm.openai_compatible_adapter import OpenAICompatibleAdapter
+    from app.infrastructure.ai.llm.anthropic_adapter import AnthropicAdapter
+
+    providers: List[tuple] = []
+    if settings.groq_api_key:
+        providers.append((
+            OpenAICompatibleAdapter(
+                api_key=settings.groq_api_key,
+                model=settings.groq_model,
+                max_tokens=settings.llm_max_tokens,
+                temperature=settings.llm_temperature,
+                base_url=_GROQ_BASE,
+                name=f"groq/{settings.groq_model}",
+            ),
+            f"groq/{settings.groq_model}",
+        ))
+    if settings.openai_api_key:
+        providers.append((
+            OpenAICompatibleAdapter(
+                api_key=settings.openai_api_key,
+                model=settings.openai_model,
+                max_tokens=settings.llm_max_tokens,
+                temperature=settings.llm_temperature,
+                name=f"openai/{settings.openai_model}",
+            ),
+            f"openai/{settings.openai_model}",
+        ))
+    if settings.anthropic_api_key:
+        providers.append((
+            AnthropicAdapter(
+                api_key=settings.anthropic_api_key,
+                model=settings.anthropic_model or "claude-3-5-sonnet-20241022",
+                max_tokens=settings.llm_max_tokens,
+                temperature=settings.llm_temperature,
+            ),
+            f"anthropic/{settings.anthropic_model or 'claude-3-5-sonnet-20241022'}",
+        ))
+    return providers
+
+
+async def _call_provider(provider_instance, display_name: str, messages: list) -> LLMProviderResult:
+    t0 = time.monotonic()
+    try:
+        response = await provider_instance.complete(messages)
+        return LLMProviderResult(
+            provider=display_name,
+            response=response,
+            time_ms=int((time.monotonic() - t0) * 1000),
+            error=None,
+        )
+    except Exception as exc:
+        return LLMProviderResult(
+            provider=display_name,
+            response="",
+            time_ms=int((time.monotonic() - t0) * 1000),
+            error=str(exc),
+        )
+
+
+@router.post("/compare", response_model=LLMCompareResponse, summary="Comparar respuestas de múltiples LLMs")
+async def compare_llms(
+    body: LLMCompareRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Envía el mismo prompt a todos los LLMs configurados en paralelo y retorna
+    sus respuestas lado a lado. Útil para evaluar la calidad de distintos modelos
+    sobre el mismo material fotográfico. Requiere rol curador, administrador o investigador.
+    """
+    from app.features.archive.infrastructure.persistence.archive_model import PhotographModel
+    from app.features.detect_objects.infrastructure.persistence.detection_model import ObjectDetectionModel
+
+    user_repo = UserRepository(db)
+    user = await user_repo.get_by_id(user_id)
+    if not user or user.role not in _COMPARE_ROLES:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso no autorizado.")
+
+    ph_result = await db.execute(sa_select(PhotographModel).where(PhotographModel.id == body.photograph_id))
+    photograph = ph_result.scalar_one_or_none()
+    if not photograph:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fotografía no encontrada.")
+
+    det_result = await db.execute(
+        sa_select(ObjectDetectionModel)
+        .where(ObjectDetectionModel.photograph_id == body.photograph_id)
+        .order_by(ObjectDetectionModel.created_at.desc())
+        .limit(1)
+    )
+    detection = det_result.scalar_one_or_none()
+
+    # Build user_prompt from photograph metadata when not provided
+    if body.user_prompt:
+        user_prompt = body.user_prompt
+    else:
+        parts: List[str] = []
+        if getattr(photograph, 'reference_code', None):
+            parts.append(f"Código de referencia: {photograph.reference_code}")
+        if photograph.identifier:
+            parts.append(f"Identificador: {photograph.identifier}")
+        if photograph.internal_cronology:
+            parts.append(f"Cronología: {photograph.internal_cronology}")
+        if getattr(photograph, 'scope_content', None):
+            parts.append(f"Alcance y contenido: {photograph.scope_content}")
+        if detection and detection.scene_description:
+            parts.append(f"Descripción de escena (YOLO/IA): {detection.scene_description}")
+        user_prompt = "\n".join(parts) if parts else f"Fotografía ID {body.photograph_id} del archivo histórico."
+
+    system_prompt = body.system_prompt or _DEFAULT_SYSTEM
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user",   "content": user_prompt},
+    ]
+
+    providers = _build_available_providers()
+    if not providers:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="No hay proveedores LLM configurados. Revisa las variables GROQ_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY.",
+        )
+
+    tasks = [_call_provider(inst, name, messages) for inst, name in providers]
+    results = await asyncio.gather(*tasks)
+
+    return LLMCompareResponse(
+        photograph_id=body.photograph_id,
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        results=list(results),
+        computed_at=datetime.now(timezone.utc).isoformat(),
+    )
 
 
 @router.get("/{narrative_id}", response_model=NarrativeResponse)

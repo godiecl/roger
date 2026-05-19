@@ -106,6 +106,106 @@
       </div>
     </a>
 
+    <!-- Métricas FONDEF -->
+    <a href="/curador/evaluacion" class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md transition-all group">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div class="p-2 bg-primary/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+        </div>
+        <h2 class="font-semibold mb-1 group-hover:text-primary transition-colors">Métricas FONDEF</h2>
+        <p class="text-xs text-base-content/60 leading-relaxed">
+          Dashboard ICa1–ICa4 calculado desde anotaciones de expertos. Muestra cumplimiento de indicadores.
+        </p>
+        <div class="mt-4 text-xs text-base-content/40">
+          ICa1 ≥80% · ICa2 ≥70% · ICa3 ≥70% · ICa4 100%
+        </div>
+      </div>
+    </a>
+
+    <!-- Anotación de detecciones -->
+    <a href="/curador/anotacion-objetos" class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md transition-all group">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div class="p-2 bg-error/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <h2 class="font-semibold mb-1 group-hover:text-primary transition-colors">Anotación de objetos</h2>
+        <p class="text-xs text-base-content/60 leading-relaxed">
+          Valida las detecciones YOLO: correcto / incorrecto / incierto. Ground truth para ICa1/ICa2.
+        </p>
+        <div class="mt-4 text-xs text-base-content/40">
+          FONDEF ICa1 · ICa2 · mesa evaluadora
+        </div>
+      </div>
+    </a>
+
+    <!-- Anotación de descripciones -->
+    <a href="/curador/anotacion-descripciones" class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md transition-all group">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div class="p-2 bg-accent/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+        </div>
+        <h2 class="font-semibold mb-1 group-hover:text-primary transition-colors">Anotación de descripciones</h2>
+        <p class="text-xs text-base-content/60 leading-relaxed">
+          Escribe la descripción ground truth por fotografía y califica la calidad de la IA. Para ICa3.
+        </p>
+        <div class="mt-4 text-xs text-base-content/40">
+          FONDEF ICa3 · similitud semántica · investigador
+        </div>
+      </div>
+    </a>
+
+    <!-- Narrativa temporal de colección -->
+    <a href="/curador/narrativa-coleccion" class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md transition-all group">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div class="p-2 bg-secondary/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <h2 class="font-semibold mb-1 group-hover:text-primary transition-colors">Narrativa temporal</h2>
+        <p class="text-xs text-base-content/60 leading-relaxed">
+          Genera una narrativa cohesiva del corpus completo ordenando los clusters por cronología.
+        </p>
+        <div class="mt-4 text-xs text-base-content/40">
+          Clustering visual · ordenamiento temporal · LLM
+        </div>
+      </div>
+    </a>
+
+    <!-- Comparación multi-LLM -->
+    <a href="/curador/comparacion-llm" class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md transition-all group">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div class="p-2 bg-neutral/10 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-neutral-content" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+          </div>
+        </div>
+        <h2 class="font-semibold mb-1 group-hover:text-primary transition-colors">Comparación LLM</h2>
+        <p class="text-xs text-base-content/60 leading-relaxed">
+          Envía el mismo contexto fotográfico a múltiples modelos en paralelo y compara sus respuestas.
+        </p>
+        <div class="mt-4 text-xs text-base-content/40">
+          Groq · OpenAI · Anthropic · side-by-side
+        </div>
+      </div>
+    </a>
+
     <!-- Georeferencia -->
     <a href="/curador/georeferencia" class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md transition-all group">
       <div class="card-body p-5">

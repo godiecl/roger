@@ -1,5 +1,32 @@
 import { apiClient } from './apiClient';
 
+export interface CollectionClusterSummary {
+  cluster_id: number;
+  label: string;
+  photograph_count: number;
+  centroid_photograph_id: number | null;
+  year_representative: number | null;
+  year_min: number | null;
+  year_max: number | null;
+  date_source: string;
+}
+
+export interface CollectionNarrative {
+  job_id: number;
+  collection_narrative: string;
+  temporal_arc: string;
+  thematic_threads: string[];
+  historical_significance: string;
+  ordered_clusters: CollectionClusterSummary[];
+  photograph_count: number;
+  cluster_count: number;
+  year_min: number | null;
+  year_max: number | null;
+  provider: string;
+  generation_time_ms: number;
+  created_at: string | null;
+}
+
 export interface TimelineEvent {
   id: number | null;
   date_label: string;
@@ -56,6 +83,10 @@ class TimelineService {
 
   async getWikipediaEvents(year: number): Promise<TimelineEvent[]> {
     return apiClient.get(`/timelines/wikipedia/${year}`);
+  }
+
+  async generateCollectionNarrative(jobId: number): Promise<CollectionNarrative> {
+    return apiClient.post(`/timelines/collection/${jobId}`);
   }
 }
 

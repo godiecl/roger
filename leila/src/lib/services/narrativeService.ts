@@ -106,3 +106,34 @@ class NarrativeService {
 }
 
 export const narrativeService = new NarrativeService();
+
+// ── Multi-LLM comparison ─────────────────────────────────────────────────────
+
+export interface LLMCompareRequest {
+  photograph_id: number;
+  system_prompt?: string;
+  user_prompt?: string;
+}
+
+export interface LLMProviderResult {
+  provider: string;
+  response: string;
+  time_ms: number;
+  error: string | null;
+}
+
+export interface LLMCompareResponse {
+  photograph_id: number;
+  system_prompt: string;
+  user_prompt: string;
+  results: LLMProviderResult[];
+  computed_at: string;
+}
+
+class NarrativeCompareService {
+  async compare(body: LLMCompareRequest): Promise<LLMCompareResponse> {
+    return apiClient.post<LLMCompareResponse>('/narratives/compare', body);
+  }
+}
+
+export const narrativeCompareService = new NarrativeCompareService();

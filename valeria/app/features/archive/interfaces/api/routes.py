@@ -12,6 +12,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select as sa_select
 
 from app.features.archive.application.create_collection_usecase import CreateCollectionUseCase
 from app.features.archive.application.get_collection_usecase import GetCollectionUseCase
@@ -28,11 +29,12 @@ from app.features.archive.application.get_photograph_usecase import GetPhotograp
 from app.features.archive.application.list_photographs_usecase import ListPhotographsUseCase
 from app.features.archive.application.register_file_usecase import RegisterPhotographFileUseCase
 from app.features.archive.infrastructure.adapters.archive_repository import ArchiveRepository
+from app.features.archive.infrastructure.persistence.archive_model import PhotographModel
 from app.features.archive.interfaces.api.schemas import (
     CollectionCreateRequest, CollectionUpdateRequest, CollectionListResponse, CollectionResponse,
     BoxCreateRequest, BoxListResponse, BoxResponse,
     RollCreateRequest, RollListResponse, RollResponse,
-    PhotographCreateRequest, PhotographListResponse, PhotographResponse,
+    PhotographCreateRequest, PhotographUpdateRequest, PhotographListResponse, PhotographResponse,
     PhotographFileCreateRequest, PhotographFileListResponse, PhotographFileResponse,
 )
 from app.features.authenticate.domain.role import Role
@@ -374,6 +376,32 @@ async def get_photograph(
         return PhotographResponse(**photo.__dict__)
     except EntityNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.patch("/photographs/{photograph_id}", response_model=PhotographResponse)
+async def update_photograph(
+    photograph_id: int,
+    request: PhotographUpdateRequest,
+    _: int = Depends(_require_write_access),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Actualiza los campos de una fotografía, incluyendo los campos ISAD(G).
+    Solo actualiza los campos presentes en el body (patch semántico).
+    Requiere rol curador o administrador.
+    """
+    result = await db.execute(sa_select(PhotographModel).where(PhotographModel.id == photograph_id))
+    model = result.scalar_one_or_none()
+    if not model:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Fotografía {photograph_id} no encontrada")
+
+    update_data = request.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(model, field, value)
+
+    await db.flush()
+    await db.refresh(model)
+    return PhotographResponse.model_validate(model)
 
 
 # ── PhotographFiles ───────────────────────────────────────────────────────────

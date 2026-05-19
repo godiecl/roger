@@ -6,6 +6,7 @@
   import { isAuthenticated } from '$lib/stores/auth';
   import { contributionService } from '$lib/services/contributionService';
   import { notificationsStore } from '$lib/stores/notifications';
+  import { timelineService } from '$lib/services/timelineService';
 
   export let image: Image;
   export let narratives: Narrative[] = [];
@@ -212,10 +213,10 @@
     timelineLoading = true;
     timelineError = null;
     try {
-      timeline = await apiClient.get<TimelineData>(`/timelines/photograph/${image.id}`);
+      timeline = await timelineService.getByPhotograph(image.id) as unknown as TimelineData;
     } catch (e: any) {
-      if (e.status !== 404) {
-        timelineError = e.detail || 'Error al cargar la línea de tiempo';
+      if (e?.status !== 404 && e?.response?.status !== 404) {
+        timelineError = e?.detail ?? e?.message ?? 'Error al cargar la línea de tiempo';
       }
     } finally {
       timelineLoading = false;
@@ -223,19 +224,20 @@
     }
   }
 
-  async function generateTimeline() {
+  async function generateTimeline(forceRegeneration = false) {
     timelineLoading = true;
     timelineError = null;
     try {
-      timeline = await apiClient.post<TimelineData>('/timelines', {
+      timeline = await timelineService.generate({
         photograph_id: image.id,
         photograph_date: image.year ? String(image.year) : undefined,
         photograph_location: image.location ?? undefined,
         photograph_description: image.description ?? undefined,
-      });
+        force_regeneration: forceRegeneration,
+      }) as unknown as TimelineData;
       timelineChecked = true;
     } catch (e: any) {
-      timelineError = e.detail || 'Error al generar la línea de tiempo';
+      timelineError = e?.detail ?? e?.message ?? 'Error al generar la línea de tiempo';
     } finally {
       timelineLoading = false;
     }
@@ -499,51 +501,83 @@
           {:else if activeTab === 'timeline'}
             <!-- Línea de Tiempo -->
             {#if timelineLoading}
-              <div class="flex flex-col items-center justify-center py-16 gap-3">
-                <span class="loading loading-spinner loading-lg"></span>
-                <p class="text-sm text-base-content/55">Generando línea de tiempo con IA...</p>
+              <!-- Skeleton mientras carga o genera -->
+              <div class="space-y-4" aria-busy="true" aria-label="Cargando línea de tiempo">
+                <div class="skeleton h-16 w-full rounded-lg"></div>
+                <div class="flex items-center gap-2">
+                  <div class="skeleton h-5 w-20 rounded-full"></div>
+                  <div class="skeleton h-px flex-1"></div>
+                </div>
+                {#each Array(3) as _}
+                  <div class="flex gap-4">
+                    <div class="skeleton h-4 w-16 rounded flex-shrink-0"></div>
+                    <div class="flex flex-col items-center flex-shrink-0 gap-1">
+                      <div class="skeleton w-2.5 h-2.5 rounded-full"></div>
+                      <div class="skeleton w-px h-12"></div>
+                    </div>
+                    <div class="flex-1 space-y-1.5">
+                      <div class="skeleton h-4 w-3/4 rounded"></div>
+                      <div class="skeleton h-3 w-full rounded"></div>
+                      <div class="skeleton h-3 w-5/6 rounded"></div>
+                    </div>
+                  </div>
+                {/each}
               </div>
             {:else if timelineError}
-              <div class="alert alert-error">
+              <div class="alert alert-error" role="alert">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <span class="text-sm">{timelineError}</span>
-                <button class="btn btn-xs btn-ghost ml-auto" on:click={generateTimeline}>Reintentar</button>
+                <button class="btn btn-xs btn-ghost ml-auto min-h-[44px]" on:click={() => generateTimeline(false)}>
+                  Reintentar
+                </button>
               </div>
             {:else if !timeline}
               <div class="flex flex-col items-center justify-center py-12 gap-4 text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-base-content/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p class="text-sm text-base-content/55">No hay línea de tiempo generada para esta imagen.</p>
-                <button class="btn btn-primary btn-sm" on:click={generateTimeline}>
+                <p class="text-sm text-base-content/55">No hay línea de tiempo generada para esta fotografía.</p>
+                <button class="btn btn-primary btn-sm min-h-[44px]" on:click={() => generateTimeline(false)}>
                   Generar con IA
                 </button>
               </div>
             {:else}
-              <div class="space-y-6">
+              <div class="space-y-5">
+                <!-- Resumen contextual -->
                 {#if timeline.context_summary}
-                  <div class="card bg-base-200 p-4">
-                    <p class="text-sm text-base-content/70 leading-relaxed">{timeline.context_summary}</p>
+                  <div class="p-4 bg-base-200 rounded-lg border-l-4 border-secondary">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                      <p class="text-xs font-semibold uppercase tracking-wider text-base-content/50">
+                        Contexto histórico
+                      </p>
+                      {#if timeline.is_approved}
+                        <span class="badge badge-xs badge-success ml-auto">Aprobada por curador</span>
+                      {:else}
+                        <span class="badge badge-xs badge-warning ml-auto">Verosímil</span>
+                      {/if}
+                    </div>
+                    <p class="text-sm text-base-content/75 leading-relaxed">{timeline.context_summary}</p>
                   </div>
                 {/if}
 
+                <!-- Eventos agrupados por eje -->
                 {#each Object.entries(groupedEvents) as [axis, events] (axis)}
                   <div>
                     <div class="flex items-center gap-2 mb-3">
                       <span class="badge {axisColor[axis] ?? 'badge-ghost'} badge-sm">
                         {axisLabel[axis] ?? axis}
                       </span>
-                      <div class="flex-1 h-px bg-base-300"></div>
+                      <div class="flex-1 h-px bg-base-300" aria-hidden="true"></div>
                     </div>
-                    <div class="space-y-0">
+                    <div>
                       {#each events as event (event.id ?? event.title)}
                         <div class="flex gap-4 pb-4">
                           <div class="w-20 flex-shrink-0 text-right pt-0.5">
                             <span class="text-xs font-medium text-primary leading-tight">{event.date_label}</span>
                           </div>
-                          <div class="flex-shrink-0 flex flex-col items-center">
+                          <div class="flex-shrink-0 flex flex-col items-center" aria-hidden="true">
                             <div class="w-2.5 h-2.5 rounded-full bg-primary mt-0.5 flex-shrink-0"></div>
                             <div class="w-px flex-1 bg-base-300 mt-1"></div>
                           </div>
@@ -559,6 +593,17 @@
                     </div>
                   </div>
                 {/each}
+
+                <!-- Acción regenerar -->
+                <div class="flex justify-end pt-2 border-t border-base-200">
+                  <button
+                    class="btn btn-xs btn-ghost min-h-[44px]"
+                    on:click={() => generateTimeline(true)}
+                    aria-label="Regenerar línea de tiempo con nuevos datos"
+                  >
+                    Regenerar
+                  </button>
+                </div>
               </div>
             {/if}
           {/if}

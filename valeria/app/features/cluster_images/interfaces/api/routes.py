@@ -1,6 +1,9 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.features.authenticate.interfaces.api.dependencies import get_current_user_id
 from app.features.cluster_images.application.cluster_images_usecase import ClusterImagesUseCase
 from app.features.cluster_images.domain.cluster import ClusterAlgorithm, ClusteringJob
 from app.features.cluster_images.infrastructure.adapters.cluster_repository import ClusterRepository
@@ -25,17 +28,19 @@ def _build_usecase(db: AsyncSession) -> ClusterImagesUseCase:
 async def cluster_photographs(
     request: ClusterRequest,
     db: AsyncSession = Depends(get_db),
+    _user_id: int = Depends(get_current_user_id),
 ):
     """
-    Agrupa fotografías por similitud semántica usando sentence-transformers.
+    Agrupa fotografías por similitud visual (CLIP ViT-B/32) cuando las imágenes están
+    en disco, o por similitud textual (sentence-transformers) como fallback.
 
     - **photograph_ids**: lista de IDs de fotografías (mínimo 2)
-    - **algorithm**: dbscan (automático, detecta outliers) | kmeans (requiere n_clusters)
+    - **algorithm**: dbscan (eps adaptativo, detecta outliers) | kmeans (requiere n_clusters)
     - **n_clusters**: solo para kmeans; si se omite en dbscan, se detecta automáticamente
-    - **texts**: descripciones textuales por fotografía (mismo orden). Si se omiten,
-      provee textos desde los metadatos antes de llamar este endpoint para mejores resultados.
+    - **texts**: descripciones opcionales por fotografía (mismo orden). CLIP tiene prioridad
+      cuando las imágenes están disponibles.
 
-    Requiere autenticación. Pensado para grupos de trabajo de investigadores.
+    Requiere autenticación.
     """
     try:
         alg = ClusterAlgorithm(request.algorithm)
@@ -45,6 +50,9 @@ async def cluster_photographs(
             detail=f"Algoritmo '{request.algorithm}' no válido. Opciones: dbscan, kmeans",
         )
 
+    # Resolver paths de imagen en disco para activar CLIP visual
+    image_paths = await _resolve_image_paths(db, request.photograph_ids)
+
     try:
         usecase = _build_usecase(db)
         job = await usecase.execute(
@@ -52,6 +60,7 @@ async def cluster_photographs(
             algorithm=alg,
             n_clusters=request.n_clusters,
             texts=request.texts,
+            image_paths=image_paths,
         )
         return _to_response(job)
     except ValueError as e:
@@ -212,6 +221,40 @@ async def justify_clustering_job(
 
     await db.commit()
     return _to_response(job)
+
+
+async def _resolve_image_paths(
+    db: AsyncSession,
+    photograph_ids: list[int],
+) -> list[str | None]:
+    """
+    Consulta photograph_files y devuelve el path en disco por fotografía.
+    Prefiere archivos no-master (JPG/PNG) sobre CR3. Convierte la ruta web
+    (/storage/...) a ruta de sistema de archivos relativa al cwd del proceso.
+    """
+    from app.features.archive.infrastructure.persistence.archive_model import (
+        FileType, PhotographFileModel,
+    )
+    from sqlalchemy.future import select as _sel
+
+    viewable = [FileType.JPG, FileType.PNG, FileType.TIFF]
+    result = await db.execute(
+        _sel(PhotographFileModel)
+        .where(PhotographFileModel.photograph_id.in_(photograph_ids))
+        .where(PhotographFileModel.file_type.in_(viewable))
+    )
+    rows = result.scalars().all()
+
+    # photograph_id -> mejor path (preferir non-master / JPG)
+    best: dict[int, tuple[bool, str]] = {}
+    for row in rows:
+        pid = row.photograph_id
+        is_master = row.is_master
+        fs_path = os.path.abspath(row.file_path.lstrip("/"))
+        if pid not in best or best[pid][0]:  # reemplazar si el actual es master
+            best[pid] = (is_master, fs_path)
+
+    return [best.get(pid, (None, None))[1] for pid in photograph_ids]
 
 
 def _to_response(job: ClusteringJob) -> ClusteringJobResponse:
