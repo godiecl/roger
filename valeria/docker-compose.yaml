@@ -4,7 +4,10 @@ name: valeria
 
 services:
   valeria:
-    image: liguana/valeria
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: liguana/valeria:prod
     container_name: valeria
     hostname: valeria
     expose:
