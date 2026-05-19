@@ -7,7 +7,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: liguana/valeria:prod
+    image: roger/valeria:prod
     container_name: valeria
     hostname: valeria
     expose:
