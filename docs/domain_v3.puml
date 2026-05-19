@@ -1,0 +1,575 @@
+@startuml
+
+' Domain v3 — refleja el estado de la base de datos tras las migraciones 008–011.
+' Cambios respecto a v2:
+'   - Fotografía: campos ISAD(G) (mig 011).
+'   - Nuevo paquete "Análisis Visual" — detecciones YOLO + anotaciones de experto
+'     (migs 009 y 010), clustering con justificación LLM (mig 008).
+'   - Nuevo paquete "Línea de Tiempo" — eje cronológico VERAZ/VEROSÍMIL.
+'   - Nuevo paquete "Narrativas y Contexto" — narrativas curatoriales, contextos
+'     IA, likes y reportes públicos.
+'   - Research expandido: miembros, mensajes e invitaciones de proyecto.
+
+skin rose
+hide empty members
+left to right direction
+
+skinparam {
+    defaultFontSize             16
+    shadowing                   false
+    RoundCorner                 10
+    packageBackgroundColor      LightGoldenRodYellow
+}
+
+package roger {
+
+    package "Usuarios" {
+
+        entity Persona {
+            * id
+            * RUT/Pasaporte
+            * Nombres
+            * Apellidos
+            * Correo Electrónico
+            * Celular
+            * Nacionalidad
+            * Género
+            * Afiliación
+            * Organización
+            * Cargo
+            ..
+            * Login
+            * Contraseña
+            * Fecha de Creación
+            * Fecha de Caducidad
+            * Activa
+            * Verificada
+        }
+
+        enum Rol {
+            * Administrador
+            * Curador/Experto
+            * Mesa Evaluadora
+            * Investigador
+            * Digitalizador
+            * Colaborador
+            * Usuario Estándar
+            * Sistema IA
+        }
+        Rol "1..*" <-- Persona : < tiene roles
+
+    }
+
+    package "Archivo Físico" {
+
+        entity "Colección" as Coleccion {
+            * id
+            * Nombre
+            * Slug
+            * Descripción
+            * Nombre Fotógrafo
+            * País de Origen
+            * Año Inicio
+            * Año Término
+            * Licencia
+            * Derechos de Autor/Uso
+            * Pública
+            * Fecha de Creación
+        }
+        Coleccion "*" <-- Persona : < creada por
+
+        entity "Cajón" as Cajon {
+            * id
+            * Número de Cajón
+            * Nombre
+            * Ubicación en Archivo
+        }
+        Cajon "1..*" <-- Coleccion : < contiene
+
+        entity Rollo {
+            * id
+            * Número General
+            * Número Interno
+            * Og
+            * Letra de Tira
+            * Nombre/Descripción
+            ..
+            * Tipo (NEG/POS)
+            * Soporte (PAPER/GLASS/FLEX)
+            * Estado Físico (GOOD/INTER/BAD)
+            * Modo Color (BW/COLOR)
+            * Número de Fotogramas
+        }
+        Rollo "1..*" <-- Cajon : < almacena
+
+        entity "Fotografía" as Fotografia {
+            * id
+            * Número de Frame
+            * Identificador
+            * Referencia Localización Física
+            * Fecha de Digitalización
+            ..
+            * Alto (px)
+            * Ancho (px)
+            * Profundidad de Color
+            * Resolución (DPI)
+            * Cronología Interna
+            ..
+            * Licencia
+            * Derechos de Autor/Uso
+            * Pública
+            ..
+            ' ISAD(G) — International Standard Archival Description (mig 011)
+            * Código de Referencia
+            * Nivel de Descripción /' item|file|series|fonds '/
+            * Extensión
+            * Historia Archivística
+            * Alcance y Contenido
+            * Condiciones de Acceso
+            * Condiciones de Reproducción
+            * Lengua del Material
+        }
+        Fotografia "1..*" <-- Rollo : < tiene
+        Fotografia "*" <-- Persona : < responsable
+        Fotografia "*" <-- Persona : < digitalizado por
+
+        entity "Archivo de Fotografía" as ArchivoFotografia {
+            * id
+            * Tipo de Archivo
+            * Ruta del Archivo
+            * Es Maestro
+            * Tamaño (bytes)
+            * Fecha de Creación
+        }
+        ArchivoFotografia "1..*" <-- Fotografia : < archivos de
+
+        enum "Tipo de Archivo" as TipoArchivo {
+            * CR3 [master]
+            * TIFF
+            * JPG
+            * PNG
+        }
+        TipoArchivo "1" <-- ArchivoFotografia : < es de tipo
+
+    }
+
+    package "Taxonomía Multimodal" {
+
+        ' Atributo 01 — Solo escritura por herramientas. INMUTABLE.
+        entity "01 · Metadato Técnico" as MetadatoTecnico {
+            * id
+            * Estado (ACTIVE/SUPERSEDED)
+            ..
+            * Formato de Película
+            * Fabricante
+            * Tipo de Emulsión
+            * Sensibilidad ISO
+            * Marcas de Montaje
+            * Artefactos de Escaneo
+            * Estado Físico
+            ..
+            * Exposición
+            * Apertura de Diafragma
+            * Óptica/Lente
+            * Configuración de Cámara
+            * Notas de Deterioro
+            * Persona Digitalizadora
+            * Es Estimado
+            ..
+            * Proveedor de Análisis
+            * Versión del Proveedor
+            * Nivel de Confianza
+            * Salida Cruda (JSON)
+            * Fecha de Análisis
+        }
+        MetadatoTecnico "0..*" <-- Fotografia : < analizado en
+
+        ' Atributo 02 — Acepta contribuciones aprobadas.
+        entity "02 · Datación Cronológica" as Cronologia {
+            * id
+            * Estado (ACTIVE/SUPERSEDED/PENDING)
+            * Tipo de Fuente (AI/CURATOR/USER_APPROVED)
+            ..
+            * Tipo de Fecha
+            * Fecha Precisa
+            * Fecha Desde
+            * Fecha Hasta
+            * Hipótesis de Fecha
+            * Fuente de Verificación
+            * Metodología
+            * Evidencia Visual
+            ..
+            * Proveedor de Análisis
+            * Nivel de Confianza
+            * Salida Cruda (JSON)
+            * Fecha de Análisis
+        }
+        Cronologia "0..*" <-- Fotografia : < fechado en
+
+        ' Atributo 03 — Acepta contribuciones aprobadas.
+        entity "03 · Referencia Geográfica" as ReferenciaGeografica {
+            * id
+            * Estado (ACTIVE/SUPERSEDED/PENDING)
+            * Tipo de Fuente (AI/CURATOR/USER_APPROVED)
+            ..
+            * Tipo de Localización
+            * Localización Geográfica
+            * Latitud
+            * Longitud
+            * Radio de Incerteza (km)
+            * Señales Encontradas
+            * Hitos Arquitectónicos
+            * Características del Paisaje
+            ..
+            * Proveedor de Análisis
+            * Nivel de Confianza
+            * Salida Cruda (JSON)
+            * Fecha de Análisis
+        }
+        ReferenciaGeografica "0..*" <-- Fotografia : < georreferenciado en
+
+        ' Atributo 04 — Acepta contribuciones aprobadas.
+        entity "04 · Contexto Ambiental y Espacial" as ContextoAmbiental {
+            * id
+            * Estado (ACTIVE/SUPERSEDED/PENDING)
+            * Tipo de Fuente (AI/CURATOR/USER_APPROVED)
+            ..
+            * Tipo de Entorno
+            * Tipología Específica
+            * Estado de Conservación
+            * Relación Humano-Entorno
+            ..
+            * Proveedor de Análisis
+            * Nivel de Confianza
+            * Salida Cruda (JSON)
+            * Fecha de Análisis
+        }
+        ContextoAmbiental "0..*" <-- Fotografia : < contextualizado en
+
+        enum "Estado de Atributo" as EstadoAtributo {
+            * ACTIVE
+            * SUPERSEDED
+            * PENDING
+        }
+
+        enum "Tipo de Fecha" as TipoFecha {
+            * PRECISE
+            * APPROXIMATE
+            * RANGE
+            * UNKNOWN
+        }
+
+        enum "Tipo de Localización" as TipoLocalizacion {
+            * PRECISE
+            * APPROXIMATE
+            * UNKNOWN
+        }
+
+        enum "Tipo de Entorno" as TipoEntorno {
+            * NATURAL
+            * URBAN
+            * INTERIOR
+            * EXTERIOR
+            * MIXED
+        }
+
+        enum "Estado de Conservación" as EstadoConservacion {
+            * PRISTINE
+            * BUILT
+            * ANTHROPOGENIC
+        }
+
+    }
+
+    package "Etiquetas" {
+
+        entity Etiqueta {
+            * id
+            * Nombre
+            * Categoría
+        }
+        Etiqueta "*" <-- Coleccion : < pertenece a
+
+        entity "Fotografía-Etiqueta" as FotografiaEtiqueta {
+            * Fuente (MANUAL/AI/USER_CONTRIBUTED)
+            * Confianza
+            * Estado (APPROVED/PENDING/REJECTED)
+            * Atributo de Origen
+            * Fecha de Aprobación
+        }
+        FotografiaEtiqueta "*" <-- Fotografia : < etiquetado con
+        FotografiaEtiqueta "*" <-- Etiqueta : < aplicado en
+        FotografiaEtiqueta "*" <-- Persona : < aprobado por
+
+        enum "Categoría de Etiqueta" as CategoriaEtiqueta {
+            * geographic
+            * temporal
+            * iconographic
+            * technical
+            * ai_inferred
+        }
+        CategoriaEtiqueta "1" <-- Etiqueta : < categoría
+
+    }
+
+    package "Contribuciones" {
+
+        ' Solo aplica a atributos 02, 03, 04 y etiquetas.
+        ' El Metadato Técnico (01) es INMUTABLE.
+        entity "Contribución de Metadato" as ContribucionMetadato {
+            * id
+            * Tipo de Atributo /' NO incluye TECHNICAL '/
+            * Nombre de Campo
+            * Valor Propuesto
+            * Notas de Evidencia
+            ..
+            * Estado (PENDING/APPROVED/REJECTED)
+            * Razón de Rechazo
+            * Fecha de Revisión
+        }
+        ContribucionMetadato "*" <-- Fotografia : < recibe aportes
+        ContribucionMetadato "*" <-- Persona : < contribuye
+        ContribucionMetadato "*" <-- Persona : < revisado por
+
+    }
+
+    package "Análisis Visual" {
+
+        ' Detección de objetos por imagen (mig 009: bbox + mask polygon).
+        entity "Detección de Objetos" as DeteccionObjetos {
+            * id
+            * Proveedor /' yolov8, gpt4v, claude_vision, ... '/
+            * Descripción de Escena
+            * Tiempo de Detección (ms)
+            * Estado (PENDING/RUNNING/COMPLETED/FAILED)
+        }
+        DeteccionObjetos "0..*" <-- Fotografia : < detectada en
+
+        entity "Objeto Detectado" as ObjetoDetectado {
+            * id
+            * Etiqueta
+            * Categoría
+            * Confianza
+            * Descripción
+            ..
+            * Bounding Box (x1, y1, x2, y2)
+            * Máscara Poligonal
+        }
+        ObjetoDetectado "1..*" <-- DeteccionObjetos : < contiene
+
+        ' mig 010 — Anotaciones de experto sobre lo detectado por IA.
+        entity "Anotación de Detección" as AnotacionDeteccion {
+            * id
+            * Veredicto (correct/incorrect/uncertain)
+            * Etiqueta Corregida
+            * Categoría Corregida
+            * Notas
+        }
+        AnotacionDeteccion "*" <-- ObjetoDetectado : < revisado en
+        AnotacionDeteccion "*" <-- DeteccionObjetos : < contexto de revisión
+        AnotacionDeteccion "*" <-- Persona : < anotado por
+
+        ' mig 010 — Calidad de descripción IA sobre la fotografía.
+        entity "Anotación de Descripción" as AnotacionDescripcion {
+            * id
+            * Calificación IA (1-5)
+            * Descripción de Referencia
+        }
+        AnotacionDescripcion "*" <-- Fotografia : < evaluada en
+        AnotacionDescripcion "*" <-- Persona : < anotado por
+
+        ' Clustering visual (mig 008: + justification LLM).
+        entity "Trabajo de Clustering" as TrabajoClustering {
+            * id
+            * Algoritmo (DBSCAN/KMeans/HDBSCAN)
+            * Modelo de Embedding
+            * N° Clusters
+            * Conteo de Ruido
+            * Tiempo (ms)
+            * IDs de Fotografías (JSON)
+            * Estado
+        }
+
+        entity Cluster {
+            * id
+            * Etiqueta
+            * Algoritmo
+            * Modelo de Embedding
+            * Conteo de Miembros
+            * Fotografía Centroide
+            * IDs de Miembros (JSON)
+            * Estado
+            ..
+            * Justificación LLM /' por qué se agrupan estas fotos '/
+        }
+        Cluster "1..*" <-- TrabajoClustering : < produce
+
+    }
+
+    package "Línea de Tiempo" {
+
+        ' Eje cronológico paralelo (RF-08: 3 ejes VERAZ/VEROSÍMIL).
+        entity "Línea de Tiempo" as LineaTiempo {
+            * id
+            * Proveedor LLM
+            * Resumen de Contexto
+            * Tiempo de Generación (ms)
+            ..
+            * Aprobada
+            * Fecha de Aprobación
+        }
+        LineaTiempo "0..*" <-- Fotografia : < contextualiza
+        LineaTiempo "*" <-- Persona : < aprobada por
+
+        entity "Evento de Línea de Tiempo" as EventoTimeline {
+            * id
+            * Etiqueta de Fecha
+            * Año
+            * Título
+            * Descripción
+            * Eje /' photographer | location | historical '/
+            * Tipo de Evento
+            * Tipo de Fuente (VERAZ/VEROSÍMIL)
+        }
+        EventoTimeline "1..*" <-- LineaTiempo : < compuesta de
+
+    }
+
+    package "Narrativas y Contexto Público" {
+
+        ' Narrativas curatoriales (VERAZ manual) o IA (VEROSÍMIL).
+        entity Narrativa {
+            * id
+            * Texto
+            * Trazabilidad (JSON con fuentes)
+            * Prompt
+            * Idioma
+            * Modelo Usado
+            * Tiempo de Generación (ms)
+            ..
+            * Aprobada
+            * Fecha de Aprobación
+            * Es Manual /' True = VERAZ curatorial '/
+            ..
+            * Conteo de Likes
+            * Conteo de Reportes
+        }
+        Narrativa "*" <-- Fotografia : < narra
+        Narrativa "*" <-- Persona : < autor
+        Narrativa "*" <-- Persona : < aprobada por
+
+        ' Contexto IA mostrado en la galería pública.
+        entity "Contexto de Imagen" as ContextoImagen {
+            * id
+            * Texto
+            * Proveedor
+            * Tiempo de Generación (ms)
+            ..
+            * Anclado /' marcado como contexto oficial '/
+            * Fecha de Anclaje
+            ..
+            * Conteo de Likes
+            * Conteo de Reportes
+        }
+        ContextoImagen "*" <-- Fotografia : < contexto público de
+        ContextoImagen "*" <-- Persona : < anclado por
+
+        ' Likes anónimos (IP hasheada — Ley 19.628).
+        entity "Like de Contenido" as LikeContenido {
+            * id
+            * Tipo de Contenido (context/narrative)
+            * ID de Contenido
+            * Hash de IP (SHA256)
+            * Fecha de Creación
+        }
+
+        ' Reportes anónimos para moderación.
+        entity "Reporte de Contenido" as ReporteContenido {
+            * id
+            * Tipo de Contenido (context/narrative)
+            * ID de Contenido
+            * Hash de IP (SHA256)
+            * Razón
+            * Estado (pending/reviewed/dismissed)
+        }
+
+    }
+
+    package "Research" {
+
+        entity Proyecto {
+            * id
+            * Nombre
+            * Descripción
+            * Fecha de Inicio
+            * Fecha de Término
+            * Instrucciones IA
+            * Activo
+        }
+        Proyecto "*" <-- Persona : < es responsable
+        Proyecto --> "*" Coleccion : > utiliza colecciones
+        Proyecto --> "*" Fotografia : > utiliza fotografías
+
+        entity "Miembro de Proyecto" as MiembroProyecto {
+            * id
+            * Rol en Proyecto
+            * Fecha de Incorporación
+        }
+        MiembroProyecto "*" <-- Proyecto : < tiene miembros
+        MiembroProyecto "*" <-- Persona : < es miembro
+
+        entity "Invitación a Proyecto" as InvitacionProyecto {
+            * id
+            * Correo Invitado
+            * Rol Propuesto
+            * Token
+            * Estado (PENDING/ACCEPTED/REJECTED/EXPIRED)
+            * Fecha de Expiración
+        }
+        InvitacionProyecto "*" <-- Proyecto : < emitida por
+        InvitacionProyecto "*" <-- Persona : < invitado por
+
+        entity "Mensaje de Proyecto" as MensajeProyecto {
+            * id
+            * Texto
+            * Fecha de Envío
+        }
+        MensajeProyecto "*" <-- Proyecto : < hilo de
+        MensajeProyecto "*" <-- Persona : < enviado por
+
+        entity Experimento {
+            * id
+            * Descripción
+            * Fecha
+            * Tipo de Atributo
+            * Estado (PLANNED/RUNNING/COMPLETED/FAILED)
+            * Notas
+            * Fecha de Creación
+        }
+        Experimento --> "1" Fotografia : > sobre
+        Experimento --> "1" Persona : > conducido por
+        Experimento --> "1" Proyecto : > enmarcado en
+        Experimento --> "0..1" "Trabajo de Análisis" : > genera
+
+    }
+
+    package "Análisis IA" {
+
+        entity "Trabajo de Análisis" as TrabajoAnalisis {
+            * id
+            * Tipo de Atributo
+            * Nombre de Herramienta /' pillow, places365, geocLIP, claude, ... '/
+            * Versión de Herramienta
+            * Estado (PENDING/RUNNING/COMPLETED/FAILED)
+            * Fecha de Inicio
+            * Fecha de Término
+            * Mensaje de Error
+        }
+        TrabajoAnalisis "*" <-- Fotografia : < procesado en
+        TrabajoAnalisis "*" <-- Persona : < disparado por
+
+    }
+
+}
+
+@enduml
