@@ -1,760 +1,264 @@
-# ROGER - Guía de Instalación y Configuración
+# ROGER — Guía de deploy en servidor UCN
 
-Esta guía describe el proceso de instalación y configuración del proyecto ROGER, desde los requisitos previos hasta la puesta en marcha del sistema completo.
+## Requisitos del servidor
 
-## Requisitos Previos
+- Docker Engine 24+
+- Docker Compose v2 (plugin, no el binario legacy)
+- Git
+- `sqlite3` (para backups): `apt-get install sqlite3`
+- Puertos 80 y 443 abiertos en el firewall
 
-### Obligatorios
-
-- **Python 3.11+** - [Descargar](https://www.python.org/downloads/)
-- **Node.js 18+** - [Descargar](https://nodejs.org/)
-- **Git** - [Descargar](https://git-scm.com/)
-
-### Opcionales (Recomendados)
-
-- **PostgreSQL 14+** - [Descargar](https://www.postgresql.org/download/) - Para entornos de producción (SQLite se utiliza en desarrollo)
-- **Redis** - Para sistema de caché (mejora el rendimiento)
-- **OpenAI API Key** - Requerida únicamente para generación de narrativas (costo aproximado: $10/año)
-  - **Alternativa:** Modelos locales de Hugging Face (sin costo, requiere GPU)
-
-### Verificación de instalación
-
+Verificar:
 ```bash
-python --version    # Debe ser 3.11 o superior
-node --version      # Debe ser 18 o superior
-psql --version      # Verificar instalación de PostgreSQL
+docker --version          # Docker version 24+
+docker compose version    # Docker Compose version v2+
 git --version
+sqlite3 --version
 ```
 
 ---
 
-## Configuración del Backend (Valeria)
+## Primera instalación
 
-### 1. Navegación al directorio del backend
+### 1. Clonar el repositorio
 
 ```bash
-cd valeria
+git clone https://github.com/godiecl/roger.git /opt/roger
+cd /opt/roger
+git checkout DLeon96    # rama de desarrollo activa
 ```
 
-### 2. Creación y activación del entorno virtual
+### 2. Crear el archivo de variables de entorno
 
 ```bash
-# Crear entorno virtual
-python -m venv venv
-
-# Activar (Windows)
-venv\Scripts\activate
-
-# Activar (Linux/Mac)
-source venv/bin/activate
-```
-
-### 3. Instalación de dependencias
-
-```bash
-# Dependencias de producción
-pip install -r requirements.txt
-
-# Dependencias de desarrollo (opcional)
-pip install -r requirements-dev.txt
-```
-
-### 4. Configuración de base de datos
-
-**Opción A: SQLite (Desarrollo - Recomendado)**
-
-```bash
-# No requiere instalación adicional
-# SQLite se crea automáticamente durante las migraciones
-# Ubicación del archivo: valeria/roger.db
-```
-
-**Opción B: PostgreSQL (Producción)**
-
-```bash
-# Conexión a PostgreSQL
-psql -U postgres
-
-# Creación de base de datos y usuario
-CREATE DATABASE roger_db;
-CREATE USER roger_user WITH PASSWORD 'roger_pass';
-GRANT ALL PRIVILEGES ON DATABASE roger_db TO roger_user;
-\q
-```
-
-### 5. Configuración de variables de entorno
-
-```bash
-# Copiar archivo de ejemplo
 cp .env.example .env
 ```
 
-**Editar `valeria/.env` con los valores correspondientes:**
-
-**Variables obligatorias:**
-
-```env
-# ===================================
-# BASE DE DATOS (OBLIGATORIO)
-# ===================================
-# Opción 1: SQLite para desarrollo (Recomendado)
-DATABASE_URL=sqlite+aiosqlite:///./roger.db
-
-# Opción 2: PostgreSQL para producción
-# DATABASE_URL=postgresql+asyncpg://roger_user:roger_pass@localhost:5432/roger_db
-
-# ===================================
-# SEGURIDAD (OBLIGATORIO EN PRODUCCIÓN)
-# ===================================
-SECRET_KEY=genera-una-clave-secreta-super-segura-aqui-minimo-32-caracteres
-# Generar con: python -c "import secrets; print(secrets.token_urlsafe(32))"
-
-# ===================================
-# ENTORNO
-# ===================================
-ENVIRONMENT=development  # development | staging | production
-DEBUG=True               # True para desarrollo, False en producción
-```
-
-**Variables opcionales (IA):**
-
-```env
-# ===================================
-# ARQUITECTURA DE IA (Ver docs/AI_ARCHITECTURE.md)
-# ===================================
-# Opción 1: Híbrida (Recomendado) - Local para embeddings, OpenAI para narrativas
-USE_LOCAL_EMBEDDINGS=true           # true = Sentence Transformers (gratis)
-USE_LOCAL_OBJECT_DETECTION=true     # true = YOLOv8 (gratis)
-OPENAI_API_KEY=sk-tu-api-key-aqui   # Solo para narrativas (~$10/año)
-
-# Opción 2: 100% OpenAI (Más costoso pero más simple)
-# USE_LOCAL_EMBEDDINGS=false
-# OPENAI_API_KEY=sk-tu-api-key-aqui
-
-# Opción 3: 100% Local (Sin costo pero requiere GPU)
-# USE_LOCAL_EMBEDDINGS=true
-# USE_LOCAL_LLM=true
-# LOCAL_LLM_MODEL=meta-llama/Meta-Llama-3.1-8B-Instruct
-
-# ===================================
-# OPENAI (Solo si USE_LOCAL_EMBEDDINGS=false o para narrativas)
-# ===================================
-OPENAI_API_KEY=                    # Opcional en arquitectura híbrida
-OPENAI_MODEL=gpt-4o-mini           # gpt-4o-mini recomendado (económico)
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-
-# ===================================
-# ANTHROPIC (Alternativa a OpenAI para narrativas)
-# ===================================
-# ANTHROPIC_API_KEY=
-# ANTHROPIC_MODEL=claude-3-haiku-20240307
-```
-
-**Variables con valores por defecto (no requieren modificación):**
-
-```env
-# API
-API_HOST=0.0.0.0
-API_PORT=8000
-API_PREFIX=/api/v1
-
-# Redis (Opcional - el sistema funciona sin Redis)
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_DB=0
-REDIS_PASSWORD=
-
-# ChromaDB (Para RAG)
-CHROMA_PERSIST_DIRECTORY=./chroma_db
-
-# Logging
-LOG_LEVEL=INFO
-```
-
-### 6. Inicialización de la base de datos
+Editar `.env` y completar **todos** los valores marcados con `CAMBIAR`:
 
 ```bash
-# Ejecutar migraciones para crear las tablas
-alembic upgrade head
+nano .env
 ```
 
-**Resultado esperado:**
-```
-INFO  [alembic.runtime.migration] Running upgrade  -> 001, Initial tables
-INFO  [alembic.runtime.migration] Running upgrade 001 -> 002, Add narratives table
-```
+Valores obligatorios:
 
-### 7. Población de la base de datos con datos de prueba
+| Variable | Cómo obtenerla |
+|---|---|
+| `SECRET_KEY` | `openssl rand -hex 32` |
+| `REDIS_PASSWORD` | `openssl rand -base64 24` |
+| `GROQ_API_KEY` | Crear cuenta gratuita en [console.groq.com](https://console.groq.com) |
+| `SMTP_USER` / `SMTP_PASSWORD` | Credenciales del correo UCN institucional |
+| `FRONTEND_URL` | IP del servidor, ej. `http://192.168.1.100` |
+
+### 3. Crear directorios de datos
 
 ```bash
-# Crear usuarios de prueba y datos iniciales
-python scripts/seed_db.py
+mkdir -p /opt/roger/data /opt/roger/storage/images
 ```
 
-**Credenciales de prueba generadas:**
-
-| Rol | Email | Password |
-|-----|-------|----------|
-| Administrador | `admin@roger.cl` | `admin123` |
-| Curador | `curador@roger.cl` | `curador123` |
-| Investigador | `investigador@roger.cl` | `investigador123` |
-| Usuario Estándar | `user@roger.cl` | `user123` |
-
-**Resultado esperado:**
-```
-[OK] Created user: admin@roger.cl (administrador)
-[OK] Created user: curador@roger.cl (curador)
-[OK] Created image: Vista panorámica del puerto de Valparaíso (1928)
-[SUCCESS] Database seeding completed successfully!
-```
-
-### 8. (Opcional) Creación de usuario administrador personalizado
+### 4. (Cuando TI UCN entregue el cert) Copiar certificado TLS
 
 ```bash
-python scripts/create_admin.py
-# Solicitará email, username y password
+mkdir -p /etc/roger/certs
+cp roger.crt /etc/roger/certs/
+cp roger.key /etc/roger/certs/
+chmod 600 /etc/roger/certs/roger.key
 ```
 
-### 9. (Opcional) Indexación de documentos en la base de conocimiento RAG
+Además, editar `nginx.conf` y reemplazar `roger.ucn.cl` con el dominio real.
+
+### 5. Construir las imágenes
 
 ```bash
-# Requiere OpenAI API Key configurada
-python scripts/index_knowledge_base.py
+cd /opt/roger
+docker compose build
 ```
 
-### 10. Ejecución del servidor
+La primera vez tarda ~5–10 minutos. Los builds posteriores son más rápidos por el caché de capas.
+
+### 6. Aplicar migraciones de base de datos
 
 ```bash
-# Opción 1: Usando uvicorn directamente
-uvicorn app.main:app --reload
-
-# Opción 2: Usando el script main.py
-python -m app.main
-
-# Opción 3: Con parámetros personalizados
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+docker compose run --rm valeria-migrate
 ```
 
-**El servidor estará disponible en:**
-- API: `http://localhost:8000`
-- Documentación (Swagger): `http://localhost:8000/api/v1/docs`
-- Redoc: `http://localhost:8000/api/v1/redoc`
-- Health Check: `http://localhost:8000/health`
+Debe mostrar algo como:
+```
+INFO  [alembic.runtime.migration] Running upgrade -> 001, initial_tables
+INFO  [alembic.runtime.migration] Running upgrade 001 -> 002, add_narratives_table
+...
+```
+
+### 7. Levantar todos los servicios
+
+```bash
+docker compose up -d
+```
+
+### 8. Crear el usuario administrador
+
+```bash
+docker compose exec valeria python scripts/create_admin.py
+```
+
+Ingresa el email, nombre de usuario y contraseña del primer admin cuando lo pida.
+
+### 9. Verificar que todo funciona
+
+```bash
+# Health del backend
+curl http://localhost/health
+
+# Estado de los contenedores
+docker compose ps
+
+# Logs en tiempo real
+docker compose logs -f
+```
+
+La aplicación estará disponible en `http://IP-DEL-SERVIDOR`.
 
 ---
 
-## Configuración del Frontend (Leila)
+## Orden de arranque automático
 
-### 1. Navegación al directorio del frontend
+Los servicios arrancan en este orden (definido por `depends_on` en docker-compose.yml):
 
-```bash
-cd leila
+```
+redis  →  valeria-migrate  →  valeria  →  leila  →  nginx
 ```
 
-### 2. Instalación de dependencias
-
-```bash
-# Usando npm
-npm install
-
-# O usando pnpm (más rápido)
-pnpm install
-```
-
-### 3. Configuración de variables de entorno
-
-```bash
-# Copiar archivo de ejemplo
-cp .env.example .env
-```
-
-**Editar `leila/.env`:**
-
-**Variable obligatoria:**
-
-```env
-# ===================================
-# URL DEL BACKEND (OBLIGATORIO)
-# ===================================
-VITE_API_URL=http://localhost:8000/api/v1
-# En desarrollo: http://localhost:8000/api/v1
-# En producción: https://tu-dominio.com/api/v1
-```
-
-**Variables opcionales (con valores por defecto):**
-
-```env
-# Application Settings
-VITE_APP_NAME=ROGER
-VITE_APP_DESCRIPTION=Archivo Robert Gerstmann
-
-# Feature Flags
-VITE_ENABLE_SEMANTIC_SEARCH=true    # Habilita búsqueda con IA
-VITE_ENABLE_AI_NARRATIVES=true      # Habilita generación de narrativas
-
-# Analytics (Opcional)
-# VITE_GOOGLE_ANALYTICS_ID=
-# VITE_MATOMO_URL=
-# VITE_MATOMO_SITE_ID=
-```
-
-### 4. Ejecución del servidor de desarrollo
-
-```bash
-npm run dev
-```
-
-**El frontend estará disponible en:**
-- `http://localhost:5173`
+`valeria-migrate` corre una sola vez y se detiene. Si ya aplicó las migraciones,
+en el siguiente `docker compose up` detecta que no hay nada nuevo y sale en segundos.
 
 ---
 
-## Testing
-
-### Backend (Valeria)
+## Deploys posteriores (actualizar código)
 
 ```bash
-cd valeria
-
-# Ejecutar todos los tests
-pytest
-
-# Con reporte de cobertura
-pytest --cov=app --cov-report=html
-
-# Solo tests unitarios
-pytest -m unit
-
-# Solo tests de integración
-pytest -m integration
-
-# Excluir tests que requieren IA (útil sin API key)
-pytest -m "not ai"
+cd /opt/roger
+git pull origin DLeon96
+docker compose build
+docker compose run --rm valeria-migrate   # aplica migraciones nuevas si las hay
+docker compose up -d
 ```
 
-### Frontend (Leila)
+Docker Compose reemplaza solo los contenedores cuya imagen cambió. Redis y sus datos no se tocan.
+
+---
+
+## Configurar backup automático
 
 ```bash
-cd leila
+# Copiar el script al servidor
+chmod +x /opt/roger/scripts/backup.sh
 
-# Tests unitarios
-npm run test
+# Crear directorio de backups
+mkdir -p /opt/roger/backups
 
-# Tests E2E
-npm run test:e2e
+# Agregar al cron (ejecutar a las 03:00 cada día)
+crontab -e
+```
 
-# Linting
-npm run lint
+Agregar esta línea:
+```
+0 3 * * * /opt/roger/scripts/backup.sh >> /var/log/roger-backup.log 2>&1
+```
 
-# Formateo de código
-npm run format
+Verificar que funciona:
+```bash
+/opt/roger/scripts/backup.sh
+ls -lh /opt/roger/backups/
 ```
 
 ---
 
-## Notas Importantes
-
-### Arquitectura de IA
-
-**ROGER utiliza una arquitectura HÍBRIDA para minimizar costos (reducción del 97%):**
-
-Ver análisis completo en: [docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md)
-
-#### Opción 1: Híbrida (Recomendada)
-
-```
-- Embeddings (búsqueda):     Sentence Transformers (Local - Sin costo)
-- Detección de objetos:      YOLOv8 (Local - Sin costo)
-- Clustering:                Sklearn + UMAP (Local - Sin costo)
-- Narrativas:                OpenAI GPT-4o-mini (~$10/año)
-```
-
-**Ventajas:**
-- Costo anual: aproximadamente $10 (versus $229 con OpenAI puro)
-- No requiere GPU
-- Calidad premium en narrativas
-- Implementación sencilla
-
-**Configuración `.env`:**
-```env
-USE_LOCAL_EMBEDDINGS=true
-USE_LOCAL_OBJECT_DETECTION=true
-OPENAI_API_KEY=sk-xxx  # Solo para narrativas
-```
-
----
-
-#### Opción 2: 100% Local (Requiere GPU)
-
-```
-- Embeddings:      Sentence Transformers (Local)
-- Detección:       YOLOv8 (Local)
-- Narrativas:      LLaMA 3.1 8B / Mistral 7B (Local)
-```
-
-**Ventajas:**
-- Costo: $0 (sin costo)
-- Privacidad total
-- Ideal para investigación
-
-**Requisitos:**
-- GPU con 16GB+ VRAM (RTX 3090/4090, A100)
-- O CPU potente (generación lenta: aproximadamente 5 tokens/seg)
-
-**Configuración `.env`:**
-```env
-USE_LOCAL_EMBEDDINGS=true
-USE_LOCAL_LLM=true
-LOCAL_LLM_MODEL=meta-llama/Meta-Llama-3.1-8B-Instruct
-```
-
----
-
-#### Opción 3: 100% OpenAI (Más simple pero costoso)
-
-```
-- Embeddings:      OpenAI text-embedding-3-small
-- Detección:       GPT-4 Vision
-- Narrativas:      GPT-4o-mini
-```
-
-**Costo:** Aproximadamente $229/año
-
-**Configuración `.env`:**
-```env
-USE_LOCAL_EMBEDDINGS=false
-OPENAI_API_KEY=sk-xxx
-```
-
----
-
-### Obtención de API Key de OpenAI (Para Opción 1 o 3)
-
-**Proceso para obtener una API Key:**
-1. Acceder a https://platform.openai.com/
-2. Crear una cuenta
-3. Navegar a la sección de API Keys y generar una nueva clave
-4. Agregar créditos a la cuenta ($5 inicial)
-5. Copiar la clave en el archivo `.env`
-
-### Comparación de Costos
-
-| Componente | OpenAI Puro | Híbrida | 100% Local |
-|------------|-------------|---------|------------|
-| Setup inicial (10K imágenes) | $103 | $2.70 | $0 |
-| Mensual (1K imágenes) | $10.53 | $0.27 | $0 |
-| Año 1 | $229 | $6 | $0 |
-| Año 5 | $733 | $19 | $0 |
-
-**Recomendación:** Arquitectura Híbrida (ahorro del 97% versus OpenAI puro)
-
-### Seguridad
-
-**Antes de realizar commit:**
-- Nunca incluir el archivo `.env` en el repositorio
-- Nunca incluir API keys en el código
-- Cambiar `SECRET_KEY` en entornos de producción
-- Utilizar `.env.example` únicamente con valores de ejemplo
-
-### Resolución de Problemas
-
-**Error: "No module named 'app'"**
-```bash
-# Verificar que se encuentra en la carpeta valeria/
-cd valeria
-# Confirmar que el entorno virtual está activado
-```
-
-**Error: "Database not found"**
-```bash
-# Ejecutar migraciones
-alembic upgrade head
-```
-
-**Error: "Redis connection failed"**
-- Redis es opcional, el sistema funcionará sin él
-- Para instalarlo: https://redis.io/download
-- O comentar la configuración de Redis en main.py
-
-**Error al ejecutar tests: "No OpenAI API key"**
-```bash
-# Excluir tests que requieren IA
-pytest -m "not ai"
-```
-
----
-
-## Flujo de Desarrollo
-
-### 1. Iniciar el backend
+## Comandos útiles
 
 ```bash
-cd valeria
-venv\Scripts\activate  # Windows
-source venv/bin/activate  # Linux/Mac
-uvicorn app.main:app --reload
+# Ver estado de todos los servicios
+docker compose ps
+
+# Ver logs de un servicio específico
+docker compose logs -f valeria
+docker compose logs -f nginx
+
+# Reiniciar un servicio sin afectar los demás
+docker compose restart valeria
+
+# Detener todo (sin borrar datos)
+docker compose down
+
+# Detener y borrar volúmenes (DESTRUCTIVO — borra Redis)
+docker compose down -v
+
+# Entrar al contenedor del backend
+docker compose exec valeria bash
+
+# Correr un script de utilidad
+docker compose exec valeria python scripts/seed_db.py
+docker compose exec valeria python scripts/index_knowledge_base.py
 ```
 
-### 2. Iniciar el frontend (en terminal separada)
+---
 
+## Resolución de problemas
+
+**El backend no arranca:**
 ```bash
-cd leila
-npm run dev
+docker compose logs valeria
+# Revisar que .env tiene SECRET_KEY y GROQ_API_KEY completos
 ```
 
-### 3. Verificación de la API
-
-Acceder a http://localhost:8000/api/v1/docs
-
-**Endpoints disponibles:**
-- `POST /api/v1/auth/login` - Autenticación de usuario
-- `POST /api/v1/auth/register` - Registro de usuario
-- `GET /api/v1/auth/me` - Obtener usuario actual
-- `GET /health` - Verificación de estado del sistema
-
-### 4. Ejemplo de uso con curl
-
+**Redis no conecta:**
 ```bash
-# Login
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@roger.cl","password":"admin123"}'
-
-# Respuesta esperada:
-# {
-#   "access_token": "eyJ...",
-#   "refresh_token": "eyJ...",
-#   "token_type": "bearer",
-#   "user": {...}
-# }
+docker compose logs redis
+# Verificar que REDIS_PASSWORD en .env coincide con el valor en redis command
 ```
 
----
-
-## Estructura del Proyecto
-
-```
-roger/
-├── valeria/          # Backend (FastAPI + Python)
-│   ├── app/
-│   │   ├── main.py   # Entry point
-│   │   ├── config/   # Configuración
-│   │   ├── features/ # Slices (vertical)
-│   │   └── infrastructure/  # Infraestructura compartida
-│   ├── scripts/      # Scripts de utilidad
-│   ├── tests/        # Tests
-│   └── requirements.txt
-│
-├── leila/            # Frontend (SvelteKit + TypeScript)
-│   ├── src/
-│   │   ├── lib/      # Componentes, stores, services
-│   │   └── routes/   # Rutas de la aplicación
-│   └── package.json
-│
-├── docs/             # Documentación
-├── .gitignore
-├── README.md
-└── SETUP.md          # Este archivo
-```
-
----
-
-## Próximos Pasos
-
-1. Setup completado
-2. Backend en ejecución
-3. Frontend en ejecución
-4. Obtener OpenAI API Key (opcional)
-5. Implementar funcionalidades adicionales
-6. Desplegar en producción
-
----
-
-## Funcionalidades Pendientes de Implementación
-
-### Completado (100% Backend + Frontend Base)
-
-**Backend - Valeria:**
-- Arquitectura hexagonal con vertical slices
-- Autenticación JWT con 7 roles (RBAC)
-- CRUD completo de imágenes
-- Búsqueda avanzada + semántica (RAG)
-- Generación de narrativas con IA
-- Sistema de trazabilidad (VERAZ/VEROSÍMIL)
-- Base de datos PostgreSQL + migraciones Alembic
-- Scripts de utilidad (seed, create_admin, index_kb)
-
-**Frontend - Leila:**
-- Componentes base (Layout, Header, Footer)
-- Componentes de visualización (ImageCard, ImageGrid, ImageViewer)
-- Stores de Svelte (auth, images, search, notifications)
-- Servicios API completos
-- Rutas públicas (Home, Gallery, Login, About)
-- Sistema de notificaciones (Toast)
-
-### Pendientes de Implementar
-
-#### Alta Prioridad
-
-1. **Mapa Interactivo** (`/map` route)
-   - Integración con Leaflet o Google Maps
-   - Visualización geográfica de imágenes por ubicación
-   - Filtrado por región/zona
-
-2. **Panel de Administración** (`/admin/*` routes)
-   - Gestión de usuarios (crear, editar, eliminar, roles)
-   - Moderación de narrativas (aprobar/rechazar)
-   - Gestión de colecciones
-   - Estadísticas y analytics
-
-3. **Perfil de Usuario** (`/profile` route)
-   - Visualización y edición de perfil
-   - Cambio de contraseña
-   - Historial de narrativas generadas
-   - Preferencias de usuario
-
-4. **Upload de Imágenes**
-   - Interfaz para subir nuevas fotografías
-   - Procesamiento y optimización de imágenes
-   - Extracción de metadatos EXIF
-   - Validación de formatos
-
-5. **Colecciones**
-   - Agrupación de imágenes por colecciones temáticas
-   - CRUD de colecciones
-   - Vista de colección individual
-
-#### Media Prioridad
-
-6. **Búsqueda Avanzada UI**
-   - Filtros facetados más completos
-   - Autocomplete en búsqueda
-   - Historial de búsquedas
-   - Búsquedas guardadas
-
-7. **Compartir y Exportar**
-   - Compartir imágenes por URL
-   - Exportar resultados de búsqueda (PDF, Excel)
-   - Generar citas bibliográficas
-
-8. **Comparador de Imágenes**
-   - Visualización de dos o más imágenes lado a lado
-   - Comparación de metadatos
-   - Línea de tiempo visual
-
-9. **Comentarios y Colaboración**
-   - Sistema de comentarios en imágenes
-   - Reporte de errores en metadatos
-   - Sugerencias de corrección
-
-10. **Notificaciones en Tiempo Real**
-    - WebSocket para notificaciones
-    - Alertas de nuevas imágenes
-    - Notificaciones de aprobación de narrativas
-
-#### Baja Prioridad
-
-11. **Multilenguaje (i18n)**
-    - Español (por defecto)
-    - Inglés
-    - Alemán (idioma de Gerstmann)
-
-12. **PWA (Progressive Web App)**
-    - Modo offline
-    - Instalación en dispositivos
-    - Cache de imágenes
-
-13. **Integración con Redes Sociales**
-    - Login con Google, Facebook
-    - Compartir en redes sociales
-
-14. **API Pública**
-    - Documentación para desarrolladores externos
-    - Rate limiting
-    - API keys para terceros
-
-15. **Visualizaciones Avanzadas**
-    - Timeline histórico interactivo
-    - Grafos de relaciones entre imágenes
-    - Estadísticas y dashboards
-
-### Mejoras Técnicas Pendientes
-
-- **Tests**: Aumentar cobertura de tests (unitarios, integración, E2E)
-- **Performance**: Implementar lazy loading, pagination infinita
-- **SEO**: Meta tags, sitemap, robots.txt
-- **Accesibilidad**: ARIA labels, navegación por teclado
-- **Docker**: Dockerfiles para backend y frontend
-- **CI/CD**: GitHub Actions para deploy automático
-- **Monitoring**: Sentry para errores, analytics
-- **Backup**: Sistema de backup automatizado de base de datos
-
-### Slices Adicionales del Backend
-
-Según la documentación original, faltan estos slices:
-- `manage_collections/` - Gestión de colecciones
-- `upload_images/` - Carga y procesamiento de imágenes
-- `moderate_content/` - Moderación por curadores
-- `export_data/` - Exportación de datos
-- `analytics/` - Estadísticas y métricas
-
----
-
-## Estado del Proyecto
-
-**Completado:** Aproximadamente 60%
-- Backend core: 100%
-- Frontend core: 80%
-- Features avanzados: 30%
-- Tests: 20%
-- Deploy/DevOps: 0%
-
-**Siguiente Milestone:** Implementación de mapa interactivo y panel de administración
-
----
-
-## Soporte
-
-En caso de problemas durante la instalación:
-1. Revisar la sección de Resolución de Problemas
-2. Verificar que todas las dependencias estén instaladas
-3. Confirmar que los puertos 8000 y 5173 estén disponibles
-4. Consultar los logs: `valeria/logs/` y consola del navegador
-
-**Logs útiles:**
+**nginx da 502 Bad Gateway:**
 ```bash
-# Ver logs del backend
-tail -f valeria/logs/app.log
+# Esperar a que valeria y leila pasen el healthcheck (puede tardar ~60s en frío)
+docker compose ps
+# Cuando ambos muestren "healthy", nginx debería funcionar
+```
 
-# Ver logs de PostgreSQL (Linux/Mac)
-tail -f /var/log/postgresql/postgresql-14-main.log
+**Migraciones fallan:**
+```bash
+docker compose run --rm valeria-migrate
+# Leer el error. Generalmente es DATABASE_URL mal formada o falta de permisos en ./data/
+```
 
-# Ver logs de Redis
-redis-cli monitor
+**No puedo escribir en ./data:**
+```bash
+# En el servidor
+ls -la /opt/roger/data/
+# Si es propiedad de root y docker no puede escribir:
+chmod 777 /opt/roger/data
 ```
 
 ---
 
-## Despliegue en Producción (Futuro)
+## Activar TLS cuando llegue el dominio UCN
 
-### Opciones recomendadas
-
-**Backend:**
-- Railway, Render, DigitalOcean App Platform
-- PostgreSQL managed database
-- Redis managed instance (opcional)
-
-**Frontend:**
-- Vercel, Netlify, Cloudflare Pages
-- Deploy automático desde Git
-
-**Solución completa (Backend + Frontend):**
-- Docker + Docker Compose
-- AWS (EC2 + RDS + S3)
-- Google Cloud Platform
-- Azure
+1. Recibir `roger.crt` y `roger.key` de TI UCN
+2. Copiarlos:
+   ```bash
+   mkdir -p /etc/roger/certs
+   cp roger.crt /etc/roger/certs/
+   cp roger.key /etc/roger/certs/
+   chmod 600 /etc/roger/certs/roger.key
+   ```
+3. Editar `nginx.conf`: reemplazar `roger.ucn.cl` con el dominio real
+4. Editar `.env`: actualizar `FRONTEND_URL=https://dominio-real.ucn.cl`
+5. Reiniciar nginx:
+   ```bash
+   docker compose restart nginx
+   ```
 
 ---
 
-**Última actualización:** Febrero 2026
-**Versión:** 1.0.0-beta
+## Desarrollo local (sin Docker)
+
+Ver instrucciones en `valeria/README.md` y `leila/README.md`.
+Stack dev: `uvicorn app.main:app --reload` + `npm run dev`.

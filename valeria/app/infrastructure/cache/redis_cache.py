@@ -21,9 +21,11 @@ class RedisCache(BaseCache):
         """Connect to Redis."""
         self.redis = await redis.from_url(
             settings.redis_url,
+            password=settings.redis_password or None,
             encoding="utf-8",
-            decode_responses=True
+            decode_responses=True,
         )
+        await self.redis.ping()
     
     async def disconnect(self):
         """Disconnect from Redis."""

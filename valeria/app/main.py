@@ -50,12 +50,13 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database initialized")
     
-    # Connect to Redis cache
-    try:
-        await cache.connect()
-        logger.info("Redis cache connected")
-    except Exception as e:
-        logger.warning("Redis cache connection failed", error=str(e))
+    # Connect to Redis cache (only if enabled)
+    if settings.redis_enabled:
+        try:
+            await cache.connect()
+            logger.info("Redis cache connected", url=settings.redis_url)
+        except Exception as e:
+            logger.warning("Redis cache connection failed", error=str(e))
     
     yield
     
@@ -67,11 +68,12 @@ async def lifespan(app: FastAPI):
     logger.info("Database connections closed")
     
     # Disconnect from Redis
-    try:
-        await cache.disconnect()
-        logger.info("Redis cache disconnected")
-    except Exception:
-        pass
+    if settings.redis_enabled:
+        try:
+            await cache.disconnect()
+            logger.info("Redis cache disconnected")
+        except Exception:
+            pass
 
 
 # Create FastAPI app
